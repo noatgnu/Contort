@@ -48,7 +48,10 @@ export class SegmentComponent {
   }
 
   drawHeatmap() {
-    console.log(this.segment)
+    this.graphLayout.margin.b = this.dataService.segmentSettings["margin-bottom"]
+    this.graphLayout.margin.t = this.dataService.segmentSettings["margin-top"]
+    this.graphLayout.width = this.dataService.segmentSettings["cell-size"]
+    this.graphLayout.height = this.dataService.segmentSettings["cell-size"] + this.dataService.segmentSettings["margin-bottom"] + this.dataService.segmentSettings["margin-top"]
     // draw sequence using heatmap plotly with colors from the ConSurf Grade column
     const graphData: any[] = []
     const temp: any = {

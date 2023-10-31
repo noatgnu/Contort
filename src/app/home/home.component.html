@@ -1,7 +1,51 @@
 <mat-drawer-container autosize class="drawer-container">
   <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
     <app-segment-finder [data]="data"></app-segment-finder>
+    <div style="display: flex; gap: 20px; padding: 20px">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Color settings</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div *ngFor="let g of grades" style="display: flex; align-items: center; justify-content: center; padding: 2px">
+            <div>
+              <ngx-colors ngx-colors-trigger [(ngModel)]="dataService.color_map[g]"></ngx-colors>
+            </div>
+            <div style="font-size: 15pt; padding-left: 20px">{{g}}</div>
+          </div>
 
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button (click)="triggerUpdate()">Update</button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Segment settings</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div style="display: flex; flex-direction: column; gap:20px">
+            <mat-form-field>
+              <mat-label>Margin Top</mat-label>
+              <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-top']">
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Margin Bottom</mat-label>
+              <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-bottom']">
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Heatmap Cell-size</mat-label>
+              <input matInput type="number" [(ngModel)]="dataService.segmentSettings['cell-size']">
+            </mat-form-field>
+          </div>
+
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button (click)="triggerUpdate()">Update</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
   </mat-drawer>
   <mat-toolbar color="primary">
     <button (click)="drawer.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">

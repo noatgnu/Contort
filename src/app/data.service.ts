@@ -18,7 +18,11 @@ export class DataService {
     8: "rgb(239, 120, 160)",
     9: "rgb(159, 32, 95)"
   }
-
+  segmentSettings: any = {
+    "margin-top": 30,
+    "margin-bottom": 50,
+    "cell-size": 50,
+  }
   segmentSelection: Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]> = new Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]>()
   segments: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
   redrawSubject: Subject<boolean> = new Subject<boolean>()

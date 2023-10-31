@@ -87,7 +87,5 @@ export class ConsurfPlotComponent {
 
   }
 
-  triggerUpdate() {
-    this.dataService.redrawSubject.next(true)
-  }
+
 }

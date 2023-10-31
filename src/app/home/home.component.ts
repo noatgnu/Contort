@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {DataFrame, fromCSV, IDataFrame} from "data-forge";
 import {ConSurfData} from "../con-surf-data";
+import {DataService} from "../data.service";
 
 @Component({
   selector: 'app-home',
@@ -34,5 +35,10 @@ export class HomeComponent {
     }
   }
 
-  constructor() { }
+  grades = Object.keys(this.dataService.color_map)
+  constructor(public dataService: DataService) { }
+
+  triggerUpdate() {
+    this.dataService.redrawSubject.next(true)
+  }
 }
