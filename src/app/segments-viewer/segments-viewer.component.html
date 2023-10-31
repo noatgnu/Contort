@@ -1,0 +1,13 @@
+<div style="display: flex; justify-content: center">
+  <div *ngIf="dataService.segments.length > 0; else noselected" style="display: flex; justify-content: center; flex-direction: column; gap: 20px">
+    <app-segment *ngFor="let s of dataService.segments" [data]="s">
+
+    </app-segment>
+  </div>
+</div>
+
+<ng-template #noselected>
+  <div style="display: flex; justify-content: center">
+    <div style="font-size: 15pt">No segments selected</div>
+  </div>
+</ng-template>

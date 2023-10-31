@@ -1,0 +1,27 @@
+<div style="padding: 20px">
+  <form [formGroup]="formSequence" (ngSubmit)="searchSequence()" >
+    <b>Sequence-based search</b>
+    <div style="display: flex; gap:20px; align-items: center">
+      <mat-form-field>
+        <input matInput formControlName="sequence" placeholder="Sequence" type="text">
+      </mat-form-field>
+      <button mat-raised-button type="submit">Search</button>
+    </div>
+  </form>
+  <hr>
+  <form [formGroup]="formStartEnd" (ngSubmit)="searchStartEnd()">
+    <b>Position-based search</b>
+    <div style="display: flex; gap:20px; align-items: center">
+      <mat-form-field>
+        <input matInput formControlName="start" placeholder="Start" type="number">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput formControlName="end" placeholder="End" type="number">
+      </mat-form-field>
+      <button mat-raised-button type="submit">Search</button>
+    </div>
+
+  </form>
+</div>
+
+

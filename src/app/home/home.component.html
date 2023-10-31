@@ -1,0 +1,24 @@
+<mat-drawer-container autosize class="drawer-container">
+  <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
+    <app-segment-finder [data]="data"></app-segment-finder>
+
+  </mat-drawer>
+  <mat-toolbar color="primary">
+    <button (click)="drawer.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span>Contort</span>
+    <span class="spacer"></span>
+    <div>
+      <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>
+    </div>
+  </mat-toolbar>
+  <div>
+    <div style="padding: 20px">
+      <app-consurf-plot [data]="data"></app-consurf-plot>
+    </div>
+  </div>
+
+</mat-drawer-container>
+
+<input type="file" #inputFile hidden (change)="handleFileImport($event)">

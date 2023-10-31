@@ -1,0 +1,25 @@
+<plotly-plot [data]="graphData" [layout]="graphLayout" [updateOnDataChange]="true" [updateOnLayoutChange]="true" [useResizeHandler]="true"></plotly-plot>
+<div style="display: flex; gap: 20px">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Color settings</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngFor="let g of grades" style="display: flex; align-items: center; justify-content: center; padding: 2px">
+        <div>
+          <ngx-colors ngx-colors-trigger [(ngModel)]="dataService.color_map[g]"></ngx-colors>
+        </div>
+        <div style="font-size: 15pt; padding-left: 20px">{{g}}</div>
+      </div>
+
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button (click)="triggerUpdate()">Update</button>
+    </mat-card-actions>
+  </mat-card>
+  <div style="flex-grow:1">
+    <app-segments-viewer></app-segments-viewer>
+  </div>
+</div>
+
+
