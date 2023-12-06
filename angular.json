@@ -73,10 +73,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "consurfViewer:build:production"
+              "buildTarget": "consurfViewer:build:production"
             },
             "development": {
-              "browserTarget": "consurfViewer:build:development"
+              "buildTarget": "consurfViewer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -84,7 +84,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "consurfViewer:build"
+            "buildTarget": "consurfViewer:build"
           }
         },
         "test": {
