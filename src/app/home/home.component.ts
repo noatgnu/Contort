@@ -1,15 +1,19 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {DataFrame, fromCSV, IDataFrame} from "data-forge";
-import {ConSurfData} from "../con-surf-data";
+import {ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
+import {FormBuilder, FormControl, Validators} from "@angular/forms";
+import {debounceTime, forkJoin, map, Observable, startWith, tap} from "rxjs";
+import {WebService} from "../web.service";
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.sass']
 })
-export class HomeComponent {
-  data: IDataFrame<number, ConSurfData> = new DataFrame()
+export class HomeComponent implements OnInit{
+  dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
+  dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
   handleFileImport(event: Event) {
     if (event.target) {
       const target = event.target as HTMLInputElement
@@ -23,11 +27,8 @@ export class HomeComponent {
             const lines = text.split("\n")
             lines.splice(0, 4)
             lines[0] = lines[0].replace(/\s/g, "_")
-
             const data = lines.join("\n")
-            // @ts-ignore
-            const df: IDataFrame<number, ConSurfData> = fromCSV(data)
-            this.data = df
+            this.dataService.dataMSA = fromCSV(data)
           }
         }
         reader.readAsText(file)
@@ -36,9 +37,55 @@ export class HomeComponent {
   }
 
   grades = Object.keys(this.dataService.color_map)
-  constructor(public dataService: DataService) { }
+
+  form = this.fb.group(
+    {
+      "term": new FormControl<string>("", Validators.required)
+    }
+  )
+  filteredOptions: Observable<string[]> = new Observable<string[]>()
+  constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
+    this.dataService.segmentSelection.subscribe((data) => {
+      this.dataService.segments.push(...data)
+    })
+  }
+
+  ngOnInit(): void {
+    this.form.controls["term"].valueChanges.pipe(
+      debounceTime(200),
+      map(value => this.web.getUniprotTypeAhead(value||'')),
+    ).subscribe((data) => {
+      this.filteredOptions = data
+    })
+  }
 
   triggerUpdate() {
     this.dataService.redrawSubject.next(true)
+  }
+
+  getCONSURF() {
+    if (this.form.value.term &&this.form.value.term !== "") {
+      forkJoin([this.web.getConsurfGrade(this.form.value.term), this.web.getConsurfMSAVar(this.form.value.term)]).subscribe((data) => {
+        const grades = data[0]
+        const msaVar = data[1]
+        this.dataService.dataMSA = new DataFrame(msaVar)
+        this.dataService.dataGrade = new DataFrame(grades)
+
+
+        this.dataService.combinedData = this.dataService.dataGrade.join(
+          this.dataService.dataMSA,
+            row => row.POS,
+            row => row.pos,
+          (left, right) => {
+          return {
+            MSA: right,
+            GRADE: left
+          }
+        }).bake()
+        console.log(this.dataService.combinedData)
+        this.dataService.redrawSubject.next(true)
+      })
+    }
+
   }
 }

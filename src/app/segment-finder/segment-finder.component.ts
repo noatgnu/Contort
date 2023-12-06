@@ -1,7 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {FormBuilder, FormControl, Validators} from "@angular/forms";
 import {DataFrame, IDataFrame} from "data-forge";
-import {ConSurfData} from "../con-surf-data";
+import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 
 @Component({
@@ -12,7 +12,7 @@ import {DataService} from "../data.service";
 export class SegmentFinderComponent {
   private _data: IDataFrame<number, ConSurfData> = new DataFrame()
   @Input() set data(value: IDataFrame<number, ConSurfData>) {
-    this.sequence = value.getSeries("MAX_AA").bake().toArray().map((a: string) => a[0]).join("")
+    this.sequence = value.getSeries("GRADE").bake().toArray().map((a: ConSurfGrade) => a.SEQ).join("")
     this._data = value
   }
 
@@ -44,7 +44,7 @@ export class SegmentFinderComponent {
             continue
           }
           const seq = this._data.where((row) => {
-            return row.pos >= match.index && row.pos < match.index + sequence.length
+            return row.GRADE.POS >= match.index && row.GRADE.POS < match.index + sequence.length
           }).bake()
           matches.push({start: match.index + 1, end: match.index + sequence.length, seq: seq})
         }
@@ -66,7 +66,7 @@ export class SegmentFinderComponent {
           })
           if (exist.length === 0) {
             const seq = this._data.where((row) => {
-              return row.pos >= start && row.pos <= end
+              return row.GRADE.POS >= start && row.GRADE.POS <= end
             }).bake()
             this.dataService.segmentSelection.next([{start: start, end: end, seq: seq}])
           }

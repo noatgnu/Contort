@@ -1,27 +1,36 @@
-<div style="padding: 20px">
-  <form [formGroup]="formSequence" (ngSubmit)="searchSequence()" >
-    <b>Sequence-based search</b>
-    <div style="display: flex; gap:20px; align-items: center">
-      <mat-form-field>
-        <input matInput formControlName="sequence" placeholder="Sequence" type="text">
-      </mat-form-field>
-      <button mat-raised-button type="submit">Search</button>
-    </div>
-  </form>
-  <hr>
-  <form [formGroup]="formStartEnd" (ngSubmit)="searchStartEnd()">
-    <b>Position-based search</b>
-    <div style="display: flex; gap:20px; align-items: center">
-      <mat-form-field>
-        <input matInput formControlName="start" placeholder="Start" type="number">
-      </mat-form-field>
-      <mat-form-field>
-        <input matInput formControlName="end" placeholder="End" type="number">
-      </mat-form-field>
-      <button mat-raised-button type="submit">Search</button>
-    </div>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Custom Segment Selection</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="formSequence" (ngSubmit)="searchSequence()">
+      <b>Sequence-based search</b>
+      <div style="display: flex; gap:20px; align-items: center">
+        <mat-form-field>
+          <mat-label>Sequence</mat-label>
+          <input matInput formControlName="sequence" type="text">
+        </mat-form-field>
+        <button mat-raised-button type="submit" color="primary">Search</button>
+      </div>
+    </form>
+    <hr>
+    <form [formGroup]="formStartEnd" (ngSubmit)="searchStartEnd()">
+      <b>Position-based search</b>
+      <div style="display: flex; gap:20px; align-items: center">
+        <mat-form-field>
+          <mat-label>Starting Position</mat-label>
+          <input matInput formControlName="start" placeholder="Start" type="number">
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Ending Position</mat-label>
+          <input matInput formControlName="end" placeholder="End" type="number">
+        </mat-form-field>
+        <button mat-raised-button type="submit" color="primary">Search</button>
+      </div>
 
-  </form>
-</div>
+    </form>
+  </mat-card-content>
+
+</mat-card>
 
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {Subject} from "rxjs";
-import {ConSurfData} from "./con-surf-data";
-import {IDataFrame} from "data-forge";
+import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "./con-surf-data";
+import {DataFrame, IDataFrame} from "data-forge";
 
 @Injectable({
   providedIn: 'root'
@@ -21,11 +21,16 @@ export class DataService {
   segmentSettings: any = {
     "margin-top": 30,
     "margin-bottom": 50,
-    "cell-size": 50,
+    "cell-size": 30,
   }
   segmentSelection: Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]> = new Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]>()
   segments: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
   redrawSubject: Subject<boolean> = new Subject<boolean>()
+
+  dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
+  dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
+  combinedData: IDataFrame<number, ConSurfData> = new DataFrame()
+
   constructor() {
 
   }

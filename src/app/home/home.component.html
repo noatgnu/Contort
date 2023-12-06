@@ -1,6 +1,5 @@
 <mat-drawer-container autosize class="drawer-container">
   <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
-    <app-segment-finder [data]="data"></app-segment-finder>
     <div style="display: flex; gap: 20px; padding: 20px">
       <mat-card>
         <mat-card-header>
@@ -58,8 +57,39 @@
     </div>
   </mat-toolbar>
   <div>
+    <div style="display: flex; padding: 20px; gap: 20px">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Protein Search</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div style="padding: 20px">
+            <form [formGroup]="form" (ngSubmit)="getCONSURF()">
+              <mat-form-field style="padding-right:20px">
+                <mat-label>Search</mat-label>
+                <input matInput type="search" formControlName="term" [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete" autoActiveFirstOption>
+                  <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                    {{option}}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+              <button mat-raised-button type="submit" color="primary">Search</button>
+            </form>
+          </div>
+        </mat-card-content>
+
+      </mat-card>
+      <app-segment-finder [data]="dataService.combinedData"></app-segment-finder>
+    </div>
+
+
+
     <div style="padding: 20px">
-      <app-consurf-plot [data]="data"></app-consurf-plot>
+      <app-consurf-plot [data]="dataService.dataGrade"></app-consurf-plot>
+    </div>
+    <div style="padding: 20px; display: flex; justify-content: center">
+      <app-seq-view [data]="dataService.combinedData"></app-seq-view>
     </div>
   </div>
 

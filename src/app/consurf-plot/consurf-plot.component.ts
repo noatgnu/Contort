@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {DataFrame, IDataFrame} from "data-forge";
-import {ConSurfData} from "../con-surf-data";
+import {ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 
 @Component({
@@ -9,14 +9,14 @@ import {DataService} from "../data.service";
   styleUrls: ['./consurf-plot.component.sass']
 })
 export class ConsurfPlotComponent {
-  private _data: IDataFrame<number, ConSurfData> = new DataFrame()
+  private _data: IDataFrame<number, ConSurfGrade> = new DataFrame()
 
-  @Input() set data (value: IDataFrame<number, ConSurfData>) {
+  @Input() set data (value: IDataFrame<number, ConSurfGrade>) {
     this._data = value
     this.drawGraph()
   }
 
-  get data(): IDataFrame<number, ConSurfData> {
+  get data(): IDataFrame<number, ConSurfGrade> {
     return this._data
   }
 
@@ -51,9 +51,7 @@ export class ConsurfPlotComponent {
 
 
   constructor(public dataService: DataService) {
-    this.dataService.segmentSelection.subscribe((data) => {
-      this.dataService.segments.push(...data)
-    })
+
     this.dataService.redrawSubject.subscribe((data) => {
       this.drawGraph()
     })
@@ -76,11 +74,11 @@ export class ConsurfPlotComponent {
     }
     const ticklabels: number[] = []
     this.data.forEach((row) => {
-      temp.x.push(row.pos)
+      temp.x.push(row.POS)
       temp.y.push(1)
-      temp.text.push(row.MAX_AA[0])
-      temp.marker.color.push(this.dataService.color_map[row.ConSurf_Grade])
-      ticklabels.push(row.pos)
+      temp.text.push(row.SEQ)
+      temp.marker.color.push(this.dataService.color_map[row.COLOR[0]])
+      ticklabels.push(row.POS)
     })
     graphData.push(temp)
     this.graphData = graphData

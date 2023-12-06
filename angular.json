@@ -33,7 +33,8 @@
               "@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.sass"
             ],
-            "scripts": []
+            "scripts": [],
+            "webWorkerTsConfig": "tsconfig.worker.json"
           },
           "configurations": {
             "production": {
@@ -57,7 +58,13 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -97,7 +104,8 @@
               "@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.sass"
             ],
-            "scripts": []
+            "scripts": [],
+            "webWorkerTsConfig": "tsconfig.worker.json"
           }
         }
       }

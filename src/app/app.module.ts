@@ -20,6 +20,9 @@ import { SegmentFinderComponent } from './segment-finder/segment-finder.componen
 import {MatInputModule} from "@angular/material/input";
 import { SegmentsViewerComponent } from './segments-viewer/segments-viewer.component';
 import { SegmentComponent } from './segment/segment.component';
+import {HttpClientModule} from "@angular/common/http";
+import {MatAutocompleteModule} from "@angular/material/autocomplete";
+import { SeqViewComponent } from './seq-view/seq-view.component';
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -30,7 +33,8 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ConsurfPlotComponent,
     SegmentFinderComponent,
     SegmentsViewerComponent,
-    SegmentComponent
+    SegmentComponent,
+    SeqViewComponent
   ],
   imports: [
     BrowserModule,
@@ -46,7 +50,9 @@ PlotlyModule.plotlyjs = PlotlyJS;
     NgxColorsModule,
     FormsModule,
     ReactiveFormsModule,
-    MatInputModule
+    MatInputModule,
+    HttpClientModule,
+    MatAutocompleteModule
   ],
   providers: [],
   bootstrap: [AppComponent]

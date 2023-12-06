@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {DataFrame, IDataFrame} from "data-forge";
-import {ConSurfData} from "../con-surf-data";
+import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 
 @Component({
@@ -21,7 +21,7 @@ export class SegmentComponent {
       l: 0,
       r: 0,
       b: 20,
-      t: 50,
+      t: 0,
     },
     height: 120,
     width: 50,
@@ -40,7 +40,7 @@ export class SegmentComponent {
       fixedrange: true,
     }
   }
-
+  revision = 0
   constructor(private dataService: DataService) {
     this.dataService.redrawSubject.subscribe((data) => {
       this.drawHeatmap()
@@ -59,8 +59,10 @@ export class SegmentComponent {
       y: [1],
       z: [[]],
       text: [[]],
+      data: [],
       textposition: 'middle center',
       texttemplate: '%{text}',
+      hovertemplate: 'Position: %{x}<br>Grade: %{text}<extra></extra>',
       type: 'heatmap',
       colorscale: [],
       xgap: 1,
@@ -79,15 +81,17 @@ export class SegmentComponent {
     }
     const ticks: number[] = []
     this.segment.seq.forEach((row) => {
-      temp.x.push(row.pos)
-      temp.z[0].push(row.ConSurf_Grade)
-      temp.text[0].push(row.MAX_AA[0])
-      ticks.push(row.pos)
+      temp.x.push(row.GRADE.POS)
+      temp.z[0].push(row.GRADE.COLOR[0])
+      temp.text[0].push(row.GRADE.SEQ)
+      ticks.push(row.GRADE.POS)
+      temp.data.push(row)
     })
-    this.graphLayout.title = `${this.segment.start}-${temp.text[0].join("")}-${this.segment.end}`
+    //this.graphLayout.title = `${this.segment.start}-${temp.text[0].join("")}-${this.segment.end}`
     graphData.push(temp)
     this.graphData = graphData
-    this.graphLayout.width = temp.x.length * 50
-    this.graphLayout.xaxis.tickvals = ticks
+    this.graphLayout.width = temp.x.length * this.dataService.segmentSettings["cell-size"]
+    this.graphLayout.xaxis.tickvals = [ticks[0], ticks[ticks.length-1]]
+    this.revision++
   }
 }
