@@ -18,9 +18,9 @@ export class SeqViewComponent {
     const segmentSize = 50
     const segmentCount = Math.ceil(this.data.count() / segmentSize)
     for (let i = 0; i < segmentCount; i++) {
-      const start = i * segmentSize
-      const end = Math.min((i + 1) * segmentSize, this.data.count())
-      const seq = this.data.between(start, end)
+      const start = i*segmentSize
+      const end = Math.min((i+1) * segmentSize, this.data.count())
+      const seq = this.data.between(start, end-1)
       segments.push({start: start, end: end, seq: seq})
     }
     this.segments = segments

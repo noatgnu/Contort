@@ -31,6 +31,7 @@ export class SegmentComponent {
       tickmode: 'array',
       showticklabels: true,
       tickvals: [],
+      ticktext: [],
       fixedrange: true,
     },
     yaxis: {
@@ -38,7 +39,8 @@ export class SegmentComponent {
       type: 'category',
       tickmode: 'array',
       fixedrange: true,
-    }
+    },
+    shapes: [],
   }
   revision = 0
   constructor(private dataService: DataService) {
@@ -62,7 +64,7 @@ export class SegmentComponent {
       data: [],
       textposition: 'middle center',
       texttemplate: '%{text}',
-      hovertemplate: 'Position: %{x}<br>Grade: %{text}<extra></extra>',
+      hovertemplate: 'Position: %{x}<br>Grade: %{z}<extra></extra>',
       type: 'heatmap',
       colorscale: [],
       xgap: 1,
@@ -80,18 +82,47 @@ export class SegmentComponent {
       temp.colorscale.push([(parseInt(c)-1)/(9-1), this.dataService.color_map[c]])
     }
     const ticks: number[] = []
+    const shapes: any[] = []
     this.segment.seq.forEach((row) => {
       temp.x.push(row.GRADE.POS)
       temp.z[0].push(row.GRADE.COLOR[0])
       temp.text[0].push(row.GRADE.SEQ)
       ticks.push(row.GRADE.POS)
       temp.data.push(row)
+
     })
     //this.graphLayout.title = `${this.segment.start}-${temp.text[0].join("")}-${this.segment.end}`
     graphData.push(temp)
+    //draw a line under the square that has been selected
+    for (const x of temp.x) {
+      if (this.dataService.selectionMap[x]) {
+
+        for (const seq of this.dataService.selectionMap[x]) {
+          const x0Paper = (x - temp.x[0]-0.5) / (temp.x[temp.x.length-1] - temp.x[0])
+          const x1Paper = (x - temp.x[0] + 0.5) / (temp.x[temp.x.length-1] - temp.x[0])
+          shapes.push({
+            type: 'line',
+            yref: 'paper',
+            xref: 'paper',
+            x0: x0Paper,
+            x1: x1Paper,
+            y0: -1,
+            y1: -1,
+            line: {
+              color: this.dataService.segmentColorMap[seq],
+              width: 2,
+            }
+          })
+        }
+      }
+    }
+
     this.graphData = graphData
     this.graphLayout.width = temp.x.length * this.dataService.segmentSettings["cell-size"]
-    this.graphLayout.xaxis.tickvals = [ticks[0], ticks[ticks.length-1]]
+    this.graphLayout.xaxis.tickvals =[ticks[0], ticks[Math.round(ticks.length/2)], ticks[ticks.length-1]]
+
+    this.graphLayout.shapes = shapes
     this.revision++
+
   }
 }

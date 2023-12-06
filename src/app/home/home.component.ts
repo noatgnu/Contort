@@ -46,7 +46,25 @@ export class HomeComponent implements OnInit{
   filteredOptions: Observable<string[]> = new Observable<string[]>()
   constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
     this.dataService.segmentSelection.subscribe((data) => {
-      this.dataService.segments.push(...data)
+      for (const d of data) {
+        const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
+        if (!this.dataService.selectedSeqs.includes(seq)) {
+          this.dataService.selectedSeqs.push(seq)
+          for (let i = d.start; i <= d.end; i++) {
+            if (!this.dataService.selectionMap[i]) {
+              this.dataService.selectionMap[i] = []
+            }
+            this.dataService.selectionMap[i].push(seq)
+            this.dataService.selectionMap[i].sort((a, b) => b.length - a.length)
+          }
+          this.dataService.segments.push(d)
+          if (!this.dataService.segmentColorMap[seq]) {
+            this.dataService.segmentColorMap[seq] = this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
+          }
+        }
+
+      }
+      this.dataService.redrawSubject.next(true)
     })
   }
 

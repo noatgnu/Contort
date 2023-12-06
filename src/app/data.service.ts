@@ -23,10 +23,25 @@ export class DataService {
     "margin-bottom": 50,
     "cell-size": 30,
   }
+
+  defaultColorList: string[] = [
+    "#fd7f6f",
+    "#7eb0d5",
+    "#b2e061",
+    "#bd7ebe",
+    "#ffb55a",
+    "#ffee65",
+    "#beb9db",
+    "#fdcce5",
+    "#8bd3c7",
+  ]
+
   segmentSelection: Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]> = new Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]>()
   segments: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
   redrawSubject: Subject<boolean> = new Subject<boolean>()
-
+  selectionMap: {[key: string]: string[]} = {}
+  segmentColorMap: {[key: string]: string} = {}
+  selectedSeqs: string[] = []
   dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
   dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
   combinedData: IDataFrame<number, ConSurfData> = new DataFrame()
