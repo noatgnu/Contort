@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  baseUrl: "http://localhost:8000",
+  baseUrl: "https://contort.captain.151-80-32-156.muttsu.xyz",
 };

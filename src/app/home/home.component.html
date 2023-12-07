@@ -58,58 +58,57 @@
           </mat-card-actions>
         </mat-card>
       </div>
-
     </div>
-
-
-
-    <div style="padding: 20px">
-      <app-consurf-plot [data]="dataService.dataGrade" (filterRange)="handleFilterRange($event)"></app-consurf-plot>
-    </div>
-    <div style="display: flex; justify-content: center; padding: 20px">
+    <div style="padding: 20px" *ngIf="dataService.displayData.count() > 0">
       <div>
-        <mat-card>
-          <mat-card-header>
-            <mat-card-title>Segment settings</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div style="display: flex; gap:20px">
-              <mat-form-field>
-                <mat-label>Margin Top</mat-label>
-                <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-top']">
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Margin Bottom</mat-label>
-                <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-bottom']">
-              </mat-form-field>
-              <mat-form-field>
-                <mat-label>Heatmap Cell-size</mat-label>
-                <input matInput type="number" [(ngModel)]="dataService.segmentSettings['cell-size']">
-              </mat-form-field>
+        <app-consurf-plot [data]="dataService.dataGrade" (filterRange)="handleFilterRange($event)"></app-consurf-plot>
+      </div>
+      <div style="display: flex; justify-content: center; padding: 20px">
+        <div>
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Segment settings</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div style="display: flex; gap:20px">
+                <mat-form-field>
+                  <mat-label>Margin Top</mat-label>
+                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-top']">
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Margin Bottom</mat-label>
+                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-bottom']">
+                </mat-form-field>
+                <mat-form-field>
+                  <mat-label>Heatmap Cell-size</mat-label>
+                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['cell-size']">
+                </mat-form-field>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-raised-button (click)="triggerUpdate()">Update</button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+      <div style="padding: 20px">
+        <mat-tab-group mat-stretch-tabs mat-align-tabs="center">
+          <mat-tab label="Sequence Viewer">
+            <div style="padding: 20px; display: flex; justify-content: center">
+              <app-seq-view [data]="dataService.displayData"></app-seq-view>
             </div>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button (click)="triggerUpdate()">Update</button>
-          </mat-card-actions>
-        </mat-card>
+          </mat-tab>
+          <mat-tab label="Extracted Seqments">
+            <div style="display: flex; gap: 20px; padding: 20px">
+              <div style="flex-grow:1">
+                <app-segments-viewer></app-segments-viewer>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
       </div>
     </div>
-    <div style="padding: 20px">
-      <mat-tab-group mat-stretch-tabs mat-align-tabs="center">
-        <mat-tab label="Sequence Viewer">
-          <div style="padding: 20px; display: flex; justify-content: center">
-            <app-seq-view [data]="dataService.displayData"></app-seq-view>
-          </div>
-        </mat-tab>
-        <mat-tab label="Extracted Seqments">
-          <div style="display: flex; gap: 20px; padding: 20px">
-            <div style="flex-grow:1">
-              <app-segments-viewer></app-segments-viewer>
-            </div>
-          </div>
-        </mat-tab>
-      </mat-tab-group>
-    </div>
+
   </div>
 
 </mat-drawer-container>
