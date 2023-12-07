@@ -22,6 +22,7 @@ export class DataService {
     "margin-top": 30,
     "margin-bottom": 50,
     "cell-size": 30,
+    "number-of-aa-per-row": 50
   }
 
   defaultColorList: string[] = [
@@ -46,6 +47,7 @@ export class DataService {
   dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
   combinedData: IDataFrame<number, ConSurfData> = new DataFrame()
   displayData: IDataFrame<number, ConSurfData> = new DataFrame()
+  aaPerRowSubject: Subject<boolean> = new Subject<boolean>()
 
   constructor() {
 

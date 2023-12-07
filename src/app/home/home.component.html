@@ -70,20 +70,24 @@
               <mat-card-title>Segment settings</mat-card-title>
             </mat-card-header>
             <mat-card-content>
-              <div style="display: flex; gap:20px">
+              <form [formGroup]="formSegment" style="display: flex; gap:20px">
                 <mat-form-field>
                   <mat-label>Margin Top</mat-label>
-                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-top']">
+                  <input matInput type="number" formControlName="marginTop">
                 </mat-form-field>
                 <mat-form-field>
                   <mat-label>Margin Bottom</mat-label>
-                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['margin-bottom']">
+                  <input matInput type="number" formControlName="marginBottom">
                 </mat-form-field>
                 <mat-form-field>
                   <mat-label>Heatmap Cell-size</mat-label>
-                  <input matInput type="number" [(ngModel)]="dataService.segmentSettings['cell-size']">
+                  <input matInput type="number" formControlName="cellSize">
                 </mat-form-field>
-              </div>
+                <mat-form-field>
+                  <mat-label>Number of AA per Row</mat-label>
+                  <input matInput type="number" formControlName="aaPerRow">
+                </mat-form-field>
+              </form>
             </mat-card-content>
             <mat-card-actions>
               <button mat-raised-button (click)="triggerUpdate()">Update</button>

@@ -42,6 +42,13 @@ export class HomeComponent implements OnInit{
       "term": new FormControl<string>("", Validators.required)
     }
   )
+
+  formSegment = this.fb.group({
+    cellSize: new FormControl<number>(this.dataService.segmentSettings["cell-size"], [Validators.required, Validators.min(1)]),
+    marginTop: new FormControl<number>(this.dataService.segmentSettings["margin-top"], [Validators.required, Validators.min(1)]),
+    marginBottom: new FormControl<number>(this.dataService.segmentSettings["margin-bottom"], [Validators.required, Validators.min(1)]),
+    aaPerRow: new FormControl<number>(this.dataService.segmentSettings["number-of-aa-per-row"], [Validators.required, Validators.min(1)]),
+  })
   filteredOptions: Observable<string[]> = new Observable<string[]>()
   constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
     this.dataService.segmentSelection.subscribe((data) => {
@@ -80,7 +87,18 @@ export class HomeComponent implements OnInit{
   }
 
   triggerUpdate() {
-    this.dataService.redrawSubject.next(true)
+    if (this.formSegment.valid) {
+      this.dataService.segmentSettings["cell-size"] = this.formSegment.controls["cellSize"].value
+      this.dataService.segmentSettings["margin-top"] = this.formSegment.controls["marginTop"].value
+      this.dataService.segmentSettings["margin-bottom"] = this.formSegment.controls["marginBottom"].value
+      if (this.dataService.segmentSettings["number-of-aa-per-row"] !== this.formSegment.controls["aaPerRow"].value) {
+        this.dataService.segmentSettings["number-of-aa-per-row"] = this.formSegment.controls["aaPerRow"].value
+        this.dataService.aaPerRowSubject.next(true)
+      }
+
+      this.dataService.redrawSubject.next(true)
+    }
+
   }
 
   getCONSURF() {
@@ -103,7 +121,6 @@ export class HomeComponent implements OnInit{
           }
         }).bake()
         this.dataService.displayData = this.dataService.combinedData
-        console.log(this.dataService.combinedData)
         this.dataService.redrawSubject.next(true)
       })
     }
