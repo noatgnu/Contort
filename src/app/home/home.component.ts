@@ -47,24 +47,27 @@ export class HomeComponent implements OnInit{
     this.dataService.segmentSelection.subscribe((data) => {
       for (const d of data) {
         const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
-        if (!this.dataService.selectedSeqs.includes(seq)) {
-          this.dataService.selectedSeqs.push(seq)
+        const uniqueID = d.start+ seq + d.end
+        if (!this.dataService.selectedSeqs.includes(uniqueID)) {
+          this.dataService.selectedSeqs.push(uniqueID)
           for (let i = d.start; i <= d.end; i++) {
             if (!this.dataService.selectionMap[i]) {
               this.dataService.selectionMap[i] = []
             }
-            this.dataService.selectionMap[i].push(seq)
+            this.dataService.selectionMap[i].push(uniqueID)
             this.dataService.selectionMap[i].sort((a, b) => b.length - a.length)
           }
           this.dataService.segments.push(d)
-          if (!this.dataService.segmentColorMap[seq]) {
-            this.dataService.segmentColorMap[seq] = this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
+          if (!this.dataService.segmentColorMap[uniqueID]) {
+            this.dataService.segmentColorMap[uniqueID] = this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
           }
         }
 
       }
       this.dataService.redrawSubject.next(true)
+      console.log(this.dataService.selectionMap)
     })
+
   }
 
   ngOnInit(): void {

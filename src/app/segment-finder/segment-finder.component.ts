@@ -33,22 +33,22 @@ export class SegmentFinderComponent {
     if (this.formSequence.valid) {
       const sequence = this.formSequence.controls['sequence'].value
       if (sequence) {
-        const regex = new RegExp(sequence, "g")
+        const regex = new RegExp(sequence.toUpperCase(), "g")
         const matches: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
         let match: any
         while ((match = regex.exec(this.sequence)) != null) {
           const exist = this.dataService.segments.filter((s) => {
-            return s.start === match.index && s.end === match.index + sequence.length
+            return s.start === match.index && s.end === (match.index + sequence.length)
           })
           if (exist.length > 0) {
             continue
           }
-          const seq = this._data.where((row) => {
-            return row.GRADE.POS >= match.index && row.GRADE.POS < match.index + sequence.length
-          }).bake()
+          const seq = this._data.between(match.index, match.index + sequence.length - 1).bake()
           matches.push({start: match.index + 1, end: match.index + sequence.length, seq: seq})
+
         }
         if (matches.length > 0) {
+          console.log(matches)
           this.dataService.segmentSelection.next(matches)
         }
       }
