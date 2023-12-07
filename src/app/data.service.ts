@@ -45,6 +45,7 @@ export class DataService {
   dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
   dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
   combinedData: IDataFrame<number, ConSurfData> = new DataFrame()
+  displayData: IDataFrame<number, ConSurfData> = new DataFrame()
 
   constructor() {
 

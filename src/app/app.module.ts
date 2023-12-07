@@ -23,6 +23,8 @@ import { SegmentComponent } from './segment/segment.component';
 import {HttpClientModule} from "@angular/common/http";
 import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import { SeqViewComponent } from './seq-view/seq-view.component';
+import {MatTabsModule} from "@angular/material/tabs";
+import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -52,7 +54,9 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ReactiveFormsModule,
     MatInputModule,
     HttpClientModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatTabsModule,
+    MsaBarChartComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

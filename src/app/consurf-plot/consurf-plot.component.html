@@ -1,9 +1,4 @@
-<plotly-plot [data]="graphData" [layout]="graphLayout" [updateOnDataChange]="true" [updateOnLayoutChange]="true" [useResizeHandler]="true"></plotly-plot>
-<div style="display: flex; gap: 20px; padding: 20px">
+<plotly-plot (relayout)="handleRelayout($event)" [data]="graphData" [layout]="graphLayout" [updateOnDataChange]="true" [updateOnLayoutChange]="true" [useResizeHandler]="true"></plotly-plot>
 
-  <div style="flex-grow:1">
-    <app-segments-viewer></app-segments-viewer>
-  </div>
-</div>
 
 

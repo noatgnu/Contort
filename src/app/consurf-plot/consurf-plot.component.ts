@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DataFrame, IDataFrame} from "data-forge";
 import {ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
@@ -49,7 +49,7 @@ export class ConsurfPlotComponent {
 
   grades = Object.keys(this.dataService.color_map)
 
-
+  @Output() filterRange: EventEmitter<{start: number, end: number}> = new EventEmitter<{start: number, end: number}>()
   constructor(public dataService: DataService) {
 
     this.dataService.redrawSubject.subscribe((data) => {
@@ -84,6 +84,13 @@ export class ConsurfPlotComponent {
     this.graphData = graphData
 
   }
-
+  handleRelayout(event: any) {
+    console.log(event)
+    if (event["xaxis.range[0]"] && event["xaxis.range[1]"]) {
+      this.filterRange.emit({start: Math.ceil(event["xaxis.range[0]"]+1), end: Math.ceil(event["xaxis.range[1]"])})
+    } else if (event["xaxis.range"]) {
+      this.filterRange.emit({start: Math.ceil(event["xaxis.range"][0]+1), end: Math.ceil(event["xaxis.range"][1])})
+    }
+  }
 
 }

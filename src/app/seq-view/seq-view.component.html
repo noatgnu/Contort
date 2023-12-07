@@ -1,3 +1,27 @@
+<div style="display: flex; justify-content: center">
+  <h1>ConSurf Annotated Sequence</h1>
+</div>
+<div style="display: flex; justify-content: center; padding: 20px" *ngIf="selected">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <h2><b>{{selected.GRADE.SEQ + selected.GRADE.POS}}</b></h2>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        <b>Grade:</b> {{selected.GRADE.COLOR}}<br>
+        <b>Grade confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL_COLORS}}<br>
+        <b>Score:</b> {{selected.GRADE.SCORE}}<br>
+        <b>Score confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL}}<br>
+        <b>MSA data:</b> {{selected.GRADE.MSA_DATA[0]}}/{{selected.GRADE.MSA_DATA[1]}}<br>
+        <b>Residue variety:</b> {{selected.GRADE.RESIDUE_VARIETY}}<br>
+        <b>Burried or exposed:</b> <span *ngIf="selected.GRADE.BE === 'b'"><b>b</b>urried</span><span *ngIf="selected.GRADE.BE === 'e'"><b>e</b>xposed</span><br>
+        <b>Functional or structural:</b> <span *ngIf="selected.GRADE.FUNCTION === 'f'"><b>f</b>unctional</span><span *ngIf="selected.GRADE.FUNCTION === 's'"><b>s</b>tructural</span><br>
+      </p>
+    </mat-card-content>
+  </mat-card><app-msa-bar-chart [data]="selected.MSA"></app-msa-bar-chart>
+</div>
 <div style="display: flex; justify-content: start; align-items: center" *ngFor="let s of segments">
-  <app-segment [data]="s"></app-segment>
+  <app-segment [data]="s" (selectedData)="handleSelection($event)"></app-segment>
 </div>

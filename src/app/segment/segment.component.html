@@ -1,1 +1,4 @@
-<plotly-plot [data]="graphData" [layout]="graphLayout" [updateOnlyWithRevision]="true" [revision]="revision"></plotly-plot>
+<div style="overflow: auto; max-width: 1500px">
+  <plotly-plot [config]="config" (plotlyClick)="handleSelection($event)" [data]="graphData" [layout]="graphLayout" [updateOnlyWithRevision]="true" [revision]="revision"></plotly-plot>
+</div>
+

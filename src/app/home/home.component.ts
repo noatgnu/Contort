@@ -12,8 +12,7 @@ import {WebService} from "../web.service";
   styleUrls: ['./home.component.sass']
 })
 export class HomeComponent implements OnInit{
-  dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
-  dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
+
   handleFileImport(event: Event) {
     if (event.target) {
       const target = event.target as HTMLInputElement
@@ -100,10 +99,15 @@ export class HomeComponent implements OnInit{
             GRADE: left
           }
         }).bake()
+        this.dataService.displayData = this.dataService.combinedData
         console.log(this.dataService.combinedData)
         this.dataService.redrawSubject.next(true)
       })
     }
 
+  }
+
+  handleFilterRange(event: {start: number, end: number}) {
+    this.dataService.displayData = this.dataService.combinedData.between(event.start-1, event.end-1).resetIndex().bake()
   }
 }

@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {ConSurfData, ConSurfGrade} from "../con-surf-data";
+import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 import {DataFrame, IDataFrame} from "data-forge";
 
@@ -32,7 +32,12 @@ export class SeqViewComponent {
   }
 
   segments: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
+  selected: ConSurfData|undefined = undefined
   constructor(public dataService: DataService) {
 
+  }
+
+  handleSelection(data: ConSurfData) {
+    this.selected = data
   }
 }
