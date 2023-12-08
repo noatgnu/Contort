@@ -10,7 +10,7 @@
     </mat-card-header>
     <mat-card-content>
       <p>
-        <b>Grade:</b> {{selected.GRADE.COLOR}}<br>
+        <b>Grade:</b><span [ngStyle]="{'background-color': dataService.color_map[selected.GRADE.COLOR[0]]}">{{" "}}</span>{{selected.GRADE.COLOR}}<br>
         <b>Grade confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL_COLORS}}<br>
         <b>Score:</b> {{selected.GRADE.SCORE}}<br>
         <b>Score confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL}}<br>
@@ -22,6 +22,6 @@
     </mat-card-content>
   </mat-card><app-msa-bar-chart [data]="selected.MSA"></app-msa-bar-chart>
 </div>
-<div style="display: flex; justify-content: start; align-items: center" *ngFor="let s of segments">
+<div style="display: flex; justify-content: start; align-items: center;padding: 20px" *ngFor="let s of segments">
   <app-segment [data]="s" (selectedData)="handleSelection($event)"></app-segment>
 </div>

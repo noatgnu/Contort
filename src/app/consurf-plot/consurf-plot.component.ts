@@ -90,6 +90,8 @@ export class ConsurfPlotComponent {
       this.filterRange.emit({start: Math.ceil(event["xaxis.range[0]"]+1), end: Math.ceil(event["xaxis.range[1]"])})
     } else if (event["xaxis.range"]) {
       this.filterRange.emit({start: Math.ceil(event["xaxis.range"][0]+1), end: Math.ceil(event["xaxis.range"][1])})
+    } else if (event["xaxis.autorange"]) {
+      this.filterRange.emit({start: 1, end: this.data.count()})
     }
   }
 
