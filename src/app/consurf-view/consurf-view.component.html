@@ -1,0 +1,103 @@
+<div>
+  <div style="display: flex; padding: 20px; gap: 20px">
+    <div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Protein Search</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div style="padding: 20px">
+            <form [formGroup]="form" (ngSubmit)="getCONSURF()">
+              <mat-form-field style="padding-right:20px">
+                <mat-label>UniProt ACCID Search</mat-label>
+                <input matInput type="search" formControlName="term" [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                  <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                    {{option}}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+              <button mat-raised-button type="submit" color="primary">Search</button>
+            </form>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <app-segment-finder [data]="dataService.combinedData"></app-segment-finder>
+    <div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Color settings</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div style="display: flex;">
+            <div *ngFor="let g of grades" style="display: flex; align-items: center; justify-content: center; padding: 2px">
+              <div>
+                <ngx-colors ngx-colors-trigger [(ngModel)]="dataService.color_map[g]"></ngx-colors>
+              </div>
+              <div style="font-size: 15pt; padding-left: 20px">{{g}}</div>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button (click)="triggerUpdate()">Update</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+  <div style="padding: 20px" *ngIf="dataService.displayData.count() > 0">
+    <div>
+      <app-consurf-plot [data]="dataService.dataGrade" (filterRange)="handleFilterRange($event)"></app-consurf-plot>
+    </div>
+    <div style="display: flex; justify-content: center; padding: 20px">
+      <div>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Segment settings</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="formSegment" style="display: flex; gap:20px">
+              <mat-form-field>
+                <mat-label>Margin Top</mat-label>
+                <input matInput type="number" formControlName="marginTop">
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Margin Bottom</mat-label>
+                <input matInput type="number" formControlName="marginBottom">
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Heatmap Cell-size</mat-label>
+                <input matInput type="number" formControlName="cellSize">
+              </mat-form-field>
+              <mat-form-field>
+                <mat-label>Number of AA per Row</mat-label>
+                <input matInput type="number" formControlName="aaPerRow">
+              </mat-form-field>
+            </form>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-raised-button (click)="triggerUpdate()">Update</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+    <div style="padding: 20px">
+      <mat-tab-group mat-stretch-tabs mat-align-tabs="center">
+        <mat-tab label="Sequence Viewer">
+          <div style="padding: 20px; display: flex; justify-content: center">
+            <app-seq-view [data]="dataService.displayData"></app-seq-view>
+          </div>
+        </mat-tab>
+        <mat-tab label="Extracted Seqments">
+          <div style="display: flex; gap: 20px; padding: 20px">
+            <div style="flex-grow:1">
+              <app-segments-viewer></app-segments-viewer>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+
+</div>

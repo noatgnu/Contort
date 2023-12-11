@@ -25,6 +25,7 @@ import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import { SeqViewComponent } from './seq-view/seq-view.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
+import {ConsurfViewComponent} from "./consurf-view/consurf-view.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -36,7 +37,8 @@ PlotlyModule.plotlyjs = PlotlyJS;
     SegmentFinderComponent,
     SegmentsViewerComponent,
     SegmentComponent,
-    SeqViewComponent
+    SeqViewComponent,
+    ConsurfViewComponent
   ],
   imports: [
     BrowserModule,
@@ -56,7 +58,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     HttpClientModule,
     MatAutocompleteModule,
     MatTabsModule,
-    MsaBarChartComponent
+    MsaBarChartComponent,
   ],
   providers: [],
   bootstrap: [AppComponent]
