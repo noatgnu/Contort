@@ -1,7 +1,7 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormControl,Validators} from "@angular/forms";
 import {DataFrame} from "data-forge";
-import {debounceTime, forkJoin, map, Observable} from "rxjs";
+import {debounceTime, forkJoin, map, Observable, tap} from "rxjs";
 import {DataService} from "../data.service";
 import {WebService} from "../web.service";
 import {ConSurfGrade} from "../con-surf-data";
@@ -11,7 +11,7 @@ import {ConSurfGrade} from "../con-surf-data";
   templateUrl: './consurf-view.component.html',
   styleUrl: './consurf-view.component.sass'
 })
-export class ConsurfViewComponent {
+export class ConsurfViewComponent implements OnInit{
   @Input() set accid(value: string) {
     if (value !== "") {
       this.form.controls["term"].setValue(value)
@@ -34,6 +34,10 @@ export class ConsurfViewComponent {
     aaPerRow: new FormControl<number>(this.dataService.segmentSettings["number-of-aa-per-row"], [Validators.required, Validators.min(1)]),
   })
   filteredOptions: Observable<string[]> = new Observable<string[]>()
+
+  searching: boolean = false
+  retrieving: boolean = false
+
   constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
     this.dataService.segmentSelection.subscribe((data) => {
       for (const d of data) {
@@ -56,7 +60,6 @@ export class ConsurfViewComponent {
 
       }
       this.dataService.redrawSubject.next(true)
-      console.log(this.dataService.selectionMap)
     })
 
   }
@@ -64,7 +67,9 @@ export class ConsurfViewComponent {
   ngOnInit(): void {
     this.form.controls["term"].valueChanges.pipe(
       debounceTime(200),
+      tap(() => this.searching = true),
       map(value => this.web.getUniprotTypeAhead(value||'')),
+      tap(() => this.searching = false)
     ).subscribe((data) => {
       this.filteredOptions = data
     })
@@ -79,7 +84,6 @@ export class ConsurfViewComponent {
         this.dataService.segmentSettings["number-of-aa-per-row"] = this.formSegment.controls["aaPerRow"].value
         this.dataService.aaPerRowSubject.next(true)
       }
-
       this.dataService.redrawSubject.next(true)
     }
 
@@ -87,6 +91,7 @@ export class ConsurfViewComponent {
 
   getCONSURF() {
     if (this.form.value.term &&this.form.value.term !== "") {
+      this.retrieving = true
       forkJoin([this.web.getConsurfGrade(this.form.value.term), this.web.getConsurfMSAVar(this.form.value.term)]).subscribe((data) => {
         const grades = data[0]
         const msaVar = data[1]
@@ -106,6 +111,10 @@ export class ConsurfViewComponent {
           }).bake()
         this.dataService.displayData = this.dataService.combinedData
         this.dataService.redrawSubject.next(true)
+        this.retrieving = false
+      }, (error) => {
+
+        this.retrieving = false
       })
     }
 

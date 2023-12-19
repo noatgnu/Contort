@@ -26,6 +26,7 @@ import { SeqViewComponent } from './seq-view/seq-view.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
 import {ConsurfViewComponent} from "./consurf-view/consurf-view.component";
+import {MatProgressBarModule} from "@angular/material/progress-bar";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -59,6 +60,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatAutocompleteModule,
     MatTabsModule,
     MsaBarChartComponent,
+    MatProgressBarModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -18,6 +18,9 @@
                 </mat-autocomplete>
               </mat-form-field>
               <button mat-raised-button type="submit" color="primary">Search</button>
+              <div *ngIf="searching">
+                <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+              </div>
             </form>
           </div>
         </mat-card-content>
@@ -46,6 +49,11 @@
       </mat-card>
     </div>
   </div>
+  @if (retrieving) {
+    <div style="display: flex; justify-content: center">
+      <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+    </div>
+  }
   <div style="padding: 20px" *ngIf="dataService.displayData.count() > 0">
     <div>
       <app-consurf-plot [data]="dataService.dataGrade" (filterRange)="handleFilterRange($event)"></app-consurf-plot>
@@ -83,6 +91,7 @@
       </div>
     </div>
     <div style="padding: 20px">
+
       <mat-tab-group mat-stretch-tabs mat-align-tabs="center">
         <mat-tab label="Sequence Viewer">
           <div style="padding: 20px; display: flex; justify-content: center">
