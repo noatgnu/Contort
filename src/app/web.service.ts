@@ -23,6 +23,6 @@ export class WebService {
   }
 
   getCount() {
-    return this.http.get<number>(`${this.baseUrl}/api/consurf/count`, {responseType: 'json', observe: 'body'})
+    return this.http.get<number>(`${this.baseUrl}/api/count`, {responseType: 'json', observe: 'body'})
   }
 }
