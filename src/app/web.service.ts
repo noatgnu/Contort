@@ -21,4 +21,8 @@ export class WebService {
   getUniprotTypeAhead(query: string) {
     return this.http.get<string[]>(`${this.baseUrl}/api/consurf/typeahead/${query}`, {responseType: 'json', observe: 'body'})
   }
+
+  getCount() {
+    return this.http.get<number>(`${this.baseUrl}/api/consurf/count`, {responseType: 'json', observe: 'body'})
+  }
 }

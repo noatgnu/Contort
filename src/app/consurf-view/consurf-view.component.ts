@@ -39,6 +39,7 @@ export class ConsurfViewComponent implements OnInit{
   retrieving: boolean = false
 
   constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
+    this.dataCount = this.web.getCount()
     this.dataService.segmentSelection.subscribe((data) => {
       for (const d of data) {
         const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
@@ -63,6 +64,8 @@ export class ConsurfViewComponent implements OnInit{
     })
 
   }
+
+  dataCount: Observable<number>|undefined = undefined
 
   ngOnInit(): void {
     this.form.controls["term"].valueChanges.pipe(
