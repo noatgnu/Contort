@@ -85,8 +85,11 @@
             </form>
           </mat-card-content>
           <mat-card-actions>
-            <button mat-raised-button (click)="triggerUpdate()">Update</button>
-            <button mat-raised-button (click)="downloadMSA()">Download Multiple Sequence Alignment</button>
+            <div style="display: flex; gap:10px">
+              <button mat-raised-button (click)="triggerUpdate()">Update</button>
+              <button mat-raised-button (click)="downloadMSA()">Download Multiple Sequence Alignment</button>
+            </div>
+
           </mat-card-actions>
         </mat-card>
       </div>

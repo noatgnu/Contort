@@ -125,6 +125,12 @@ export class ConsurfViewComponent implements OnInit{
   }
 
   downloadMSA() {
-    const url: string = `${this.web.baseUrl}/api/consurf/files/msa/${this.form.value.term}`
+    const a = document.createElement('a')
+    a.href = `${this.web.baseUrl}/api/consurf/files/msa/${this.form.value.term}`
+    a.download = `${this.form.value.term}.phy`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+
   }
 }
