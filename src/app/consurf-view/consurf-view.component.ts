@@ -123,4 +123,8 @@ export class ConsurfViewComponent implements OnInit{
   handleFilterRange(event: {start: number, end: number}) {
     this.dataService.displayData = this.dataService.combinedData.between(event.start-1, event.end-1).resetIndex().bake()
   }
+
+  downloadMSA() {
+    const url: string = `${this.web.baseUrl}/api/consurf/files/msa/${this.form.value.term}`
+  }
 }
