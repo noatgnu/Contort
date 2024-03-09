@@ -95,7 +95,11 @@ export class SegmentComponent {
     const shapes: any[] = []
     this.segment.seq.forEach((row) => {
       temp.x.push(row.GRADE.POS)
-      temp.z[0].push(row.GRADE.COLOR[0])
+      if (this.dataService.customScore[row.GRADE.POS]) {
+        temp.z[0].push(this.dataService.customScore[row.GRADE.POS])
+      } else {
+        temp.z[0].push(row.GRADE.COLOR[0])
+      }
       temp.text[0].push(row.GRADE.SEQ)
       ticks.push(row.GRADE.POS)
       temp.data.push(row)

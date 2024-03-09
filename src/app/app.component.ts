@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import {fromCSV} from "data-forge";
 import {DataService} from "./data.service";
+import {MatDialog} from "@angular/material/dialog";
+import {CustomScoreDialogComponent} from "./custom-score-dialog/custom-score-dialog.component";
 
 @Component({
   selector: 'app-root',
@@ -10,7 +12,7 @@ import {DataService} from "./data.service";
 export class AppComponent {
   title = 'Contort';
 
-  constructor(public dataService: DataService) {
+  constructor(public dataService: DataService, private dialog: MatDialog) {
   }
 
   handleFileImport(event: Event) {
@@ -33,5 +35,9 @@ export class AppComponent {
         reader.readAsText(file)
       }
     }
+  }
+
+  openCustomScoreEditor() {
+    this.dialog.open(CustomScoreDialogComponent)
   }
 }

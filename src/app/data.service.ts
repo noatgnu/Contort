@@ -25,6 +25,8 @@ export class DataService {
     "number-of-aa-per-row": 50
   }
 
+  customScore: {[key: string]: number} = {}
+
   defaultColorList: string[] = [
     "#fd7f6f",
     "#7eb0d5",

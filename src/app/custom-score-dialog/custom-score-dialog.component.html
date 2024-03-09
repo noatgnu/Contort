@@ -1,0 +1,21 @@
+<h5 mat-dialog-title>
+  Custom Score Editor
+</h5>
+<mat-dialog-content>
+  @for (f of form; track f) {
+    <form [formGroup]="f">
+      <mat-form-field>
+        <label>Position</label>
+        <input matInput formControlName="position" type="number" placeholder="Position" required>
+      </mat-form-field>
+      <mat-form-field>
+        <label>Score</label>
+        <input matInput formControlName="score" type="number" placeholder="Score">
+      </mat-form-field>
+    </form>
+  }
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-button cdkFocusInitial (click)="handleSave()">Save</button>
+</mat-dialog-actions>

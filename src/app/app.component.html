@@ -11,8 +11,13 @@
     <span>Contort</span>
     <span class="spacer"></span>
     <div>
-      <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>
+      <button mat-icon-button (click)="openCustomScoreEditor()">
+        <mat-icon>edit</mat-icon>
+      </button>
     </div>
+<!--    <div>
+      <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>
+    </div>-->
   </mat-toolbar>
   <router-outlet></router-outlet>
 
