@@ -12,8 +12,12 @@
         <label>Score</label>
         <input matInput formControlName="score" type="number" placeholder="Score">
       </mat-form-field>
+      <button mat-icon-button (click)="removeForm(f)">
+        <mat-icon>delete</mat-icon>
+      </button>
     </form>
   }
+  <button mat-raised-button (click)="addForm()">Add</button>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button mat-dialog-close>Cancel</button>

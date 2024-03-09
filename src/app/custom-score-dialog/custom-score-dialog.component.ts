@@ -11,6 +11,7 @@ import {DataService} from "../data.service";
 import {FormBuilder, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {MatInputModule} from "@angular/material/input";
 import {MatButtonModule} from "@angular/material/button";
+import {MatIconModule} from "@angular/material/icon";
 
 @Component({
   selector: 'app-custom-score-dialog',
@@ -22,7 +23,8 @@ import {MatButtonModule} from "@angular/material/button";
     MatInputModule,
     MatDialogClose,
     MatButtonModule,
-    MatDialogActions
+    MatDialogActions,
+    MatIconModule
   ],
   templateUrl: './custom-score-dialog.component.html',
   styleUrl: './custom-score-dialog.component.sass'
@@ -46,6 +48,18 @@ export class CustomScoreDialogComponent {
     }
     this.dataService.aaPerRowSubject.next(true)
     this.dialogRef.close()
+  }
+
+  removeForm(form: FormGroup) {
+    const index = this.form.indexOf(form)
+    this.form.splice(index, 1)
+  }
+
+  addForm() {
+    this.form.push(this.fb.group({
+      position: [0],
+      score: [1]
+    }))
   }
 
 }
