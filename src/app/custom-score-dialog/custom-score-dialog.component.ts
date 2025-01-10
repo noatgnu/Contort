@@ -14,20 +14,19 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatIconModule} from "@angular/material/icon";
 
 @Component({
-  selector: 'app-custom-score-dialog',
-  standalone: true,
-  imports: [
-    MatDialogTitle,
-    MatDialogContent,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatDialogClose,
-    MatButtonModule,
-    MatDialogActions,
-    MatIconModule
-  ],
-  templateUrl: './custom-score-dialog.component.html',
-  styleUrl: './custom-score-dialog.component.sass'
+    selector: 'app-custom-score-dialog',
+    imports: [
+        MatDialogTitle,
+        MatDialogContent,
+        ReactiveFormsModule,
+        MatInputModule,
+        MatDialogClose,
+        MatButtonModule,
+        MatDialogActions,
+        MatIconModule
+    ],
+    templateUrl: './custom-score-dialog.component.html',
+    styleUrl: './custom-score-dialog.component.sass'
 })
 export class CustomScoreDialogComponent {
 

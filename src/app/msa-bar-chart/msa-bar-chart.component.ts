@@ -5,13 +5,12 @@ import {DataService} from "../data.service";
 import {PlotlyModule} from "angular-plotly.js";
 
 @Component({
-  selector: 'app-msa-bar-chart',
-  standalone: true,
-  imports: [
-    PlotlyModule
-  ],
-  templateUrl: './msa-bar-chart.component.html',
-  styleUrl: './msa-bar-chart.component.sass'
+    selector: 'app-msa-bar-chart',
+    imports: [
+        PlotlyModule
+    ],
+    templateUrl: './msa-bar-chart.component.html',
+    styleUrl: './msa-bar-chart.component.sass'
 })
 export class MsaBarChartComponent {
   private _data: ConSurfMSAVar = {

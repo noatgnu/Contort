@@ -4,9 +4,10 @@ import {ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 
 @Component({
-  selector: 'app-consurf-plot',
-  templateUrl: './consurf-plot.component.html',
-  styleUrls: ['./consurf-plot.component.sass']
+    selector: 'app-consurf-plot',
+    templateUrl: './consurf-plot.component.html',
+    styleUrls: ['./consurf-plot.component.sass'],
+    standalone: false
 })
 export class ConsurfPlotComponent {
   private _data: IDataFrame<number, ConSurfGrade> = new DataFrame()

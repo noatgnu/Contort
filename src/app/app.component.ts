@@ -5,9 +5,10 @@ import {MatDialog} from "@angular/material/dialog";
 import {CustomScoreDialogComponent} from "./custom-score-dialog/custom-score-dialog.component";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.sass']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.sass'],
+    standalone: false
 })
 export class AppComponent {
   title = 'Contort';

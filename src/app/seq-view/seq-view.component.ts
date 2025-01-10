@@ -4,9 +4,10 @@ import {DataService} from "../data.service";
 import {DataFrame, IDataFrame} from "data-forge";
 
 @Component({
-  selector: 'app-seq-view',
-  templateUrl: './seq-view.component.html',
-  styleUrls: ['./seq-view.component.sass']
+    selector: 'app-seq-view',
+    templateUrl: './seq-view.component.html',
+    styleUrls: ['./seq-view.component.sass'],
+    standalone: false
 })
 export class SeqViewComponent {
   private _data: IDataFrame<number, ConSurfData> = new DataFrame()

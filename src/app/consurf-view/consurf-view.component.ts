@@ -7,9 +7,10 @@ import {WebService} from "../web.service";
 import {ConSurfGrade} from "../con-surf-data";
 
 @Component({
-  selector: 'app-consurf-view',
-  templateUrl: './consurf-view.component.html',
-  styleUrl: './consurf-view.component.sass'
+    selector: 'app-consurf-view',
+    templateUrl: './consurf-view.component.html',
+    styleUrl: './consurf-view.component.sass',
+    standalone: false
 })
 export class ConsurfViewComponent implements OnInit{
   @Input() set accid(value: string) {

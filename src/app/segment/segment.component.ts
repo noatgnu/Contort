@@ -4,9 +4,10 @@ import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 
 @Component({
-  selector: 'app-segment',
-  templateUrl: './segment.component.html',
-  styleUrls: ['./segment.component.sass']
+    selector: 'app-segment',
+    templateUrl: './segment.component.html',
+    styleUrls: ['./segment.component.sass'],
+    standalone: false
 })
 export class SegmentComponent {
   segment: {start: number, end: number, seq: IDataFrame<number, ConSurfData>} = {start: 0, end: 0, seq: new DataFrame()}
