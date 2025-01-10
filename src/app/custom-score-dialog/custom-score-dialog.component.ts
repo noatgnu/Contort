@@ -26,7 +26,7 @@ import {MatIconModule} from "@angular/material/icon";
         MatIconModule
     ],
     templateUrl: './custom-score-dialog.component.html',
-    styleUrl: './custom-score-dialog.component.sass'
+    styleUrl: './custom-score-dialog.component.scss'
 })
 export class CustomScoreDialogComponent {
 

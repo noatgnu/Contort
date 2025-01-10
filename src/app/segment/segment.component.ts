@@ -6,7 +6,7 @@ import {DataService} from "../data.service";
 @Component({
     selector: 'app-segment',
     templateUrl: './segment.component.html',
-    styleUrls: ['./segment.component.sass'],
+    styleUrls: ['./segment.component.scss'],
     standalone: false
 })
 export class SegmentComponent {

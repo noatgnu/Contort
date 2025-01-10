@@ -10,7 +10,7 @@ import {PlotlyModule} from "angular-plotly.js";
         PlotlyModule
     ],
     templateUrl: './msa-bar-chart.component.html',
-    styleUrl: './msa-bar-chart.component.sass'
+    styleUrl: './msa-bar-chart.component.scss'
 })
 export class MsaBarChartComponent {
   private _data: ConSurfMSAVar = {

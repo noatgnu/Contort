@@ -7,7 +7,7 @@ import {DataService} from "../data.service";
 @Component({
     selector: 'app-segment-finder',
     templateUrl: './segment-finder.component.html',
-    styleUrls: ['./segment-finder.component.sass'],
+    styleUrls: ['./segment-finder.component.scss'],
     standalone: false
 })
 export class SegmentFinderComponent {

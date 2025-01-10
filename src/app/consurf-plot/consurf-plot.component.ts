@@ -6,7 +6,7 @@ import {DataService} from "../data.service";
 @Component({
     selector: 'app-consurf-plot',
     templateUrl: './consurf-plot.component.html',
-    styleUrls: ['./consurf-plot.component.sass'],
+    styleUrls: ['./consurf-plot.component.scss'],
     standalone: false
 })
 export class ConsurfPlotComponent {

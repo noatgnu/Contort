@@ -3,17 +3,19 @@ import {fromCSV} from "data-forge";
 import {DataService} from "./data.service";
 import {MatDialog} from "@angular/material/dialog";
 import {CustomScoreDialogComponent} from "./custom-score-dialog/custom-score-dialog.component";
+import {LoginDialogComponent} from "./login-dialog/login-dialog.component";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.sass'],
+    styleUrls: ['./app.component.scss'],
     standalone: false
 })
 export class AppComponent {
-  title = 'Contort';
+  title = 'CONTORT';
 
-  constructor(public dataService: DataService, private dialog: MatDialog) {
+  constructor(private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog) {
   }
 
   handleFileImport(event: Event) {
@@ -40,5 +42,17 @@ export class AppComponent {
 
   openCustomScoreEditor() {
     this.dialog.open(CustomScoreDialogComponent)
+  }
+
+  openLoginDialog() {
+    const dialogRef = this.dialog.open(LoginDialogComponent);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.sb.open('Login successful', 'Close')
+      } else {
+        console.log('Login cancelled');
+      }
+    });
   }
 }

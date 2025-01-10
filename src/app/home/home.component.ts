@@ -9,7 +9,7 @@ import {WebService} from "../web.service";
 @Component({
     selector: 'app-home',
     templateUrl: './home.component.html',
-    styleUrls: ['./home.component.sass'],
+    styleUrls: ['./home.component.scss'],
     standalone: false
 })
 export class HomeComponent implements OnInit{

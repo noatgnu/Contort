@@ -6,7 +6,7 @@ import {DataFrame, IDataFrame} from "data-forge";
 @Component({
     selector: 'app-seq-view',
     templateUrl: './seq-view.component.html',
-    styleUrls: ['./seq-view.component.sass'],
+    styleUrls: ['./seq-view.component.scss'],
     standalone: false
 })
 export class SeqViewComponent {

@@ -9,7 +9,7 @@ import {ConSurfGrade} from "../con-surf-data";
 @Component({
     selector: 'app-consurf-view',
     templateUrl: './consurf-view.component.html',
-    styleUrl: './consurf-view.component.sass',
+    styleUrl: './consurf-view.component.scss',
     standalone: false
 })
 export class ConsurfViewComponent implements OnInit{

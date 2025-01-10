@@ -20,13 +20,14 @@ import { SegmentFinderComponent } from './segment-finder/segment-finder.componen
 import {MatInputModule} from "@angular/material/input";
 import { SegmentsViewerComponent } from './segments-viewer/segments-viewer.component';
 import { SegmentComponent } from './segment/segment.component';
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import {provideHttpClient, withInterceptors, withInterceptorsFromDi} from "@angular/common/http";
 import {MatAutocompleteModule} from "@angular/material/autocomplete";
 import { SeqViewComponent } from './seq-view/seq-view.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
 import {ConsurfViewComponent} from "./consurf-view/consurf-view.component";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
+import {authInterceptor} from "./auth.interceptor";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -57,5 +58,9 @@ PlotlyModule.plotlyjs = PlotlyJS;
         MatAutocompleteModule,
         MatTabsModule,
         MsaBarChartComponent,
-        MatProgressBarModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+        MatProgressBarModule],
+  providers: [provideHttpClient(
+    withInterceptors([authInterceptor])
+  ),]
+})
 export class AppModule { }
