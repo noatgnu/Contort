@@ -1,0 +1,172 @@
+<mat-tab-group [mat-stretch-tabs]="false" mat-align-tabs="center">
+  <mat-tab [label]="'Consurf job submission details '+ status">
+    <div style="flex: 1; padding: 20px; margin: auto; display: flex; flex-direction: column; align-items: center; overflow-y: auto;">
+      <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 20px;" (ngSubmit)="submit()">
+        <div style="display: flex; gap:20px">
+          <mat-form-field>
+            <input matInput formControlName="job_title">
+            <mat-label>Job Name</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Job name is used to identify the job in the job list</span>
+          </p>
+        </div>
+        <div style="display: flex; gap:20px">
+          <mat-form-field>
+            <textarea matInput formControlName="query_sequence"></textarea>
+            <mat-label>Input Fasta Sequence</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Input Fasta Sequence</span>
+          </p>
+        </div>
+        <div style="display: flex; gap:20px">
+          <mat-form-field>
+            <mat-select formControlName="alignment_program">
+              @for (o of alignment_options; track o) {
+                <mat-option [value]="o">{{o}}</mat-option>
+              }
+            </mat-select>
+            <mat-label>Alignment Program</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Alignment program to use for the job. Options are MAFFT, PRANK, MUSCLE, CLUSTALW</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="number" formControlName="iterations">
+            <mat-label>Number of Iterations</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Number of iterations</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="number" formControlName="cutoff">
+            <mat-label>Cutoff</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>E-value Cutoff</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <mat-select formControlName="model">
+              @for (o of model_options; track o) {
+                <mat-option [value]="o">{{o}}</mat-option>
+              }
+            </mat-select>
+            <mat-label>Model</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Evolutionary model to use for the job. Options are JTT, LG, mtREV, cpREV, WAG or Dayhoff</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="number" formControlName="max_homologs">
+            <mat-label>Max # of homologs</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Maximum number of homologs used in conservation analysis</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="number" formControlName="max_id">
+            <mat-label>Max % Identity</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Maximum % identity of homologs used in conservation analysis</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="number" formControlName="min_id">
+            <mat-label>Minimum % Identity</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Minimum % identity of homologs used in conservation analysis</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-checkbox formControlName="maximum_likelihood">Maximum Likelihood</mat-checkbox>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Check to choose maximum likelihood for rate of evolution calculation. Default is Bayesian.</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-checkbox formControlName="closest">Closest</mat-checkbox>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Check to automatically homologs closest to the query. (otherwise sample the list of homologs)</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <mat-select formControlName="algorithm">
+              @for (o of algorithm_options; track o) {
+                <mat-option [value]="o">{{o}}</mat-option>
+              }
+            </mat-select>
+            <mat-label>Algorithm</mat-label>
+          </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Algorithm to use for determining homologs. Options are HMMER, Blast, MMseqs2</span>
+          </p>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <mat-form-field>
+            <input matInput type="search" formControlName="searchTerm">
+            <mat-label>Database Search Name</mat-label>
+          </mat-form-field>
+          <div>
+            @if (proteinDatabaseQuery) {
+              <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
+                @for (o of proteinDatabaseQuery.results; track o) {
+                  <mat-list-option [value]="o.id">
+                    {{ o.name }}
+                  </mat-list-option>
+                }
+              </mat-selection-list>
+              <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count" (page)="onPageChange($event)"></mat-paginator>
+            }
+
+          </div>
+        </div>
+        <div style="display: flex; gap: 20px">
+          <button mat-raised-button type="submit">Submit Job</button>
+          @if (status === 'completed') {
+            <button color="primary" mat-raised-button type="button" [matMenuTriggerFor]="menu">Download Result</button>
+          }
+
+        </div>
+      </form>
+    </div>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="downloadOutput()">Result Archive</button>
+      <button mat-menu-item (click)="downloadOutput('msa_aa_variety_percentage')">AA Variety Percentage File</button>
+      <button mat-menu-item (click)="downloadOutput('grades')">Consurf Grades</button>
+    </mat-menu>
+
+  </mat-tab>
+  @if (jobid && status === 'completed') {
+    <mat-tab label="Job Results">
+      <app-consurf-view [jobid]="jobid"></app-consurf-view>
+    </mat-tab>
+  }
+</mat-tab-group>
+

@@ -28,37 +28,48 @@ import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
 import {ConsurfViewComponent} from "./consurf-view/consurf-view.component";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
 import {authInterceptor} from "./auth.interceptor";
+import {ConsurfJobComponent} from "./consurf-job/consurf-job.component";
+import {MatSelect} from "@angular/material/select";
+import {MatCheckbox} from "@angular/material/checkbox";
+import {MatListOption, MatSelectionList} from "@angular/material/list";
+import {MatPaginator} from "@angular/material/paginator";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
-@NgModule({ declarations: [
-        AppComponent,
-        HomeComponent,
-        ConsurfPlotComponent,
-        SegmentFinderComponent,
-        SegmentsViewerComponent,
-        SegmentComponent,
-        SeqViewComponent,
-        ConsurfViewComponent
-    ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
-        AppRoutingModule,
-        BrowserAnimationsModule,
-        MatSidenavModule,
-        MatToolbarModule,
-        MatIconModule,
-        MatButtonModule,
-        MatMenuModule,
-        PlotlyModule,
-        MatCardModule,
-        NgxColorsModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatInputModule,
-        MatAutocompleteModule,
-        MatTabsModule,
-        MsaBarChartComponent,
-        MatProgressBarModule],
+@NgModule({
+  declarations: [
+    AppComponent,
+    HomeComponent,
+    ConsurfPlotComponent,
+    SegmentFinderComponent,
+    SegmentsViewerComponent,
+    SegmentComponent,
+    SeqViewComponent,
+    ConsurfViewComponent,
+    ConsurfJobComponent
+  ],
+  bootstrap: [AppComponent], imports: [BrowserModule,
+    AppRoutingModule,
+    BrowserAnimationsModule,
+    MatSidenavModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    PlotlyModule,
+    MatCardModule,
+    NgxColorsModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    MatTabsModule,
+    MsaBarChartComponent,
+    MatProgressBarModule, MatSelect, MatCheckbox, MatListOption, MatPaginator, MatSelectionList],
+  exports: [
+    ConsurfViewComponent,
+
+  ],
   providers: [provideHttpClient(
     withInterceptors([authInterceptor])
   ),]

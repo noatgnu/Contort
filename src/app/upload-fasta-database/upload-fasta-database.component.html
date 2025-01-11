@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Manage Database</h1>
+<div mat-dialog-content>
+  <div style="display: flex; flex-direction: column; gap: 20px">
+    <form [formGroup]="form">
+      <mat-form-field>
+        <input matInput formControlName="name" type="text">
+        <mat-label>Database Name</mat-label>
+      </mat-form-field>
+    </form>
+    @for (f of fileList; track f.name) {
+      <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+    }
+    <input type="file" hidden #fileInput (change)="uploadData($event)">
+    <div>
+      <button mat-raised-button (click)="fileInput.click()">Upload FASTA File</button>
+    </div>
+    <mat-divider></mat-divider>
+    <h5>User's Uploaded Databases</h5>
+    <form [formGroup]="form">
+      <mat-form-field>
+        <input matInput formControlName="searchTerm" type="search">
+        <mat-label>Search term...</mat-label>
+      </mat-form-field>
+      @if (query) {
+        <mat-table [dataSource]="query.results">
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+            <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="action">
+            <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+            <mat-cell *matCellDef="let element">
+              <button mat-icon-button (click)="delete(element.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-cell>
+          </ng-container>
+        </mat-table>
+        <mat-paginator [pageSize]="limit" (page)="onPaginate($event)"></mat-paginator>
+      }
+
+    </form>
+  </div>
+
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Cancel</button>
+</div>

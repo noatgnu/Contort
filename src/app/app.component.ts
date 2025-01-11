@@ -5,6 +5,8 @@ import {MatDialog} from "@angular/material/dialog";
 import {CustomScoreDialogComponent} from "./custom-score-dialog/custom-score-dialog.component";
 import {LoginDialogComponent} from "./login-dialog/login-dialog.component";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {UploadFastaDatabaseComponent} from "./upload-fasta-database/upload-fasta-database.component";
+import {AccountService} from "./account.service";
 
 @Component({
     selector: 'app-root',
@@ -15,7 +17,8 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 export class AppComponent {
   title = 'CONTORT';
 
-  constructor(private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog) {
+  constructor(private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+
   }
 
   handleFileImport(event: Event) {
@@ -54,5 +57,10 @@ export class AppComponent {
         console.log('Login cancelled');
       }
     });
+  }
+
+  openManageDatabaseDialog() {
+    const dialogRef = this.dialog.open(UploadFastaDatabaseComponent);
+
   }
 }

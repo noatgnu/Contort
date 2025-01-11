@@ -8,9 +8,21 @@
 }
 
 
-.drawer-sidenav-content {
-  display: flex;
+html, body {
   height: 100%;
-  align-items: center;
-  justify-content: center;
+  margin: 0;
+}
+
+.drawer-container {
+  height: 100%;
+}
+
+.drawer-sidenav-content {
+  width: 250px; /* Adjust the width as needed */
+}
+
+.mat-drawer-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

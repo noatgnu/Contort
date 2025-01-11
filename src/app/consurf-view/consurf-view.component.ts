@@ -19,6 +19,13 @@ export class ConsurfViewComponent implements OnInit{
       this.getCONSURF()
     }
   }
+  _jobid: string = ""
+  @Input() set jobid(value: string) {
+    this._jobid = value
+    if (value) {
+      this.getConsurfFromJob(parseInt(value))
+    }
+  }
 
   grades = Object.keys(this.dataService.color_map)
 
@@ -122,6 +129,34 @@ export class ConsurfViewComponent implements OnInit{
       })
     }
 
+  }
+
+  getConsurfFromJob(jobId: number) {
+    this.retrieving = true
+    forkJoin([this.web.getConsurfGradeFromJob(jobId), this.web.getConeurfMSAVarFromJob(jobId)]).subscribe((data) => {
+      const grades = data[0]
+      const msaVar = data[1]
+      this.dataService.dataMSA = new DataFrame(msaVar)
+      this.dataService.dataGrade = new DataFrame(grades)
+
+
+      this.dataService.combinedData = this.dataService.dataGrade.join(
+        this.dataService.dataMSA,
+        row => row.POS,
+        row => row.pos,
+        (left, right) => {
+          return {
+            MSA: right,
+            GRADE: left
+          }
+        }).bake()
+      this.dataService.displayData = this.dataService.combinedData
+      this.dataService.redrawSubject.next(true)
+      this.retrieving = false
+    }, (error) => {
+
+      this.retrieving = false
+    })
   }
 
   handleFilterRange(event: {start: number, end: number}) {

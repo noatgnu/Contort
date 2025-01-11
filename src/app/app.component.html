@@ -1,7 +1,8 @@
 <mat-drawer-container autosize class="drawer-container">
   <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
-    <div style="display: flex; gap: 20px; padding: 20px">
-
+    <div style="display: flex; flex-direction: column">
+      <a mat-button routerLink="/consurf-view" (click)="drawer.toggle()">Consurf Database Viewer</a>
+      <a mat-button routerLink="/consurf-job" (click)="drawer.toggle()">Consurf Job</a>
     </div>
   </mat-drawer>
   <mat-toolbar color="primary">
@@ -11,12 +12,19 @@
     <span>Contort</span>
     <span class="spacer"></span>
     <div>
+      <button mat-icon-button (click)="openManageDatabaseDialog()">
+        <mat-icon>storage</mat-icon>
+      </button>
+
       <button mat-icon-button (click)="openCustomScoreEditor()">
         <mat-icon>edit</mat-icon>
       </button>
-      <button mat-icon-button (click)="openLoginDialog()">
-        <mat-icon>login</mat-icon>
-      </button>
+      @if (!accountService.isAuthenticated()) {
+        <button mat-icon-button (click)="openLoginDialog()">
+          <mat-icon>login</mat-icon>
+        </button>
+      }
+
     </div>
 <!--    <div>
       <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>

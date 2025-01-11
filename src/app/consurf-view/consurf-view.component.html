@@ -1,34 +1,37 @@
 <div>
   <div style="display: flex; padding: 20px; gap: 20px">
-    <div>
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>Protein Search</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div style="padding: 20px">
-            <form [formGroup]="form" (ngSubmit)="getCONSURF()">
-              <mat-form-field style="padding-right:20px">
-                <mat-label>UniProt ACCID Search</mat-label>
-                <input matInput type="search" formControlName="term" [matAutocomplete]="auto">
-                <mat-autocomplete #auto="matAutocomplete">
-                  <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-                    {{option}}
-                  </mat-option>
-                </mat-autocomplete>
-              </mat-form-field>
-              <button mat-raised-button type="submit" color="primary">Search</button>
-              <div *ngIf="searching">
-                <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+    @if (!_jobid) {
+      <div>
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Protein Search</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div style="padding: 20px">
+              <form [formGroup]="form" (ngSubmit)="getCONSURF()">
+                <mat-form-field style="padding-right:20px">
+                  <mat-label>UniProt ACCID Search</mat-label>
+                  <input matInput type="search" formControlName="term" [matAutocomplete]="auto">
+                  <mat-autocomplete #auto="matAutocomplete">
+                    <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
+                      {{option}}
+                    </mat-option>
+                  </mat-autocomplete>
+                </mat-form-field>
+                <button mat-raised-button type="submit" color="primary">Search</button>
+                <div *ngIf="searching">
+                  <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+                </div>
+              </form>
+              <div>
+                Total number of sequences: {{dataCount|async}}
               </div>
-            </form>
-            <div>
-              Total number of sequences: {{dataCount|async}}
             </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+
 
     <app-segment-finder [data]="dataService.combinedData"></app-segment-finder>
     <div>

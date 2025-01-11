@@ -83,7 +83,7 @@ export class ConsurfPlotComponent {
     })
     graphData.push(temp)
     this.graphData = graphData
-
+    console.log(this.graphData)
   }
   handleRelayout(event: any) {
     console.log(event)
