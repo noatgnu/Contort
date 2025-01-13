@@ -5,6 +5,9 @@ import {ConSurfGrade, ConSurfMSAVar} from "./con-surf-data";
 import {ChunkUpload} from "./chunk-upload";
 import {ProteinFastaDatabaseQuery} from "./protein-fasta-database";
 import {ConsurfJob, ConsurfJobQuery} from "./consurf-job";
+import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "./msa";
+import {map, Observable, switchMap} from "rxjs";
+import {StructureFile, StructureFileQuery} from "./structure";
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +44,34 @@ export class WebService {
 
   deleteProteinFastaDatabase(id: number) {
     return this.http.delete<any>(`${this.baseUrl}/api/fasta/${id}/`, {responseType: 'json', observe: 'body'})
+  }
+
+  getMSAs(limit: number = 10, page: number = 1, search: string = "") {
+    let params = new HttpParams()
+    params.append("limit", limit.toString())
+    params.append("page", page.toString())
+    if (search !== "" && search !== null) {
+      params.append("search", search)
+    }
+    return this.http.get<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/`, {responseType: 'json', observe: 'body', params: params})
+  }
+
+  deleteMSA(id: number) {
+    return this.http.delete<any>(`${this.baseUrl}/api/msa/${id}/`, {responseType: 'json', observe: 'body'})
+  }
+
+  getStructures(limit: number = 10, page: number = 1, search: string = "") {
+    let params = new HttpParams()
+    params.append("limit", limit.toString())
+    params.append("page", page.toString())
+    if (search !== "" && search !== null) {
+      params.append("search", search)
+    }
+    return this.http.get<StructureFileQuery>(`${this.baseUrl}/api/structure/`, {responseType: 'json', observe: 'body', params: params})
+  }
+
+  deleteStructure(id: number) {
+    return this.http.delete<any>(`${this.baseUrl}/api/structure/${id}/`, {responseType: 'json', observe: 'body'})
   }
 
   login(username: string, password: string) {
@@ -98,10 +129,32 @@ export class WebService {
     }
   }
 
-  bindUploadedFile(db_name: string, upload_id: string) {
-    return this.http.post<any>(
-      `${this.baseUrl}/api/fasta/`,
-      {name: db_name, upload_id: upload_id},
+  bindUploadedFile(file_name: string, upload_id: string, file_type: "database"|"msa"|"structure") {
+    if (file_type === "database") {
+      return this.http.post<any>(
+        `${this.baseUrl}/api/fasta/`,
+        {name: file_name, upload_id: upload_id},
+        {responseType: 'json', observe: 'body'}
+      )
+    } else if (file_type === "msa") {
+      return this.http.post<any>(
+        `${this.baseUrl}/api/msa/`,
+        {name: file_name, upload_id: upload_id},
+        {responseType: 'json', observe: 'body'}
+      )
+    } else {
+      return this.http.post<any>(
+        `${this.baseUrl}/api/structure/`,
+        {name: file_name, upload_id: upload_id},
+        {responseType: 'json', observe: 'body'}
+      )
+    }
+  }
+
+  savePDBContent(file_name: string, content: string) {
+    return this.http.post<StructureFile>(
+      `${this.baseUrl}/api/structure/`,
+      {name: file_name, content: content},
       {responseType: 'json', observe: 'body'}
     )
   }
@@ -123,6 +176,12 @@ export class WebService {
   submitConsurfJob(payload: any) {
     if (typeof payload['fasta_database_id'] !== 'number') {
       payload['fasta_database_id'] = payload['fasta_database_id'][0]
+    }
+    if (typeof payload['msa_id'] !== 'number') {
+      payload['msa_id'] = payload['msa_id'][0]
+    }
+    if (typeof payload['structure_id'] !== 'number') {
+      payload['structure_id'] = payload['structure_id'][0]
     }
     return this.http.post<ConsurfJob>(`${this.baseUrl}/api/job/`, payload, {responseType: 'json', observe: 'body'})
   }
@@ -147,6 +206,10 @@ export class WebService {
     return this.http.get<ConSurfMSAVar[]>(`${this.baseUrl}/api/job/${id}/consurf_msa_variation/`, {responseType: 'json', observe: 'body'})
   }
 
+  getAllSequenceNamesFromMSA(msa_id: number) {
+    return this.http.get<string[]>(`${this.baseUrl}/api/msa/${msa_id}/get_all_sequence_names/`, {responseType: 'json', observe: 'body'})
+  }
+
   downloadJobResults(id: number, token: string, file_type: string = "zip") {
     // create a clickable link and click it then remove it
     let a = document.createElement('a')
@@ -156,4 +219,14 @@ export class WebService {
     a.click()
     a.remove()
   }
+
+  getUniprot(uniprotID: string) {
+    return this.http.get<any>(`https://rest.uniprot.org/uniprotkb/${uniprotID}`, {observe: 'body', responseType: 'json'})
+  }
+
+  getPDBFileFromUniProtID(uniprotID: string): Observable<string> {
+    return this.http.get(`${this.baseUrl}/api/job/get_pdb/?uniprotID=${uniprotID}`, {observe: 'body', responseType: 'text'})
+  }
+
+
 }

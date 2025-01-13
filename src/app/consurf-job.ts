@@ -21,6 +21,11 @@ export interface ConsurfJob {
   algorithm: string;
   email_notification: boolean;
   id: number;
+  structure_file: number;
+  msa: number;
+  chain: string;
+  uniprot_accession: string;
+  query_name: string;
 }
 
 export interface ConsurfJobQuery {

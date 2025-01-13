@@ -1,0 +1,13 @@
+<h5 mat-dialog-title>PDB File Name</h5>
+<div mat-dialog-content>
+  <form [formGroup]="form" class="d-flex flex-column gap-2">
+    <mat-form-field>
+      <input matInput type="text" class="form-control" id="pdbFileName" formControlName="name" placeholder="PDB File Name">
+      <mat-label>PDB File Name</mat-label>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-button (click)="save()">Save</button>
+</div>

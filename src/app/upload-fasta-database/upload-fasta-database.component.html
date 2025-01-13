@@ -1,48 +1,152 @@
-<h1 mat-dialog-title>Manage Database</h1>
+<h1 mat-dialog-title>Manage User Resources</h1>
 <div mat-dialog-content>
-  <div style="display: flex; flex-direction: column; gap: 20px">
-    <form [formGroup]="form">
-      <mat-form-field>
-        <input matInput formControlName="name" type="text">
-        <mat-label>Database Name</mat-label>
-      </mat-form-field>
-    </form>
-    @for (f of fileList; track f.name) {
-      <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
-    }
-    <input type="file" hidden #fileInput (change)="uploadData($event)">
-    <div>
-      <button mat-raised-button (click)="fileInput.click()">Upload FASTA File</button>
-    </div>
-    <mat-divider></mat-divider>
-    <h5>User's Uploaded Databases</h5>
-    <form [formGroup]="form">
-      <mat-form-field>
-        <input matInput formControlName="searchTerm" type="search">
-        <mat-label>Search term...</mat-label>
-      </mat-form-field>
-      @if (query) {
-        <mat-table [dataSource]="query.results">
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-          <ng-container matColumnDef="name">
-            <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-            <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
-          </ng-container>
-          <ng-container matColumnDef="action">
-            <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
-            <mat-cell *matCellDef="let element">
-              <button mat-icon-button (click)="delete(element.id)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </mat-cell>
-          </ng-container>
-        </mat-table>
-        <mat-paginator [pageSize]="limit" (page)="onPaginate($event)"></mat-paginator>
-      }
+  <mat-tab-group>
+    <mat-tab label="Upload Fasta Database">
+      <mat-divider></mat-divider>
+      <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="name" type="text">
+            <mat-label>Database Name</mat-label>
+          </mat-form-field>
+        </form>
+        @for (f of fileList; track f.name) {
+          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        }
+        <input type="file" hidden #fileInput (change)="uploadData($event, 'database')">
+        <div>
+          <button mat-raised-button (click)="fileInput.click()">Upload FASTA File</button>
+        </div>
+        <mat-divider></mat-divider>
+        <h1>User's Uploaded Databases</h1>
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="searchTerm" type="search">
+            <mat-label>Search term...</mat-label>
+          </mat-form-field>
+          @if (query) {
+            <mat-table [dataSource]="query.results">
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="action">
+                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="delete(element.id, 'database')">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-cell>
+              </ng-container>
+            </mat-table>
+            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'database')"></mat-paginator>
+          } @else {
+            <p>No data found</p>
+          }
 
-    </form>
-  </div>
+        </form>
+      </div>
+    </mat-tab>
+    <mat-tab label="Upload Multiple Sequence Alignment">
+      <mat-divider></mat-divider>
+      <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="name" type="text">
+            <mat-label>MSA Name</mat-label>
+          </mat-form-field>
+        </form>
+        @for (f of fileList; track f.name) {
+          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        }
+        <input type="file" hidden #fileInputMSA (change)="uploadData($event, 'msa')">
+        <div>
+          <button mat-raised-button (click)="fileInputMSA.click()">Upload Alignment File</button>
+        </div>
+        <mat-divider></mat-divider>
+        <h1>User's Uploaded Multiple Sequence Alignment</h1>
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="searchTerm" type="search">
+            <mat-label>Search term...</mat-label>
+          </mat-form-field>
+          @if (msaQuery) {
+            <mat-table [dataSource]="msaQuery.results">
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="action">
+                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="delete(element.id, 'msa')">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-cell>
+              </ng-container>
+            </mat-table>
+            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
+          } @else {
+            <p>No data found</p>
+          }
+
+        </form>
+      </div>
+    </mat-tab>
+    <mat-tab label="PDB Files">
+      <mat-divider></mat-divider>
+      <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="name" type="text">
+            <mat-label>PDB File Name</mat-label>
+          </mat-form-field>
+        </form>
+        @for (f of fileList; track f.name) {
+          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        }
+        <input type="file" hidden #fileInputStructure (change)="uploadData($event, 'structure')">
+        <div>
+          <button mat-raised-button (click)="fileInputStructure.click()">Upload PDB File</button>
+        </div>
+        <mat-divider></mat-divider>
+        <h1>User's Uploaded PDB Files</h1>
+        <form [formGroup]="form">
+          <mat-form-field>
+            <input matInput formControlName="searchTerm" type="search">
+            <mat-label>Search term...</mat-label>
+          </mat-form-field>
+          @if (structureQuery) {
+            <mat-table [dataSource]="structureQuery.results">
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+              <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+              </ng-container>
+              <ng-container matColumnDef="action">
+                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="delete(element.id, 'structure')">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-cell>
+              </ng-container>
+            </mat-table>
+            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'structure')"></mat-paginator>
+          } @else {
+            <p>No data found</p>
+          }
+
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
 
 </div>
 <div mat-dialog-actions>

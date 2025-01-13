@@ -1,171 +1,295 @@
-<mat-tab-group [mat-stretch-tabs]="false" mat-align-tabs="center">
+<mat-tab-group [mat-stretch-tabs]="false" mat-align-tabs="center" (selectedTabChange)="onTabChange($event)">
   <mat-tab [label]="'Consurf job submission details '+ status">
-    <div style="flex: 1; padding: 20px; margin: auto; display: flex; flex-direction: column; align-items: center; overflow-y: auto;">
-      <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 20px;" (ngSubmit)="submit()">
-        <div style="display: flex; gap:20px">
-          <mat-form-field>
-            <input matInput formControlName="job_title">
-            <mat-label>Job Name</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Job name is used to identify the job in the job list</span>
-          </p>
-        </div>
-        <div style="display: flex; gap:20px">
-          <mat-form-field>
-            <textarea matInput formControlName="query_sequence"></textarea>
-            <mat-label>Input Fasta Sequence</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Input Fasta Sequence</span>
-          </p>
-        </div>
-        <div style="display: flex; gap:20px">
-          <mat-form-field>
-            <mat-select formControlName="alignment_program">
-              @for (o of alignment_options; track o) {
-                <mat-option [value]="o">{{o}}</mat-option>
+    @if (currentTabIndex === 0) {
+      <div style="flex: 1; padding: 20px; margin: auto; display: flex; flex-direction: column; align-items: center; overflow-y: auto;">
+        <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 20px;" (ngSubmit)="submit()">
+          <div style="display: flex; gap:20px">
+            <mat-form-field>
+              <input matInput formControlName="job_title">
+              <mat-label>Job Name</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Job name is used to identify the job in the job list</span>
+            </p>
+          </div>
+          <div style="display: flex; gap:20px">
+            <mat-form-field>
+              <input matInput formControlName="uniprot_id">
+              <mat-label>UniProt Accession ID</mat-label>
+            </mat-form-field>
+            <div style="display: flex; flex-direction: column; gap: 20px">
+              <div>
+                <button mat-raised-button type="button" (click)="getUniprotSequence()">
+                  Get Fasta from UniProt
+                </button>
+              </div>
+              <div>
+                <button mat-raised-button type="button" (click)="getPDBStructure()">
+                  Get PDB Structure
+                </button>
+              </div>
+
+              <p>
+                <mat-icon>info</mat-icon>
+                <span>UniProt Accession ID that can be used for metadata purpose or automatically retrieve a protein sequence in fasta format</span>
+              </p>
+            </div>
+
+
+          </div>
+          <div style="display: flex; gap:20px">
+            <mat-form-field>
+              <textarea matInput formControlName="query_sequence"></textarea>
+              <mat-label>Input Fasta Sequence</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Input Fasta Sequence</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="search" formControlName="searchTerm">
+              <mat-label>Database Search Name</mat-label>
+            </mat-form-field>
+            <div>
+              @if (proteinDatabaseQuery) {
+                <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
+                  @for (o of proteinDatabaseQuery.results; track o.id) {
+                    <mat-list-option [value]="o.id">
+                      {{ o.name }}
+                    </mat-list-option>
+                  }
+                </mat-selection-list>
+                <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count" (page)="onPageChange($event, 'database')"></mat-paginator>
+                <button mat-icon-button (click)="clearDatabaseFile()">
+                  <mat-icon>clear</mat-icon>
+                </button>
               }
-            </mat-select>
-            <mat-label>Alignment Program</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Alignment program to use for the job. Options are MAFFT, PRANK, MUSCLE, CLUSTALW</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="number" formControlName="iterations">
-            <mat-label>Number of Iterations</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Number of iterations</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="number" formControlName="cutoff">
-            <mat-label>Cutoff</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>E-value Cutoff</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <mat-select formControlName="model">
-              @for (o of model_options; track o) {
-                <mat-option [value]="o">{{o}}</mat-option>
+              <p>
+                <mat-icon>info</mat-icon>
+                <span>Database select from user's uploaded resource</span>
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="search" formControlName="searchTermMSA">
+              <mat-label>Search Alignment Name</mat-label>
+            </mat-form-field>
+            <div>
+              @if (msaQuery) {
+                <mat-selection-list [multiple]="false" formControlName="msa_id">
+                  @for (o of msaQuery.results; track o.id) {
+                    <mat-list-option [value]="o.id" (click)="handleAlignmentClick(o)">
+                      {{ o.name }}
+                    </mat-list-option>
+                  }
+                </mat-selection-list>
+                <mat-paginator [pageSize]="limit" [length]="msaQuery.count" (page)="onPageChange($event, 'msa')"></mat-paginator>
+                <button mat-icon-button (click)="clearAlignmentFile()">
+                  <mat-icon>clear</mat-icon>
+                </button>
               }
-            </mat-select>
-            <mat-label>Model</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Evolutionary model to use for the job. Options are JTT, LG, mtREV, cpREV, WAG or Dayhoff</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="number" formControlName="max_homologs">
-            <mat-label>Max # of homologs</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Maximum number of homologs used in conservation analysis</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="number" formControlName="max_id">
-            <mat-label>Max % Identity</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Maximum % identity of homologs used in conservation analysis</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="number" formControlName="min_id">
-            <mat-label>Minimum % Identity</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Minimum % identity of homologs used in conservation analysis</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-checkbox formControlName="maximum_likelihood">Maximum Likelihood</mat-checkbox>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Check to choose maximum likelihood for rate of evolution calculation. Default is Bayesian.</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-checkbox formControlName="closest">Closest</mat-checkbox>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Check to automatically homologs closest to the query. (otherwise sample the list of homologs)</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <mat-select formControlName="algorithm">
-              @for (o of algorithm_options; track o) {
-                <mat-option [value]="o">{{o}}</mat-option>
+              <p>
+                <mat-icon>info</mat-icon>
+                <span>Multiple sequence alignment select from user's uploaded resource</span>
+              </p>
+            </div>
+            <div>
+              @if (sequence_names.length >0) {
+                <mat-form-field>
+                  <mat-select formControlName="query_name">
+                    @for (s of sequence_names; track s; let index = $index) {
+                      <mat-option [value]="s">{{index+1}}. {{s}}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-label>Select Query</mat-label>
+                </mat-form-field>
               }
-            </mat-select>
-            <mat-label>Algorithm</mat-label>
-          </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Algorithm to use for determining homologs. Options are HMMER, Blast, MMseqs2</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <mat-form-field>
-            <input matInput type="search" formControlName="searchTerm">
-            <mat-label>Database Search Name</mat-label>
-          </mat-form-field>
-          <div>
-            @if (proteinDatabaseQuery) {
-              <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
-                @for (o of proteinDatabaseQuery.results; track o) {
-                  <mat-list-option [value]="o.id">
-                    {{ o.name }}
-                  </mat-list-option>
-                }
-              </mat-selection-list>
-              <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count" (page)="onPageChange($event)"></mat-paginator>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="search" formControlName="searchTermPDB">
+              <mat-label>Search PDB Name</mat-label>
+            </mat-form-field>
+            <div>
+              @if (structureQuery) {
+                <mat-selection-list [multiple]="false" formControlName="structure_id">
+                  @for (o of structureQuery.results; track o.id) {
+                    <mat-list-option [value]="o.id" (click)="chainArray = o.chains.split(';'); form.controls.chain.setValue(chainArray[0])">
+                      {{ o.name }}
+                    </mat-list-option>
+                  }
+                </mat-selection-list>
+                <mat-paginator [pageSize]="limit" [length]="structureQuery.count" (page)="onPageChange($event, 'structure')"></mat-paginator>
+                <button mat-icon-button (click)="clearStructureFile()">
+                  <mat-icon>clear</mat-icon>
+                </button>
+              }
+              <p>
+                <mat-icon>info</mat-icon>
+                <span>PDB file from user's uploaded resource</span>
+              </p>
+            </div>
+            @if (chainArray.length > 0) {
+              <div>
+                <mat-form-field>
+                  <mat-select formControlName="chain">
+                    @for (o of chainArray; track o) {
+                      <mat-option [value]="o">{{o}}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-label>Structure Chain</mat-label>
+                </mat-form-field>
+              </div>
             }
 
           </div>
-        </div>
-        <div style="display: flex; gap: 20px">
-          <button mat-raised-button type="submit">Submit Job</button>
-          @if (status === 'completed') {
-            <button color="primary" mat-raised-button type="button" [matMenuTriggerFor]="menu">Download Result</button>
-          }
+          <div style="display: flex; gap:20px">
+            <mat-form-field>
+              <mat-select formControlName="alignment_program">
+                @for (o of alignment_options; track o) {
+                  <mat-option [value]="o">{{o}}</mat-option>
+                }
+              </mat-select>
+              <mat-label>Alignment Program</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Alignment program to use for the job. Options are MAFFT, PRANK, MUSCLE, CLUSTALW. <b>Will be ignored if a multiple sequence alignment file is already selected.</b></span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="number" formControlName="iterations">
+              <mat-label>Number of Iterations</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Number of iterations</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="number" formControlName="cutoff">
+              <mat-label>Cutoff</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>E-value Cutoff</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <mat-select formControlName="model">
+                @for (o of model_options; track o) {
+                  <mat-option [value]="o">{{o}}</mat-option>
+                }
+              </mat-select>
+              <mat-label>Model</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Evolutionary model to use for the job. Options are JTT, LG, mtREV, cpREV, WAG or Dayhoff</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="number" formControlName="max_homologs">
+              <mat-label>Max # of homologs</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Maximum number of homologs used in conservation analysis</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="number" formControlName="max_id">
+              <mat-label>Max % Identity</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Maximum % identity of homologs used in conservation analysis</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <input matInput type="number" formControlName="min_id">
+              <mat-label>Minimum % Identity</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Minimum % identity of homologs used in conservation analysis</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-checkbox formControlName="maximum_likelihood">Maximum Likelihood</mat-checkbox>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Check to choose maximum likelihood for rate of evolution calculation. Default is Bayesian.</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-checkbox formControlName="closest">Closest</mat-checkbox>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Check to automatically homologs closest to the query. (otherwise sample the list of homologs)</span>
+            </p>
+          </div>
+          <div style="display: flex; gap: 20px">
+            <mat-form-field>
+              <mat-select formControlName="algorithm">
+                @for (o of algorithm_options; track o) {
+                  <mat-option [value]="o">{{o}}</mat-option>
+                }
+              </mat-select>
+              <mat-label>Algorithm</mat-label>
+            </mat-form-field>
+            <p>
+              <mat-icon>info</mat-icon>
+              <span>Algorithm to use for determining homologs. Options are HMMER, Blast, MMseqs2</span>
+            </p>
+          </div>
 
-        </div>
-      </form>
-    </div>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="downloadOutput()">Result Archive</button>
-      <button mat-menu-item (click)="downloadOutput('msa_aa_variety_percentage')">AA Variety Percentage File</button>
-      <button mat-menu-item (click)="downloadOutput('grades')">Consurf Grades</button>
-    </mat-menu>
+          <div style="display: flex; gap: 20px">
+            <button mat-raised-button type="submit">Submit Job</button>
+            @if (status === 'completed') {
+              <button color="primary" mat-raised-button type="button" [matMenuTriggerFor]="menu">Download Result</button>
+            }
+          </div>
 
+        </form>
+      </div>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="downloadOutput()">Result Archive</button>
+        <button mat-menu-item (click)="downloadOutput('msa_aa_variety_percentage')">AA Variety Percentage File</button>
+        <button mat-menu-item (click)="downloadOutput('grades')">Consurf Grades</button>
+      </mat-menu>
+    }
   </mat-tab>
+  @if (log_data) {
+    <mat-tab label="Job Log">
+      @if (currentTabIndex === 1) {
+        <div style="height: 500px; overflow-y: auto; white-space: pre-wrap; padding: 20px; border: 1px solid rgba(176,216,0,0.26);">
+          <div>Result Pipe Log</div>
+          {{ log_data }}
+        </div>
+        <div style="height: 500px; overflow-y: auto; white-space: pre-wrap; padding: 20px; border: 1px solid #780101;">
+          <div>Error Pipe Log:</div>
+          {{ error_data }}
+        </div>
+      }
+    </mat-tab>
+  }
   @if (jobid && status === 'completed') {
     <mat-tab label="Job Results">
-      <app-consurf-view [jobid]="jobid"></app-consurf-view>
+      @if (currentTabIndex === 2) {
+        <app-consurf-view [jobid]="jobid"></app-consurf-view>
+      }
     </mat-tab>
   }
 </mat-tab-group>
