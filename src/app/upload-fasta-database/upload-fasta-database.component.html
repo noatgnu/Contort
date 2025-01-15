@@ -1,21 +1,25 @@
 <h1 mat-dialog-title>Manage User Resources</h1>
 <div mat-dialog-content>
-  <mat-tab-group>
+  <mat-tab-group (selectedIndexChange)="onTabChange($event)">
     <mat-tab label="Upload Fasta Database">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form">
+        <form [formGroup]="form" style="display: flex; gap: 20px">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>Database Name</mat-label>
           </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Provide a file name before upload</span>
+          </p>
         </form>
         @for (f of fileList; track f.name) {
           <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
         }
         <input type="file" hidden #fileInput (change)="uploadData($event, 'database')">
         <div>
-          <button mat-raised-button (click)="fileInput.click()">Upload FASTA File</button>
+          <button mat-raised-button (click)="fileInput.click()"  [disabled]="!form.value.searchTerm">Upload FASTA File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Databases</h1>
@@ -41,29 +45,32 @@
                 </mat-cell>
               </ng-container>
             </mat-table>
-            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'database')"></mat-paginator>
+            <mat-paginator [length]="query.count" [pageSize]="limit" (page)="onPaginate($event, 'database')"></mat-paginator>
           } @else {
             <p>No data found</p>
           }
-
         </form>
       </div>
     </mat-tab>
     <mat-tab label="Upload Multiple Sequence Alignment">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form">
+        <form [formGroup]="form" style="display: flex; gap: 20px">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>MSA Name</mat-label>
           </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Provide a file name before upload</span>
+          </p>
         </form>
         @for (f of fileList; track f.name) {
           <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
         }
         <input type="file" hidden #fileInputMSA (change)="uploadData($event, 'msa')">
         <div>
-          <button mat-raised-button (click)="fileInputMSA.click()">Upload Alignment File</button>
+          <button mat-raised-button (click)="fileInputMSA.click()" [disabled]="!form.value.searchTerm">Upload Alignment File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Multiple Sequence Alignment</h1>
@@ -89,7 +96,7 @@
                 </mat-cell>
               </ng-container>
             </mat-table>
-            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
+            <mat-paginator [length]="msaQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
           } @else {
             <p>No data found</p>
           }
@@ -100,18 +107,22 @@
     <mat-tab label="PDB Files">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form">
+        <form [formGroup]="form" style="display: flex; gap: 20px">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>PDB File Name</mat-label>
           </mat-form-field>
+          <p>
+            <mat-icon>info</mat-icon>
+            <span>Provide a file name before upload</span>
+          </p>
         </form>
         @for (f of fileList; track f.name) {
           <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
         }
         <input type="file" hidden #fileInputStructure (change)="uploadData($event, 'structure')">
         <div>
-          <button mat-raised-button (click)="fileInputStructure.click()">Upload PDB File</button>
+          <button mat-raised-button (click)="fileInputStructure.click()"  [disabled]="!form.value.searchTerm">Upload PDB File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded PDB Files</h1>
@@ -137,17 +148,14 @@
                 </mat-cell>
               </ng-container>
             </mat-table>
-            <mat-paginator [pageSize]="limit" (page)="onPaginate($event, 'structure')"></mat-paginator>
+            <mat-paginator [length]="structureQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'structure')"></mat-paginator>
           } @else {
             <p>No data found</p>
           }
-
         </form>
       </div>
     </mat-tab>
   </mat-tab-group>
-
-
 </div>
 <div mat-dialog-actions>
   <button mat-button (click)="close()">Cancel</button>

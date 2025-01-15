@@ -33,6 +33,7 @@ import {MatSelect} from "@angular/material/select";
 import {MatCheckbox} from "@angular/material/checkbox";
 import {MatListOption, MatSelectionList} from "@angular/material/list";
 import {MatPaginator} from "@angular/material/paginator";
+import {JobTableComponent} from "./consurf-job/job-table/job-table.component";
 
 PlotlyModule.plotlyjs = PlotlyJS;
 
@@ -65,7 +66,7 @@ PlotlyModule.plotlyjs = PlotlyJS;
     MatAutocompleteModule,
     MatTabsModule,
     MsaBarChartComponent,
-    MatProgressBarModule, MatSelect, MatCheckbox, MatListOption, MatPaginator, MatSelectionList],
+    MatProgressBarModule, MatSelect, MatCheckbox, MatListOption, MatPaginator, MatSelectionList, JobTableComponent],
   exports: [
     ConsurfViewComponent,
 

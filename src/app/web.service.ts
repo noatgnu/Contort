@@ -165,6 +165,7 @@ export class WebService {
     params.append("page", page.toString())
     if (search !== "" && search !== null) {
       params.append("job_title", search)
+      params.append("uniprot_accession", search)
     }
     return this.http.get<ConsurfJobQuery>(`${this.baseUrl}/api/job/`, {responseType: 'json', observe: 'body', params: params})
   }

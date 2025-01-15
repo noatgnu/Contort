@@ -1,0 +1,47 @@
+<div style="display: flex; flex-direction: column; margin: auto; padding: 50px">
+  <form [formGroup]="form">
+    <mat-form-field>
+      <input matInput formControlName="searchTerm">
+      <mat-label>Search Term...</mat-label>
+    </mat-form-field>
+  </form>
+  @if (consurfJobQuery) {
+    <table mat-table [dataSource]="consurfJobQuery.results" class="mat-elevation-z8">
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef> ID </th>
+        <td mat-cell *matCellDef="let element"> <a href="/#/consurf-job/{{element.id}}">{{element.id}}</a> </td>
+      </ng-container>
+      <ng-container matColumnDef="uniprot_accession">
+        <th mat-header-cell *matHeaderCellDef> Uniprot Accession </th>
+        <td mat-cell *matCellDef="let element"> {{element.uniprot_accession}} </td>
+      </ng-container>
+      <ng-container matColumnDef="job_title">
+        <th mat-header-cell *matHeaderCellDef> Title </th>
+        <td mat-cell *matCellDef="let element"> {{element.job_title}} </td>
+      </ng-container>
+      <ng-container matColumnDef="query_name">
+        <th mat-header-cell *matHeaderCellDef> Query Name </th>
+        <td mat-cell *matCellDef="let element"> {{element.query_name}} </td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef> Status </th>
+        <td mat-cell *matCellDef="let element"> {{element.status}} </td>
+      </ng-container>
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef> Created At </th>
+        <td mat-cell *matCellDef="let element"> {{element.created_at | date: "short"}} </td>
+      </ng-container>
+      <ng-container matColumnDef="updated_at">
+        <th mat-header-cell *matHeaderCellDef> Updated At </th>
+        <td mat-cell *matCellDef="let element"> {{element.updated_at | date: "short"}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row (click)="clickRow(row)" *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <mat-paginator [length]="consurfJobQuery.count" [pageSize]="pageSize" (page)="onPageChange($event)"></mat-paginator>
+  }
+</div>
+
+
+

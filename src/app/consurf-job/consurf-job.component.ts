@@ -7,6 +7,7 @@ import {StructureFileQuery} from "../structure";
 import {MatTabChangeEvent} from "@angular/material/tabs";
 import {MatDialog} from "@angular/material/dialog";
 import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/save-structure-file-dialog.component";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-consurf-job',
@@ -28,6 +29,7 @@ export class ConsurfJobComponent {
   @Input() set jobid(value: string) {
     this._jobid = value
     if (value) {
+      this.currentTabIndex = 1
       this.web.getConsurfJob(parseInt(value)).subscribe((value) => {
         this.form.controls.query_sequence.setValue(value.query_sequence)
         this.form.controls.alignment_program.setValue(value.alignment_program)
@@ -35,7 +37,7 @@ export class ConsurfJobComponent {
         this.form.controls.fasta_database_id.setValue([value.fasta_database])
         // @ts-ignore
         this.form.controls.msa_id.setValue([value.msa])
-        if (this.form.controls.msa_id.value) {
+        if (value.msa) {
           this.web.getAllSequenceNamesFromMSA(value.msa).subscribe((value) => {
             this.sequence_names = value
           })
@@ -105,7 +107,7 @@ export class ConsurfJobComponent {
   msaQuery: MultipleSequenceAlignmentQuery|undefined = undefined
   structureQuery: StructureFileQuery|undefined = undefined
 
-  constructor(private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
+  constructor(private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
     this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((value) => {
       this.proteinDatabaseQuery = value
     })
@@ -174,6 +176,9 @@ export class ConsurfJobComponent {
     }
     this.web.submitConsurfJob(this.form.value).subscribe((value) => {
       console.log(value)
+      this.router.navigate([`/consurf-job/${value.id}`]).then((r) => {
+        this.currentTabIndex = 1
+      })
     })
   }
 
@@ -252,5 +257,13 @@ export class ConsurfJobComponent {
     this.web.getAllSequenceNamesFromMSA(msa.id).subscribe((value) => {
       this.sequence_names = value
     })
+  }
+
+  handleClickedJob(jobId: number){
+    this.router.navigate([`/consurf-job/${jobId}`]).then(
+      (r) => {
+        this.currentTabIndex = 1
+      }
+    )
   }
 }

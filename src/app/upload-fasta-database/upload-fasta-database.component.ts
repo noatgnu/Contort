@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import { WebService } from '../web.service';
 import jsSHA from 'jssha';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -59,6 +59,9 @@ import {StructureFile, StructureFileQuery} from "../structure";
   styleUrls: ['./upload-fasta-database.component.scss']
 })
 export class UploadFastaDatabaseComponent {
+  @ViewChild("fileInput") fileInput: any;
+  @ViewChild("fileInputMSA") fileInputMSA: any;
+  @ViewChild("fileInputStructure") fileInputStructure: any;
   fileList: File[] = [];
   fileProgressMap: any = {};
   fileType: string = '';
@@ -93,6 +96,12 @@ export class UploadFastaDatabaseComponent {
     this.web.getProteinFastaDatabases().subscribe((data) => {
       this.query = data;
     });
+    this.web.getStructures().subscribe((data) => {
+      this.structureQuery = data;
+    })
+    this.web.getMSAs().subscribe((data) => {
+      this.msaQuery = data;
+    })
 
     this.form.controls.searchTerm.valueChanges.subscribe((value) => {
       if (value) {
@@ -141,6 +150,9 @@ export class UploadFastaDatabaseComponent {
         await this.uploadFile(files[i], type);
       }
     }
+    this.fileInput.reset();
+    this.fileInputMSA.reset();
+    this.fileInputStructure.reset();
   }
 
   getFileExntension(file: File) {
@@ -266,6 +278,12 @@ export class UploadFastaDatabaseComponent {
         });
       })
     }
+  }
 
+  onTabChange(event: any) {
+    this.form.reset();
+    this.fileInput.reset();
+    this.fileInputMSA.reset();
+    this.fileInputStructure.reset();
   }
 }

@@ -1,6 +1,9 @@
-<mat-tab-group [mat-stretch-tabs]="false" mat-align-tabs="center" (selectedTabChange)="onTabChange($event)">
+<mat-tab-group [(selectedIndex)]="currentTabIndex" [mat-stretch-tabs]="false" mat-align-tabs="center">
+  <mat-tab [label]="'Job List'">
+    <app-job-table (clickedRow)="handleClickedJob($event)" *ngIf="currentTabIndex === 0"></app-job-table>
+  </mat-tab>
   <mat-tab [label]="'Consurf job submission details '+ status">
-    @if (currentTabIndex === 0) {
+    @if (currentTabIndex === 1) {
       <div style="flex: 1; padding: 20px; margin: auto; display: flex; flex-direction: column; align-items: center; overflow-y: auto;">
         <form [formGroup]="form" style="display: flex; flex-direction: column; gap: 20px;" (ngSubmit)="submit()">
           <div style="display: flex; gap:20px">
@@ -273,7 +276,7 @@
   </mat-tab>
   @if (log_data) {
     <mat-tab label="Job Log">
-      @if (currentTabIndex === 1) {
+      @if (currentTabIndex === 2) {
         <div style="height: 500px; overflow-y: auto; white-space: pre-wrap; padding: 20px; border: 1px solid rgba(176,216,0,0.26);">
           <div>Result Pipe Log</div>
           {{ log_data }}
@@ -287,7 +290,7 @@
   }
   @if (jobid && status === 'completed') {
     <mat-tab label="Job Results">
-      @if (currentTabIndex === 2) {
+      @if (currentTabIndex === 3) {
         <app-consurf-view [jobid]="jobid"></app-consurf-view>
       }
     </mat-tab>
