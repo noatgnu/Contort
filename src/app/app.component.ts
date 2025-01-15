@@ -7,6 +7,8 @@ import {LoginDialogComponent} from "./login-dialog/login-dialog.component";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {UploadFastaDatabaseComponent} from "./upload-fasta-database/upload-fasta-database.component";
 import {AccountService} from "./account.service";
+import {WebsocketService} from "./websocket.service";
+import {WebService} from "./web.service";
 
 @Component({
     selector: 'app-root',
@@ -17,8 +19,19 @@ import {AccountService} from "./account.service";
 export class AppComponent {
   title = 'CONTORT';
 
-  constructor(private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+  constructor(private web: WebService, private websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+    if (this.accountService.isAuthenticated()) {
+      this.web.getUniqueSessionID().subscribe((data) => {
+        this.accountService.sessionID = data.token.replace(/:/g, "_")
+        this.websocket.connectJobWS(this.accountService.sessionID)
+        if (this.websocket.jobConnection) {
+          this.websocket.jobConnection.subscribe((data) => {
+            console.log(data)
+          })
+        }
+      })
 
+    }
   }
 
   handleFileImport(event: Event) {

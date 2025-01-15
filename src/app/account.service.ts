@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 export class AccountService {
   private tokenKey = 'contortToken';
   private userKey = 'contortUserData';
+  sessionID: string = ''
   constructor() { }
 
   getToken(): string | null {

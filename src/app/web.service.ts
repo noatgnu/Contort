@@ -34,10 +34,10 @@ export class WebService {
 
   getProteinFastaDatabases(limit: number = 10, page: number = 1, search: string = "") {
     let params = new HttpParams()
-    params.append("limit", limit.toString())
-    params.append("page", page.toString())
+    params = params.append("limit", limit.toString())
+    params = params.append("page", page.toString())
     if (search !== "" && search !== null) {
-      params.append("search", search)
+      params = params.append("search", search)
     }
     return this.http.get<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/`, {responseType: 'json', observe: 'body', params: params})
   }
@@ -62,10 +62,10 @@ export class WebService {
 
   getStructures(limit: number = 10, page: number = 1, search: string = "") {
     let params = new HttpParams()
-    params.append("limit", limit.toString())
-    params.append("page", page.toString())
+    params = params.append("limit", limit.toString())
+    params = params.append("page", page.toString())
     if (search !== "" && search !== null) {
-      params.append("search", search)
+      params = params.append("search", search)
     }
     return this.http.get<StructureFileQuery>(`${this.baseUrl}/api/structure/`, {responseType: 'json', observe: 'body', params: params})
   }
@@ -161,12 +161,12 @@ export class WebService {
 
   getConsurfJobs(limit: number = 10, page: number = 1, search: string = "") {
     let params = new HttpParams()
-    params.append("limit", limit.toString())
-    params.append("page", page.toString())
+    params = params.append("limit", limit.toString())
+    params = params.append("page", page.toString())
     if (search !== "" && search !== null) {
-      params.append("job_title", search)
-      params.append("uniprot_accession", search)
+      params = params.append("search", search)
     }
+
     return this.http.get<ConsurfJobQuery>(`${this.baseUrl}/api/job/`, {responseType: 'json', observe: 'body', params: params})
   }
 
@@ -227,6 +227,10 @@ export class WebService {
 
   getPDBFileFromUniProtID(uniprotID: string): Observable<string> {
     return this.http.get(`${this.baseUrl}/api/job/get_pdb/?uniprotID=${uniprotID}`, {observe: 'body', responseType: 'text'})
+  }
+
+  getUniqueSessionID() {
+    return this.http.get<{'token': string}>(`${this.baseUrl}/api/users/get_unique_session_id/`, {responseType: 'json', observe: 'body'})
   }
 
 

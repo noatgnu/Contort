@@ -7,6 +7,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isLoginRequest = req.url.includes('/login')
   const token = accountService.getToken()
   if (token && !isLoginRequest) {
+    if (accountService.sessionID) {
+      req = req.clone({
+        setHeaders: {
+          'X-Contort-Session-ID': accountService.sessionID
+        }
+      })
+    }
     const cloned = req.clone({
       setHeaders: {
         Authorization: `Token ${token}`
