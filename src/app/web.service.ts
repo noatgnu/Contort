@@ -159,14 +159,16 @@ export class WebService {
     )
   }
 
-  getConsurfJobs(limit: number = 10, page: number = 1, search: string = "") {
+  getConsurfJobs(limit: number = 10, page: number = 1, search: string = "", status: string = "") {
     let params = new HttpParams()
     params = params.append("limit", limit.toString())
     params = params.append("page", page.toString())
     if (search !== "" && search !== null) {
       params = params.append("search", search)
     }
-
+    if (status !== "" && status !== null && status !== "all") {
+      params = params.append("status", status)
+    }
     return this.http.get<ConsurfJobQuery>(`${this.baseUrl}/api/job/`, {responseType: 'json', observe: 'body', params: params})
   }
 

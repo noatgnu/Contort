@@ -1,8 +1,18 @@
 <div style="display: flex; flex-direction: column; margin: auto; padding: 50px">
-  <form [formGroup]="form">
+  <form [formGroup]="form" style="display: flex; gap: 20px">
     <mat-form-field>
       <input matInput formControlName="searchTerm">
       <mat-label>Search Term...</mat-label>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-select formControlName="status">
+        <mat-option value="all">All</mat-option>
+        <mat-option value="completed">Completed</mat-option>
+        <mat-option value="running">Running</mat-option>
+        <mat-option value="failed">Failed</mat-option>
+        <mat-option value="pending">Pending</mat-option>
+      </mat-select>
+      <mat-label>Job Status</mat-label>
     </mat-form-field>
   </form>
   @if (consurfJobQuery) {

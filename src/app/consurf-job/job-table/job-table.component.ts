@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {WebService} from "../../web.service";
 import {ConsurfJobQuery} from "../../consurf-job";
 import {
@@ -15,6 +15,7 @@ import {MatPaginator} from "@angular/material/paginator";
 import {DatePipe} from "@angular/common";
 import {MatFormField, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
+import {MatOption, MatSelect} from "@angular/material/select";
 
 @Component({
   selector: 'app-job-table',
@@ -34,7 +35,9 @@ import {MatInput} from "@angular/material/input";
     ReactiveFormsModule,
     MatFormField,
     MatInput,
-    MatLabel
+    MatLabel,
+    MatSelect,
+    MatOption
   ],
   templateUrl: './job-table.component.html',
   styleUrl: './job-table.component.scss'
@@ -83,10 +86,17 @@ export class JobTableComponent {
     ]
 
   form = this.fb.group({
-    searchTerm: [""]
+    searchTerm: [""],
+    status: ["all"]
   })
 
   @Output() clickedRow: EventEmitter<number> = new EventEmitter<number>()
+  @Input() set status(value: string) {
+    if (value) {
+      this.form.controls.status.setValue(value)
+    }
+  }
+
   constructor(private web: WebService, private fb: FormBuilder) {
     this.web.getConsurfJobs(this.pageSize, this.currentPage).subscribe((data) => {
       this.consurfJobQuery = data
@@ -97,6 +107,9 @@ export class JobTableComponent {
           this.consurfJobQuery = data
         })
       }
+    })
+    this.form.controls.status.valueChanges.subscribe((value) => {
+
     })
   }
 

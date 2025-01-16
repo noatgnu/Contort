@@ -10,6 +10,8 @@ import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/sav
 import {Router} from "@angular/router";
 import {WebsocketService} from "../websocket.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {forkJoin, Observable} from "rxjs";
+import {ConsurfJob} from "../consurf-job";
 
 @Component({
   selector: 'app-consurf-job',
@@ -34,6 +36,9 @@ export class ConsurfJobComponent {
       this.currentTabIndex = 1
       this.web.getConsurfJob(parseInt(value)).subscribe((value) => {
         this.form.controls.query_sequence.setValue(value.query_sequence)
+        if (value.query_sequence) {
+          this.numberOfSequences = value.query_sequence.split("\n").filter((a) => a[0] === ">").length
+        }
         this.form.controls.alignment_program.setValue(value.alignment_program)
         // @ts-ignore
         this.form.controls.fasta_database_id.setValue([value.fasta_database])
@@ -108,6 +113,7 @@ export class ConsurfJobComponent {
   proteinDatabaseQuery: ProteinFastaDatabaseQuery|undefined = undefined
   msaQuery: MultipleSequenceAlignmentQuery|undefined = undefined
   structureQuery: StructureFileQuery|undefined = undefined
+  numberOfSequences: number = 0
 
   constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
     this.websocket.jobMessage.subscribe((value) => {
@@ -119,8 +125,14 @@ export class ConsurfJobComponent {
           this.status = value.status
         })
       }
-
     })
+
+    this.form.controls.query_sequence.valueChanges.subscribe((value) => {
+      if (value) {
+        this.numberOfSequences = value.split("\n").filter((a) => a[0] === ">").length
+      }
+    })
+
     this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((value) => {
       this.proteinDatabaseQuery = value
     })
@@ -188,13 +200,43 @@ export class ConsurfJobComponent {
       this.sb.open("Form is invalid", "Dismiss")
       return
     }
-    this.web.submitConsurfJob(this.form.value).subscribe((value) => {
-      this.status = "pending"
-      this.router.navigate([`/consurf-job/${value.id}`]).then((r) => {
-        this.currentTabIndex = 1
-        this.sb.open("Job submitted", "Dismiss")
+    if (this.numberOfSequences > 1) {
+
+      if (this.form.controls.query_sequence.value) {
+        let sequence = ""
+        let sequenceID = ">"
+        let observable: Observable<ConsurfJob>[] = []
+        for (const line of this.form.controls.query_sequence.value.split("\n")) {
+          if (line[0] === ">") {
+            const payload = this.form.value
+            payload.query_sequence = `${sequenceID}\n${sequence}`
+            payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
+            observable.push(this.web.submitConsurfJob(payload))
+            sequence = ""
+            sequenceID = line
+          } else {
+            sequence += line
+          }
+        }
+        const payload = this.form.value
+        payload.query_sequence = `${sequenceID}\n${sequence}`
+        payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
+        observable.push(this.web.submitConsurfJob(payload))
+        forkJoin(observable).subscribe((value) => {
+
+        })
+      }
+
+
+    } else {
+      this.web.submitConsurfJob(this.form.value).subscribe((value) => {
+        this.status = "pending"
+        this.router.navigate([`/consurf-job/${value.id}`]).then((r) => {
+          this.currentTabIndex = 1
+          this.sb.open("Job submitted", "Dismiss")
+        })
       })
-    })
+    }
   }
 
   downloadOutput(file_type: string = "zip") {
@@ -219,7 +261,6 @@ export class ConsurfJobComponent {
 
   getPDBStructure() {
     if (this.form.controls.uniprot_id.value) {
-
       this.web.getPDBFileFromUniProtID(this.form.controls.uniprot_id.value).subscribe((value) => {
         this.parsePDBFile(value)
         const ref = this.dialog.open(SaveStructureFileDialogComponent)
@@ -280,5 +321,9 @@ export class ConsurfJobComponent {
         this.currentTabIndex = 1
       }
     )
+  }
+
+  batchSubmit() {
+
   }
 }

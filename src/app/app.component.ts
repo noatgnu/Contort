@@ -60,6 +60,8 @@ export class AppComponent {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.sb.open('Login successful', 'Close')
+        // refresh website
+        window.location.reload()
       } else {
         console.log('Login cancelled');
       }
