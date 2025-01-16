@@ -107,7 +107,9 @@ export class JobTableComponent {
             this.web.getConsurfJob(data.job_id).subscribe((job) => {
               if (this.consurfJobQuery) {
                 this.consurfJobQuery.results[index] = job
+                this.consurfJobQuery.results = [...this.consurfJobQuery.results]
               }
+
             })
           }
         }
