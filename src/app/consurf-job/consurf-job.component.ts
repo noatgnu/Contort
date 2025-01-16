@@ -111,9 +111,12 @@ export class ConsurfJobComponent {
 
   constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
     this.websocket.jobMessage.subscribe((value) => {
-      this.log_data += value.log_data
-      this.error_data += value.error_data
       this.status = value.status
+      this.web.getConsurfJob(parseInt(this.jobid)).subscribe((value) => {
+        this.log_data = value.log_data
+        this.error_data = value.error_data
+        this.status = value.status
+      })
     })
     this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((value) => {
       this.proteinDatabaseQuery = value
