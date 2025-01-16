@@ -78,6 +78,8 @@ export class AppComponent {
         if (this.accountService.sessionID === data.session_id) {
           this.websocket.jobMessage.next(data)
         }
+      }, (error) => {
+        this.connectWS()
       })
     }
   }
