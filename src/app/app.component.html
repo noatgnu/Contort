@@ -23,6 +23,15 @@
         <button mat-icon-button (click)="openLoginDialog()">
           <mat-icon>login</mat-icon>
         </button>
+      } @else {
+        <button mat-icon-button (click)="logout()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      }
+      @if (!websocket.connectedJobWS) {
+        <button mat-icon-button (click)="connectWS()">
+          <mat-icon>cloud_off</mat-icon>
+        </button>
       }
 
     </div>

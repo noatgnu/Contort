@@ -19,7 +19,7 @@ import {WebService} from "./web.service";
 export class AppComponent {
   title = 'CONTORT';
 
-  constructor(private web: WebService, private websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+  constructor(private web: WebService, public websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
     if (this.accountService.isAuthenticated()) {
       this.web.getUniqueSessionID().subscribe((data) => {
         this.accountService.sessionID = data.token.replace(/:/g, "_")
@@ -79,8 +79,12 @@ export class AppComponent {
           this.websocket.jobMessage.next(data)
         }
       }, (error) => {
-        this.connectWS()
+        //this.connectWS()
       })
     }
+  }
+
+  logout() {
+    this.accountService.logout()
   }
 }
