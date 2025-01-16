@@ -34,3 +34,13 @@ export interface ConsurfJobQuery {
   previous: string|null;
   next: string|null;
 }
+
+export interface MessageJob {
+  'type': string,
+  'job_id': number,
+  'status': string,
+  'session_id': string,
+  'log_data': string,
+  'error_data': string,
+  'message': string
+}

@@ -8,6 +8,8 @@ import {MatTabChangeEvent} from "@angular/material/tabs";
 import {MatDialog} from "@angular/material/dialog";
 import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/save-structure-file-dialog.component";
 import {Router} from "@angular/router";
+import {WebsocketService} from "../websocket.service";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
   selector: 'app-consurf-job',
@@ -107,7 +109,12 @@ export class ConsurfJobComponent {
   msaQuery: MultipleSequenceAlignmentQuery|undefined = undefined
   structureQuery: StructureFileQuery|undefined = undefined
 
-  constructor(private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
+  constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
+    this.websocket.jobMessage.subscribe((value) => {
+      this.log_data += value.log_data
+      this.error_data += value.error_data
+      this.status = value.status
+    })
     this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((value) => {
       this.proteinDatabaseQuery = value
     })
@@ -172,12 +179,14 @@ export class ConsurfJobComponent {
 
   submit() {
     if (this.form.invalid) {
+      this.sb.open("Form is invalid", "Dismiss")
       return
     }
     this.web.submitConsurfJob(this.form.value).subscribe((value) => {
-      console.log(value)
+      this.status = "pending"
       this.router.navigate([`/consurf-job/${value.id}`]).then((r) => {
         this.currentTabIndex = 1
+        this.sb.open("Job submitted", "Dismiss")
       })
     })
   }

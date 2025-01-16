@@ -23,14 +23,8 @@ export class AppComponent {
     if (this.accountService.isAuthenticated()) {
       this.web.getUniqueSessionID().subscribe((data) => {
         this.accountService.sessionID = data.token.replace(/:/g, "_")
-        this.websocket.connectJobWS(this.accountService.sessionID)
-        if (this.websocket.jobConnection) {
-          this.websocket.jobConnection.subscribe((data) => {
-            console.log(data)
-          })
-        }
+        this.connectWS()
       })
-
     }
   }
 
@@ -75,5 +69,16 @@ export class AppComponent {
   openManageDatabaseDialog() {
     const dialogRef = this.dialog.open(UploadFastaDatabaseComponent);
 
+  }
+
+  connectWS() {
+    this.websocket.connectJobWS(this.accountService.sessionID)
+    if (this.websocket.jobConnection) {
+      this.websocket.jobConnection.subscribe((data) => {
+        if (this.accountService.sessionID === data.session_id) {
+          this.websocket.jobMessage.next(data)
+        }
+      })
+    }
   }
 }

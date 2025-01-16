@@ -3,6 +3,8 @@ import {environment} from "../environments/environment";
 import {AccountService} from "./account.service";
 import {WebSocketSubject} from "rxjs/internal/observable/dom/WebSocketSubject";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {MessageJob} from "./consurf-job";
+import {Subject} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +12,8 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 export class WebsocketService {
   baseURL = environment.baseUrl.replace("http", "ws")
   connectedJobWS: boolean = false
-  jobConnection: WebSocketSubject<any>| undefined
+  jobConnection: WebSocketSubject<MessageJob>| undefined
+  jobMessage: Subject<MessageJob> = new Subject()
   constructor(private account: AccountService, private sb: MatSnackBar) { }
 
   connectJobWS(sessionID: string) {
