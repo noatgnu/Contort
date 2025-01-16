@@ -16,6 +16,7 @@ import {DatePipe} from "@angular/common";
 import {MatFormField, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
+import {WebsocketService} from "../../websocket.service";
 
 @Component({
   selector: 'app-job-table',
@@ -97,18 +98,39 @@ export class JobTableComponent {
     }
   }
 
-  constructor(private web: WebService, private fb: FormBuilder) {
+  constructor(private web: WebService, private fb: FormBuilder, private websocket: WebsocketService) {
+    this.websocket.jobMessage.subscribe((data) => {
+      if (this.consurfJobQuery) {
+        if (this.consurfJobQuery.results) {
+          const index = this.consurfJobQuery.results.findIndex((job) => job.id === data.job_id)
+          if (index !== -1) {
+            this.web.getConsurfJob(data.job_id).subscribe((job) => {
+              if (this.consurfJobQuery) {
+                this.consurfJobQuery.results[index] = job
+              }
+            })
+          }
+        }
+      }
+    })
     this.web.getConsurfJobs(this.pageSize, this.currentPage).subscribe((data) => {
       this.consurfJobQuery = data
     })
     this.form.controls.searchTerm.valueChanges.subscribe((value) => {
       if (value) {
-        this.web.getConsurfJobs(this.pageSize, this.currentPage, value).subscribe((data) => {
+        // @ts-ignore
+        this.web.getConsurfJobs(this.pageSize, this.currentPage, value, this.form.value.status).subscribe((data) => {
           this.consurfJobQuery = data
         })
       }
     })
     this.form.controls.status.valueChanges.subscribe((value) => {
+      if (value) {
+        // @ts-ignore
+        this.web.getConsurfJobs(this.pageSize, this.currentPage, this.form.value.searchTerm, value).subscribe((data) => {
+          this.consurfJobQuery = data
+        })
+      }
 
     })
   }
