@@ -6,7 +6,18 @@ import { Injectable } from '@angular/core';
 export class AccountService {
   private tokenKey = 'contortToken';
   private userKey = 'contortUserData';
-  sessionID: string = ''
+  private _sessionID: string = ''
+  set sessionID(value: string) {
+    localStorage.setItem('contortSessionID', value);
+    this._sessionID = value;
+  }
+
+  get sessionID(): string {
+    if (this._sessionID === '') {
+      this._sessionID = localStorage.getItem('contortSessionID') || '';
+    }
+    return this._sessionID;
+  }
   constructor() { }
 
   getToken(): string | null {
