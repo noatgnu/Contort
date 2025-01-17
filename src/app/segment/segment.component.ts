@@ -164,7 +164,7 @@ export class SegmentComponent {
     this.graphData = graphData
     this.graphLayout.width = temp.x.length * this.dataService.segmentSettings["cell-size"]
     //this.graphLayout.xaxis.tickvals =[ticks[0], ticks[Math.round(ticks.length/2)], ticks[ticks.length-1]]
-    this.graphLayout.xaxis.tickvals = ticks.filter((_, index) => index % 5 === 0 || index === ticks.length-1 || index % 5 === 4);
+    this.graphLayout.xaxis.tickvals = ticks.filter((_, index) => index % 5 === 0 || index === ticks.length-1);
     this.graphLayout.annotations = annotations
     this.graphLayout.shapes = shapes
     this.revision++
