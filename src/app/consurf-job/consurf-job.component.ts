@@ -223,7 +223,7 @@ export class ConsurfJobComponent {
         payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
         observable.push(this.web.submitConsurfJob(payload))
         forkJoin(observable).subscribe((value) => {
-
+          this.sb.open( `${value.length} Jobs submitted`, "Dismiss")
         })
       }
 

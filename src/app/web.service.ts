@@ -178,13 +178,34 @@ export class WebService {
 
   submitConsurfJob(payload: any) {
     if (typeof payload['fasta_database_id'] !== 'number') {
-      payload['fasta_database_id'] = payload['fasta_database_id'][0]
+      if (payload['fasta_database_id']) {
+        if (payload['fasta_database_id'].length === 0) {
+          payload['fasta_database_id'] = null
+        } else {
+          payload['fasta_database_id'] = payload['fasta_database_id'][0]
+        }
+      }
+
     }
     if (typeof payload['msa_id'] !== 'number') {
-      payload['msa_id'] = payload['msa_id'][0]
+      if (payload['msa_id']) {
+        if (payload['msa_id'].length === 0) {
+          payload['msa_id'] = null
+        } else {
+          payload['msa_id'] = payload['msa_id'][0]
+        }
+      }
+
     }
     if (typeof payload['structure_id'] !== 'number') {
-      payload['structure_id'] = payload['structure_id'][0]
+      if (payload['structure_id']) {
+        if (payload['structure_id'].length === 0) {
+          payload['structure_id'] = null
+        } else {
+          payload['structure_id'] = payload['structure_id'][0]
+        }
+      }
+
     }
     return this.http.post<ConsurfJob>(`${this.baseUrl}/api/job/`, payload, {responseType: 'json', observe: 'body'})
   }
