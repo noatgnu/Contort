@@ -208,10 +208,12 @@ export class ConsurfJobComponent {
         let observable: Observable<ConsurfJob>[] = []
         for (const line of this.form.controls.query_sequence.value.split("\n")) {
           if (line[0] === ">") {
-            const payload = this.form.value
-            payload.query_sequence = `${sequenceID}\n${sequence}`
-            payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
-            observable.push(this.web.submitConsurfJob(payload))
+            if (sequence.length > 0 && sequenceID.length > 0) {
+              const payload = this.form.value
+              payload.query_sequence = `${sequenceID}\n${sequence}`
+              payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
+              observable.push(this.web.submitConsurfJob(payload))
+            }
             sequence = ""
             sequenceID = line
           } else {
