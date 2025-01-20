@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {fromCSV} from "data-forge";
 import {DataService} from "./data.service";
 import {MatDialog} from "@angular/material/dialog";
@@ -16,10 +16,15 @@ import {WebService} from "./web.service";
     styleUrls: ['./app.component.scss'],
     standalone: false
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'CONTORT';
 
   constructor(private web: WebService, public websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+
+
+  }
+
+  ngOnInit() {
     if (this.accountService.isAuthenticated()) {
       this.web.getUniqueSessionID().subscribe((data) => {
         this.accountService.sessionID = data.token.replace(/:/g, "_")
