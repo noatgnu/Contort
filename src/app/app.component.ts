@@ -27,7 +27,9 @@ export class AppComponent {
       })
     }
     this.web.getCSRFToken().subscribe((data) => {
-
+      this.web.getAuthenticationStatus().subscribe((response) => {
+        console.log(response)
+      })
     })
 
   }

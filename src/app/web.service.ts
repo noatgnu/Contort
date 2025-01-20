@@ -304,4 +304,8 @@ export class WebService {
   getCSRFToken() {
     return this.http.get(`${this.baseUrl}/api/set-csrf/`, { observe: 'response'})
   }
+
+  getAuthenticationStatus(){
+    return this.http.get(`${this.baseUrl}/_allauth/browser/v1/auth/session`, {responseType: 'json', observe: 'body', withCredentials: true})
+  }
 }
