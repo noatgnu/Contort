@@ -259,7 +259,7 @@ export class WebService {
   getLoginProviderRedirect() {
     let headers = new HttpHeaders()
     const cookies = document.cookie.split(';')
-    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrftoken='))
+    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrfToken='))
     if (csrf) {
       const csrfToken = csrf.split('=')[1]
       headers = headers.append('x-csrftoken', csrfToken)
