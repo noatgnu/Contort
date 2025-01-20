@@ -28,15 +28,7 @@ export class AppComponent {
     }
     this.web.getCSRFToken().subscribe((data) => {
       console.log(data.headers)
-
-      this.web.getLoginProviderRedirect().subscribe((response) => {
-        if (response.status === 302) {
-          const redirectUrl = response.headers.get('Location');
-          if (redirectUrl) {
-            window.location.href = redirectUrl;
-          }
-        }
-      })
+      this.web.getLoginProviderRedirect()
     })
 
   }
