@@ -257,18 +257,48 @@ export class WebService {
   }
 
   getLoginProviderRedirect() {
-    let headers = new HttpHeaders()
-    const cookies = document.cookie.split(';')
-    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrfToken='))
-    if (csrf) {
-      const csrfToken = csrf.split('=')[1]
-      headers = headers.append('x-csrftoken', csrfToken)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${this.baseUrl}/_allauth/browser/v1/auth/provider/redirect`;
+
+    const providerInput = document.createElement('input');
+    providerInput.type = 'hidden';
+    providerInput.name = 'provider';
+    providerInput.value = 'keycloak';
+    form.appendChild(providerInput);
+
+    const callbackUrlInput = document.createElement('input');
+    callbackUrlInput.type = 'hidden';
+    callbackUrlInput.name = 'callback_url';
+    callbackUrlInput.value = 'https://localhost';
+    form.appendChild(callbackUrlInput);
+
+    const processInput = document.createElement('input');
+    processInput.type = 'hidden';
+    processInput.name = 'process';
+    processInput.value = 'login';
+    form.appendChild(processInput);
+
+    const csrfToken = this.getCSRFTokenFromCookies();
+    if (csrfToken) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrfmiddlewaretoken';
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
     }
-    let payload = new FormData()
-    payload.append('provider', 'keycloak')
-    payload.append('callback_url', 'https://localhost')
-    payload.append('process', 'login')
-    return this.http.post(`${this.baseUrl}/_allauth/browser/v1/auth/provider/redirect`, payload, {observe: 'response', headers: headers, withCredentials: true})
+
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  getCSRFTokenFromCookies(): string | null {
+    const cookies = document.cookie.split(';');
+    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrfToken='));
+    if (csrf) {
+      return csrf.split('=')[1];
+    }
+    return null;
   }
 
   getCSRFToken() {
