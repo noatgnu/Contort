@@ -6,6 +6,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const accountService = inject(AccountService)
   const isLoginRequest = req.url.includes('/login')
   const token = accountService.getToken()
+  if (accountService.isAuthenticated()) {
+    req = req.clone({
+      withCredentials: true
+    })
+  }
   if (token && !isLoginRequest) {
     if (accountService.sessionID) {
       req = req.clone({

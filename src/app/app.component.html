@@ -39,7 +39,10 @@
       <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>
     </div>-->
   </mat-toolbar>
-  <router-outlet></router-outlet>
+  @if (ready) {
+    <router-outlet></router-outlet>
+  }
+
 
 </mat-drawer-container>
 

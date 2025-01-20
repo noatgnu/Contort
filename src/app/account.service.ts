@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import {UserSession} from "./user";
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +8,7 @@ export class AccountService {
   private tokenKey = 'contortToken';
   private userKey = 'contortUserData';
   private _sessionID: string = ''
+  userSession?: UserSession
   set sessionID(value: string) {
     localStorage.setItem('contortSessionID', value);
     this._sessionID = value;
@@ -41,6 +43,11 @@ export class AccountService {
   }
 
   isAuthenticated(): boolean {
+    if (this.userSession) {
+      if (this.userSession.status === 200) {
+        return true
+      }
+    }
     return !!this.getToken();
   }
 

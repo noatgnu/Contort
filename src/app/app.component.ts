@@ -18,6 +18,7 @@ import {WebService} from "./web.service";
 })
 export class AppComponent implements OnInit {
   title = 'CONTORT';
+  ready = false
 
   constructor(private web: WebService, public websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
 
@@ -25,18 +26,29 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (this.accountService.isAuthenticated()) {
-      this.web.getUniqueSessionID().subscribe((data) => {
-        this.accountService.sessionID = data.token.replace(/:/g, "_")
-        this.connectWS()
-      })
-    }
-    this.web.getCSRFToken().subscribe((data) => {
-      this.web.getAuthenticationStatus().subscribe((response) => {
-        console.log(response)
-      })
+    this.initialize().then(() => {
+      this.ready = true
     })
+  }
 
+  async initialize() {
+    const uniqueSessionID = await this.web.getUniqueSessionID().toPromise()
+    if (uniqueSessionID) {
+      this.accountService.sessionID = uniqueSessionID.token.replace(/:/g, "_")
+      this.connectWS()
+    }
+    const resp = await this.web.getCSRFToken().toPromise()
+    if (resp) {
+      if (resp.status === 200) {
+        const userSession = await this.web.getAuthenticationStatus().toPromise()
+        if (userSession) {
+          if (userSession.status === 200) {
+            this.accountService.userSession = userSession
+
+          }
+        }
+      }
+    }
   }
 
   handleFileImport(event: Event) {
@@ -98,6 +110,9 @@ export class AppComponent implements OnInit {
   }
 
   logout() {
+    this.web.logoutProvider().subscribe((data) => {
+
+    })
     this.accountService.logout()
   }
 }

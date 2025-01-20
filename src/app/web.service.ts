@@ -8,6 +8,7 @@ import {ConsurfJob, ConsurfJobQuery} from "./consurf-job";
 import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "./msa";
 import {map, Observable, switchMap} from "rxjs";
 import {StructureFile, StructureFileQuery} from "./structure";
+import {UserSession} from "./user";
 
 @Injectable({
   providedIn: 'root'
@@ -306,6 +307,21 @@ export class WebService {
   }
 
   getAuthenticationStatus(){
-    return this.http.get(`${this.baseUrl}/_allauth/browser/v1/auth/session`, {responseType: 'json', observe: 'body', withCredentials: true})
+    return this.http.get<UserSession>(`${this.baseUrl}/_allauth/browser/v1/auth/session`, {responseType: 'json', observe: 'body', withCredentials: true})
+  }
+
+  logoutProvider() {
+    let headers = new HttpHeaders()
+    headers = headers.append('X-Session-Token', this.getSessionIDFromCookies() || "")
+    return this.http.delete(`${this.baseUrl}/_allauth/browser/v1/auth/session`, {headers: headers, withCredentials: true})
+  }
+
+  getSessionIDFromCookies(): string | null {
+    const cookies = document.cookie.split(';');
+    const sessionID = cookies.find((cookie) => cookie.trim().startsWith('sessionid='));
+    if (sessionID) {
+      return sessionID.split('=')[1];
+    }
+    return null;
   }
 }
