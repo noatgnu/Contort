@@ -256,5 +256,22 @@ export class WebService {
     return this.http.get<{'token': string}>(`${this.baseUrl}/api/users/get_unique_session_id/`, {responseType: 'json', observe: 'body'})
   }
 
+  getLoginProviderRedirect() {
+    let headers = new HttpHeaders()
+    const cookies = document.cookie.split(';')
+    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrftoken='))
+    if (csrf) {
+      const csrfToken = csrf.split('=')[1]
+      headers = headers.append('x-csrftoken', csrfToken)
+    }
+    let payload = new FormData()
+    payload.append('provider', 'keycloak')
+    payload.append('callback_url', 'https://localhost')
+    payload.append('process', 'login')
+    return this.http.post(`${this.baseUrl}/_allauth/browser/v1/auth/provider/redirect`, payload, {responseType: 'json', observe: 'response', headers: headers, withCredentials: true})
+  }
 
+  getCSRFToken() {
+    return this.http.get(`${this.baseUrl}/api/set-csrf/`, {responseType: 'json', observe: 'response'})
+  }
 }

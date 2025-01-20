@@ -26,6 +26,14 @@ export class AppComponent {
         this.connectWS()
       })
     }
+    this.web.getCSRFToken().subscribe((data) => {
+      console.log(data.headers)
+
+      this.web.getLoginProviderRedirect().subscribe((data) => {
+        console.log(data.headers)
+      })
+    })
+
   }
 
   handleFileImport(event: Event) {
