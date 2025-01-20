@@ -313,6 +313,7 @@ export class WebService {
   logoutProvider() {
     let headers = new HttpHeaders()
     headers = headers.append('X-Session-Token', this.getSessionIDFromCookies() || "")
+    headers = headers.append('X-CSRFToken', this.getCSRFTokenFromCookies() || "")
     return this.http.delete(`${this.baseUrl}/_allauth/browser/v1/auth/session`, {headers: headers, withCredentials: true})
   }
 
