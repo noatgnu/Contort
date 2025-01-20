@@ -27,8 +27,7 @@ export class AppComponent {
       })
     }
     this.web.getCSRFToken().subscribe((data) => {
-      console.log(data.headers)
-      this.web.getLoginProviderRedirect()
+
     })
 
   }

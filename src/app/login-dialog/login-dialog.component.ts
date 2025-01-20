@@ -55,4 +55,8 @@ export class LoginDialogComponent {
     this.dialogRef.close(false);
   }
 
+  connectKeycloak() {
+    this.webService.getLoginProviderRedirect()
+  }
+
 }
