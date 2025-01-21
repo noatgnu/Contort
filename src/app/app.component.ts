@@ -113,7 +113,11 @@ export class AppComponent implements OnInit {
     this.web.logoutProvider().subscribe((data) => {
       this.accountService.userSession = undefined
       this.accountService.isLogged = false
+    }, (error) => {
+      this.accountService.logout()
+      this.accountService.userSession = undefined
+      this.accountService.isLogged = false
     })
-    this.accountService.logout()
+
   }
 }
