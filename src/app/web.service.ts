@@ -15,6 +15,7 @@ import {UserSession} from "./user";
 })
 export class WebService {
   baseUrl: string = environment.baseUrl
+  keycloakCallbackUrl: string = environment.keycloakCallback
   constructor(private http: HttpClient) { }
 
   getConsurfMSAVar(uniprotId: string) {
@@ -271,7 +272,7 @@ export class WebService {
     const callbackUrlInput = document.createElement('input');
     callbackUrlInput.type = 'hidden';
     callbackUrlInput.name = 'callback_url';
-    callbackUrlInput.value = 'https://localhost';
+    callbackUrlInput.value = this.keycloakCallbackUrl;
     form.appendChild(callbackUrlInput);
 
     const processInput = document.createElement('input');
