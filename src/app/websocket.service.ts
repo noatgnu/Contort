@@ -23,7 +23,7 @@ export class WebsocketService {
       url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.web.getSessionIDFromCookies()}`
     }
     this.jobConnection = new WebSocketSubject({
-      url: `${this.baseURL}/ws/job/${sessionID}/?token=${this.account.getToken()}`,
+      url: url,
       openObserver: {
         next: () => {
           this.connectedJobWS = true
