@@ -5,6 +5,7 @@ import {WebSocketSubject} from "rxjs/internal/observable/dom/WebSocketSubject";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {MessageJob} from "./consurf-job";
 import {Subject} from "rxjs";
+import {WebService} from "./web.service";
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +15,13 @@ export class WebsocketService {
   connectedJobWS: boolean = false
   jobConnection: WebSocketSubject<MessageJob>| undefined
   jobMessage: Subject<MessageJob> = new Subject()
-  constructor(private account: AccountService, private sb: MatSnackBar) { }
+  constructor(private account: AccountService, private sb: MatSnackBar, private web: WebService) { }
 
   connectJobWS(sessionID: string) {
+    let url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.account.getToken()}`
+    if (!this.account.getToken()) {
+      url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.web.getSessionIDFromCookies()}`
+    }
     this.jobConnection = new WebSocketSubject({
       url: `${this.baseURL}/ws/job/${sessionID}/?token=${this.account.getToken()}`,
       openObserver: {

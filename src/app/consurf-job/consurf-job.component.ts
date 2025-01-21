@@ -12,6 +12,7 @@ import {WebsocketService} from "../websocket.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {forkJoin, Observable} from "rxjs";
 import {ConsurfJob} from "../consurf-job";
+import {AccountService} from "../account.service";
 
 @Component({
   selector: 'app-consurf-job',
@@ -115,7 +116,7 @@ export class ConsurfJobComponent {
   structureQuery: StructureFileQuery|undefined = undefined
   numberOfSequences: number = 0
 
-  constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog) {
+  constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog, public accountService: AccountService) {
     this.websocket.jobMessage.subscribe((value) => {
       if (value.job_id === parseInt(this.jobid)) {
         this.status = value.status

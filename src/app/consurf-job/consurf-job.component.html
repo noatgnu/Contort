@@ -1,6 +1,13 @@
 <mat-tab-group [(selectedIndex)]="currentTabIndex" [mat-stretch-tabs]="false" mat-align-tabs="center">
   <mat-tab [label]="'Job List'">
-    <app-job-table (clickedRow)="handleClickedJob($event)" *ngIf="currentTabIndex === 0"></app-job-table>
+    @if (accountService.isLogged) {
+      <app-job-table (clickedRow)="handleClickedJob($event)" *ngIf="currentTabIndex === 0"></app-job-table>
+    } @else {
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px;">
+        <p>Log in to view your jobs</p>
+      </div>
+    }
+
   </mat-tab>
   <mat-tab [label]="'Consurf job submission details '+ status">
     @if (currentTabIndex === 1) {
