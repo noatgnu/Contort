@@ -74,7 +74,7 @@
                   }
                 </mat-selection-list>
                 <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count" (page)="onPageChange($event, 'database')"></mat-paginator>
-                <button mat-icon-button (click)="clearDatabaseFile()">
+                <button mat-icon-button type="button" (click)="clearDatabaseFile()">
                   <mat-icon>clear</mat-icon>
                 </button>
               }
@@ -99,7 +99,7 @@
                   }
                 </mat-selection-list>
                 <mat-paginator [pageSize]="limit" [length]="msaQuery.count" (page)="onPageChange($event, 'msa')"></mat-paginator>
-                <button mat-icon-button (click)="clearAlignmentFile()">
+                <button mat-icon-button type="button" (click)="clearAlignmentFile()">
                   <mat-icon>clear</mat-icon>
                 </button>
               }
@@ -136,7 +136,7 @@
                   }
                 </mat-selection-list>
                 <mat-paginator [pageSize]="limit" [length]="structureQuery.count" (page)="onPageChange($event, 'structure')"></mat-paginator>
-                <button mat-icon-button (click)="clearStructureFile()">
+                <button mat-icon-button type="button" (click)="clearStructureFile()">
                   <mat-icon>clear</mat-icon>
                 </button>
               }
@@ -276,9 +276,9 @@
         </form>
       </div>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="downloadOutput()">Result Archive</button>
-        <button mat-menu-item (click)="downloadOutput('msa_aa_variety_percentage')">AA Variety Percentage File</button>
-        <button mat-menu-item (click)="downloadOutput('grades')">Consurf Grades</button>
+        <button type="button" mat-menu-item (click)="downloadOutput()">Result Archive</button>
+        <button type="button" mat-menu-item (click)="downloadOutput('msa_aa_variety_percentage')">AA Variety Percentage File</button>
+        <button type="button" mat-menu-item (click)="downloadOutput('grades')">Consurf Grades</button>
       </mat-menu>
     }
   </mat-tab>
