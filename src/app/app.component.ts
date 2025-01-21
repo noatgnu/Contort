@@ -37,14 +37,16 @@ export class AppComponent implements OnInit {
       this.accountService.sessionID = uniqueSessionID.token.replace(/:/g, "_")
       this.connectWS()
     }
-    const resp = await this.web.getCSRFToken().toPromise()
-    if (resp) {
-      if (resp.status === 200) {
-        const userSession = await this.web.getAuthenticationStatus().toPromise()
-        if (userSession) {
-          if (userSession.status === 200) {
-            this.accountService.userSession = userSession
-            this.accountService.isLogged = true
+    if (!this.accountService.getToken()) {
+      const resp = await this.web.getCSRFToken().toPromise()
+      if (resp) {
+        if (resp.status === 200) {
+          const userSession = await this.web.getAuthenticationStatus().toPromise()
+          if (userSession) {
+            if (userSession.status === 200) {
+              this.accountService.userSession = userSession
+              this.accountService.isLogged = true
+            }
           }
         }
       }
