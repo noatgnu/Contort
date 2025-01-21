@@ -32,13 +32,20 @@ export class AppComponent implements OnInit {
   }
 
   async initialize() {
-    const uniqueSessionID = await this.web.getUniqueSessionID().toPromise()
-    if (uniqueSessionID) {
-      this.accountService.sessionID = uniqueSessionID.token.replace(/:/g, "_")
-      this.connectWS()
+    try {
+      const uniqueSessionID = await this.web.getUniqueSessionID().toPromise()
+      if (uniqueSessionID) {
+        this.accountService.sessionID = uniqueSessionID.token.replace(/:/g, "_")
+        this.connectWS()
+      }
+    } catch (e) {
+      console.error(e)
     }
+    
+    console.log(this.accountService.getToken())
     if (!this.accountService.getToken()) {
       const resp = await this.web.getCSRFToken().toPromise()
+      console.log(resp)
       if (resp) {
         if (resp.status === 200) {
           const userSession = await this.web.getAuthenticationStatus().toPromise()
