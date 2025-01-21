@@ -19,7 +19,7 @@
         }
         <input type="file" hidden #fileInput (change)="uploadData($event, 'database')">
         <div>
-          <button mat-raised-button (click)="fileInput.click()"  [disabled]="!form.value.searchTerm">Upload FASTA File</button>
+          <button mat-raised-button (click)="fileInput.click()"  [disabled]="!form.value.name">Upload FASTA File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Databases</h1>
@@ -70,7 +70,7 @@
         }
         <input type="file" hidden #fileInputMSA (change)="uploadData($event, 'msa')">
         <div>
-          <button mat-raised-button (click)="fileInputMSA.click()" [disabled]="!form.value.searchTerm">Upload Alignment File</button>
+          <button mat-raised-button (click)="fileInputMSA.click()" [disabled]="!form.value.name">Upload Alignment File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Multiple Sequence Alignment</h1>
@@ -122,7 +122,7 @@
         }
         <input type="file" hidden #fileInputStructure (change)="uploadData($event, 'structure')">
         <div>
-          <button mat-raised-button (click)="fileInputStructure.click()"  [disabled]="!form.value.searchTerm">Upload PDB File</button>
+          <button mat-raised-button (click)="fileInputStructure.click()"  [disabled]="!form.value.name">Upload PDB File</button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded PDB Files</h1>
