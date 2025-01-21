@@ -42,6 +42,7 @@ export class LoginDialogComponent {
         next: (response) => {
           localStorage.setItem('contortToken', response.token);
           this.dialogRef.close(true);
+
         },
         error: (error) => {
           this.errorMessage = 'Login failed. Please try again.';

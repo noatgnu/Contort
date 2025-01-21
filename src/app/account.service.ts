@@ -9,6 +9,9 @@ export class AccountService {
   private userKey = 'contortUserData';
   private _sessionID: string = ''
   userSession?: UserSession
+
+  isLogged: boolean = false
+
   set sessionID(value: string) {
     localStorage.setItem('contortSessionID', value);
     this._sessionID = value;

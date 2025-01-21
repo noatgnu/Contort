@@ -44,7 +44,7 @@ export class AppComponent implements OnInit {
         if (userSession) {
           if (userSession.status === 200) {
             this.accountService.userSession = userSession
-
+            this.accountService.isLogged = true
           }
         }
       }
@@ -112,6 +112,7 @@ export class AppComponent implements OnInit {
   logout() {
     this.web.logoutProvider().subscribe((data) => {
       this.accountService.userSession = undefined
+      this.accountService.isLogged = false
     })
     this.accountService.logout()
   }

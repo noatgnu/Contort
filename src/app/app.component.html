@@ -19,7 +19,7 @@
       <button mat-icon-button (click)="openCustomScoreEditor()">
         <mat-icon>edit</mat-icon>
       </button>
-      @if (!accountService.isAuthenticated()) {
+      @if (!accountService.isLogged) {
         <button mat-icon-button (click)="openLoginDialog()">
           <mat-icon>login</mat-icon>
         </button>
