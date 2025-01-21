@@ -50,6 +50,8 @@ export class AppComponent implements OnInit {
           }
         }
       }
+    } else {
+      this.accountService.isLogged = true
     }
   }
 
