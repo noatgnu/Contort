@@ -46,11 +46,12 @@ export class WebsocketService {
   private waitForSessionIDFromCookies(): Promise<string> {
     return new Promise((resolve) => {
       const checkCookie = () => {
+        console.log(document.cookie.split(';'))
         const sessionID = this.web.getSessionIDFromCookies();
         if (sessionID) {
           resolve(sessionID);
         } else {
-          setTimeout(checkCookie, 100); // Check again after 100ms
+          setTimeout(checkCookie, 5000); // Check again after 100ms
         }
       };
       checkCookie();
