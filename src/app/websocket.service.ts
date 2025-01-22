@@ -20,7 +20,10 @@ export class WebsocketService {
   async connectJobWS(sessionID: string) {
     let token = this.account.getToken();
     if (!token) {
-      token = await this.waitForSessionIDFromCookies();
+      const response = await this.web.getUserTokenThroughSession().toPromise()
+      if (response) {
+        token = response.token
+      }
     }
 
     let url = `${this.baseURL}/ws/job/${sessionID}/?token=${token}`;
@@ -43,18 +46,5 @@ export class WebsocketService {
     })
   }
 
-  private waitForSessionIDFromCookies(): Promise<string> {
-    return new Promise((resolve) => {
-      const checkCookie = () => {
-        console.log(document.cookie.split(';'))
-        const sessionID = this.web.getSessionIDFromCookies();
-        if (sessionID) {
-          resolve(sessionID);
-        } else {
-          setTimeout(checkCookie, 5000); // Check again after 100ms
-        }
-      };
-      checkCookie();
-    });
-  }
+
 }

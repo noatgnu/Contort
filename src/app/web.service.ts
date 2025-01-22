@@ -326,4 +326,8 @@ export class WebService {
     }
     return null;
   }
+
+  getUserTokenThroughSession() {
+    return this.http.get<{token: string}>(`${this.baseUrl}/api/users/get_token/`, {responseType: 'json', observe: 'body'})
+  }
 }
