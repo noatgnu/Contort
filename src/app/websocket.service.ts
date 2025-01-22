@@ -19,9 +19,12 @@ export class WebsocketService {
 
   connectJobWS(sessionID: string) {
     let url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.account.getToken()}`
+    console.log(url)
+    console.log(this.account.getToken())
     if (!this.account.getToken()) {
       url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.web.getSessionIDFromCookies()}`
     }
+    console.log(url)
     this.jobConnection = new WebSocketSubject({
       url: url,
       openObserver: {
