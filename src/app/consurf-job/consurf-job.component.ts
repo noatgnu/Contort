@@ -146,22 +146,23 @@ export class ConsurfJobComponent {
 
     this.form.controls.searchTerm.valueChanges.subscribe((value) => {
       if (value) {
-        this.web.getProteinFastaDatabases(this.limit, this.page, value).subscribe((value) => {
-          this.proteinDatabaseQuery = value
+        this.web.getProteinFastaDatabases(this.limit, this.page, value).subscribe((data) => {
+          this.proteinDatabaseQuery = data
         })
       }
     })
     this.form.controls.searchTermMSA.valueChanges.subscribe((value) => {
       if (value) {
-        this.web.getMSAs(this.msaLimit, this.msaPage, value).subscribe((value) => {
-          this.msaQuery = value
+        console.log(value)
+        this.web.getMSAs(this.msaLimit, this.msaPage, value).subscribe((data) => {
+          this.msaQuery = data
         })
       }
     })
     this.form.controls.searchTermPDB.valueChanges.subscribe((value) => {
       if (value) {
-        this.web.getStructures(this.pdbLimit, this.pdbPage, value).subscribe((value) => {
-          this.structureQuery = value
+        this.web.getStructures(this.pdbLimit, this.pdbPage, value).subscribe((data) => {
+          this.structureQuery = data
         })
       }
     })
@@ -204,6 +205,10 @@ export class ConsurfJobComponent {
     if (this.numberOfSequences > 1) {
 
       if (this.form.controls.query_sequence.value) {
+        this.form.controls.msa_id.setValue("")
+        this.form.controls.query_name.setValue("")
+        this.form.controls.structure_id.setValue("")
+        this.form.controls.chain.setValue("")
         let sequence = ""
         let sequenceID = ">"
         let observable: Observable<ConsurfJob>[] = []
