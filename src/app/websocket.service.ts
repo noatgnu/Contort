@@ -23,6 +23,7 @@ export class WebsocketService {
       const response = await this.web.getUserTokenThroughSession().toPromise()
       if (response) {
         token = response.token
+        this.account.setToken(token)
       }
     }
 

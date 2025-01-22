@@ -29,7 +29,7 @@ export class AccountService {
     return localStorage.getItem(this.tokenKey);
   }
 
-  private setToken(token: string): void {
+  setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
   }
 
