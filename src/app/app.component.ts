@@ -109,16 +109,20 @@ export class AppComponent implements OnInit {
   }
 
   connectWS() {
-    this.websocket.connectJobWS(this.accountService.sessionID)
-    if (this.websocket.jobConnection) {
-      this.websocket.jobConnection.subscribe((data) => {
-        if (this.accountService.sessionID === data.session_id) {
-          this.websocket.jobMessage.next(data)
+    this.websocket.connectJobWS(this.accountService.sessionID).then(
+      () => {
+        if (this.websocket.jobConnection) {
+          this.websocket.jobConnection.subscribe((data) => {
+            if (this.accountService.sessionID === data.session_id) {
+              this.websocket.jobMessage.next(data)
+            }
+          }, (error) => {
+            //this.connectWS()
+          })
         }
-      }, (error) => {
-        //this.connectWS()
-      })
-    }
+      }
+    )
+
   }
 
   logout() {

@@ -17,14 +17,14 @@ export class WebsocketService {
   jobMessage: Subject<MessageJob> = new Subject()
   constructor(private account: AccountService, private sb: MatSnackBar, private web: WebService) { }
 
-  connectJobWS(sessionID: string) {
-    let url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.account.getToken()}`
-    console.log(url)
-    console.log(this.account.getToken())
-    if (!this.account.getToken()) {
-      url = `${this.baseURL}/ws/job/${sessionID}/?token=${this.web.getSessionIDFromCookies()}`
+  async connectJobWS(sessionID: string) {
+    let token = this.account.getToken();
+    if (!token) {
+      token = await this.waitForSessionIDFromCookies();
     }
-    console.log(url)
+
+    let url = `${this.baseURL}/ws/job/${sessionID}/?token=${token}`;
+
     this.jobConnection = new WebSocketSubject({
       url: url,
       openObserver: {
@@ -41,5 +41,19 @@ export class WebsocketService {
         }
       }
     })
+  }
+
+  private waitForSessionIDFromCookies(): Promise<string> {
+    return new Promise((resolve) => {
+      const checkCookie = () => {
+        const sessionID = this.web.getSessionIDFromCookies();
+        if (sessionID) {
+          resolve(sessionID);
+        } else {
+          setTimeout(checkCookie, 100); // Check again after 100ms
+        }
+      };
+      checkCookie();
+    });
   }
 }
