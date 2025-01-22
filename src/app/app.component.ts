@@ -41,7 +41,7 @@ export class AppComponent implements OnInit {
     } catch (e) {
       console.error(e)
     }
-    
+
     console.log(this.accountService.getToken())
     if (!this.accountService.getToken()) {
       const resp = await this.web.getCSRFToken().toPromise()

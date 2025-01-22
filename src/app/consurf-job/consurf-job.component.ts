@@ -300,6 +300,7 @@ export class ConsurfJobComponent {
 
   clearAlignmentFile() {
     this.form.controls.msa_id.setValue("")
+    this.form.controls.query_name.setValue("")
   }
 
   clearStructureFile() {
