@@ -50,10 +50,10 @@ export class WebService {
 
   getMSAs(limit: number = 10, page: number = 1, search: string = "") {
     let params = new HttpParams()
-    params.append("limit", limit.toString())
-    params.append("page", page.toString())
+    params = params.append("limit", limit.toString())
+    params = params.append("page", page.toString())
     if (search !== "" && search !== null) {
-      params.append("search", search)
+      params = params.append("search", search)
     }
     return this.http.get<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/`, {responseType: 'json', observe: 'body', params: params})
   }

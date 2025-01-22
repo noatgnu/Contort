@@ -153,7 +153,6 @@ export class ConsurfJobComponent {
     })
     this.form.controls.searchTermMSA.valueChanges.subscribe((value) => {
       if (value) {
-        console.log(value)
         this.web.getMSAs(this.msaLimit, this.msaPage, value).subscribe((data) => {
           this.msaQuery = data
         })
