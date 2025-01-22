@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
       const uniqueSessionID = await this.web.getUniqueSessionID().toPromise()
       if (uniqueSessionID) {
         this.accountService.sessionID = uniqueSessionID.token.replace(/:/g, "_")
-        this.connectWS()
+
       }
     } catch (e) {
       console.error(e)
@@ -60,6 +60,7 @@ export class AppComponent implements OnInit {
     } else {
       this.accountService.isLogged = true
     }
+    this.connectWS()
   }
 
   handleFileImport(event: Event) {
