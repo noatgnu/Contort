@@ -330,4 +330,12 @@ export class WebService {
   getUserTokenThroughSession() {
     return this.http.get<{token: string}>(`${this.baseUrl}/api/users/get_token/`, {responseType: 'json', observe: 'body'})
   }
+
+  userLogoutProvider() {
+    let headers = new HttpHeaders()
+    headers = headers.append('X-Session-Token', this.getSessionIDFromCookies() || "")
+    headers = headers.append('X-CSRFToken', this.getCSRFTokenFromCookies() || "")
+    return this.http.post(`${this.baseUrl}/api/users/logout_provider/`, {withCredentials: true, headers: headers})
+  }
+
 }
