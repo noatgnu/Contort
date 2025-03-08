@@ -247,7 +247,7 @@ export class WebService {
   }
 
   getUniprot(uniprotID: string) {
-    return this.http.get<any>(`https://rest.uniprot.org/uniprotkb/${uniprotID}`, {observe: 'body', responseType: 'json'})
+    return this.http.get<any>(`${this.baseUrl}/api/get-uniprot-proxy/?accession=${uniprotID}`, {observe: 'body', responseType: 'json'})
   }
 
   getPDBFileFromUniProtID(uniprotID: string): Observable<string> {
