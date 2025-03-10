@@ -10,7 +10,7 @@ const routes: Routes = [
   {path: 'consurf-job/:jobid', component: ConsurfJobComponent},
   {path: 'consurf-job', component: ConsurfJobComponent},
   {path: 'home', component: HomeComponent},
-  {path: '', redirectTo: '/consurf-view', pathMatch: 'full'}
+  {path: '', redirectTo: '/consurf-job', pathMatch: 'full'}
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes, {useHash: true, bindToComponentInputs: true})],
