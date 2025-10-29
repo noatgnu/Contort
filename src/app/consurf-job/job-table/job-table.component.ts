@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, OnDestroy} from '@angular/core';
 import {WebService} from "../../web.service";
 import {ConsurfJobQuery} from "../../consurf-job";
 import {
@@ -17,6 +17,7 @@ import {MatFormField, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
 import {WebsocketService} from "../../websocket.service";
+import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
 
 @Component({
   selector: 'app-job-table',
@@ -43,11 +44,14 @@ import {WebsocketService} from "../../websocket.service";
   templateUrl: './job-table.component.html',
   styleUrl: './job-table.component.scss'
 })
-export class JobTableComponent {
-  pageSize: number = 10
-  currentPage: number = 1
-  consurfJobQuery: ConsurfJobQuery|undefined
-  columns = [
+export class JobTableComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  readonly pageSize = 10;
+  offset = 0;
+  consurfJobQuery: ConsurfJobQuery | undefined;
+  
+  readonly columns = [
     'user',
   'job_title',
     'query_sequence',
@@ -75,8 +79,9 @@ export class JobTableComponent {
   'chain',
   'uniprot_accession',
   'query_name'
-  ]
-  displayedColumns = [
+  ];
+  
+  readonly displayedColumns = [
     "id",
     "job_title",
     "uniprot_accession",
@@ -84,71 +89,102 @@ export class JobTableComponent {
     "query_name",
     "created_at",
     "updated_at",
-    ]
+  ];
 
   form = this.fb.group({
     searchTerm: [""],
     status: ["all"]
-  })
+  });
 
-  @Output() clickedRow: EventEmitter<number> = new EventEmitter<number>()
+  @Output() clickedRow = new EventEmitter<number>();
+  
   @Input() set status(value: string) {
     if (value) {
-      this.form.controls.status.setValue(value)
+      this.form.controls.status.setValue(value);
     }
   }
 
-  constructor(private web: WebService, private fb: FormBuilder, private websocket: WebsocketService) {
-    this.websocket.jobMessage.subscribe((data) => {
-      if (this.consurfJobQuery) {
-        if (this.consurfJobQuery.results) {
-          const index = this.consurfJobQuery.results.findIndex((job) => job.id === data.job_id)
-          if (index !== -1) {
-            this.web.getConsurfJob(data.job_id).subscribe((job) => {
-              if (this.consurfJobQuery) {
-                this.consurfJobQuery.results[index] = job
-                this.consurfJobQuery.results = [...this.consurfJobQuery.results]
-              }
+  constructor(
+    private web: WebService,
+    private fb: FormBuilder,
+    private websocket: WebsocketService
+  ) {
+    this.setupWebsocketListener();
+    this.loadInitialData();
+    this.setupFormListeners();
+  }
 
-            })
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupWebsocketListener(): void {
+    this.websocket.jobMessage
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        if (this.consurfJobQuery?.results) {
+          const index = this.consurfJobQuery.results.findIndex(job => job.id === data.job_id);
+          if (index !== -1) {
+            this.web.getConsurfJob(data.job_id)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe(job => {
+                if (this.consurfJobQuery) {
+                  this.consurfJobQuery.results[index] = job;
+                  this.consurfJobQuery.results = [...this.consurfJobQuery.results];
+                }
+              });
           }
         }
-      }
-    })
-    this.web.getConsurfJobs(this.pageSize, this.currentPage).subscribe((data) => {
-      this.consurfJobQuery = data
-    })
-    this.form.controls.searchTerm.valueChanges.subscribe((value) => {
-      if (value) {
-        // @ts-ignore
-        this.web.getConsurfJobs(this.pageSize, this.currentPage, value, this.form.value.status).subscribe((data) => {
-          this.consurfJobQuery = data
-        })
-      }
-    })
-    this.form.controls.status.valueChanges.subscribe((value) => {
-      if (value) {
-        // @ts-ignore
-        this.web.getConsurfJobs(this.pageSize, this.currentPage, this.form.value.searchTerm, value).subscribe((data) => {
-          this.consurfJobQuery = data
-        })
-      }
-
-    })
+      });
   }
 
-  onPageChange(event: any) {
-    let term = ""
-    if (this.form.value.searchTerm) {
-      term = this.form.value.searchTerm
-    }
-    this.currentPage = event.pageIndex+1
-    this.web.getConsurfJobs(this.pageSize, event.pageIndex+1, term).subscribe((data) => {
-      this.consurfJobQuery = data
-    })
+  private loadInitialData(): void {
+    this.web.getConsurfJobs(this.pageSize, this.offset)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.consurfJobQuery = data);
   }
 
-  clickRow(row: any) {
-    this.clickedRow.emit(row.id)
+  private setupFormListeners(): void {
+    this.form.controls.searchTerm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(value => {
+        this.offset = 0;
+        const term = value || '';
+        const status = this.form.value.status || 'all';
+        this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.consurfJobQuery = data);
+      });
+
+    this.form.controls.status.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        this.offset = 0;
+        const term = this.form.value.searchTerm || '';
+        const status = value || 'all';
+        this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.consurfJobQuery = data);
+      });
+  }
+
+  onPageChange(event: any): void {
+    const offset = event.pageIndex * event.pageSize;
+    const term = this.form.value.searchTerm || '';
+    const status = this.form.value.status || 'all';
+    
+    this.offset = offset;
+    this.web.getConsurfJobs(this.pageSize, offset, term, status)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.consurfJobQuery = data);
+  }
+
+  clickRow(row: any): void {
+    this.clickedRow.emit(row.id);
   }
 }
