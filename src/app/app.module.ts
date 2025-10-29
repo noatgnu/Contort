@@ -13,7 +13,6 @@ import {MatMenuModule} from "@angular/material/menu";
 import { ConsurfPlotComponent } from './consurf-plot/consurf-plot.component';
 import * as PlotlyJS from 'plotly.js-dist-min';
 import { PlotlyModule } from 'angular-plotly.js';
-import Plotly from 'plotly.js-dist-min';
 import {MatCardModule} from "@angular/material/card";
 import {NgxColorsModule} from "ngx-colors";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -55,7 +54,7 @@ import {JobTableComponent} from "./consurf-job/job-table/job-table.component";
     MatIconModule,
     MatButtonModule,
     MatMenuModule,
-    PlotlyModule,
+    PlotlyModule.forRoot(PlotlyJS),
     MatCardModule,
     NgxColorsModule,
     FormsModule,
@@ -73,8 +72,7 @@ import {JobTableComponent} from "./consurf-job/job-table/job-table.component";
     provideAnimations(),
     provideHttpClient(
       withInterceptors([authInterceptor])
-    ),
-    { provide: 'plotly', useValue: Plotly }
+    )
   ]
 })
 export class AppModule { }
