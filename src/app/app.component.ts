@@ -111,15 +111,10 @@ export class AppComponent implements OnInit {
   connectWS() {
     this.websocket.connectJobWS(this.accountService.sessionID).then(
       () => {
-        if (this.websocket.jobConnection) {
-          this.websocket.jobConnection.subscribe((data) => {
-            if (this.accountService.sessionID === data.session_id) {
-              this.websocket.jobMessage.next(data)
-            }
-          }, (error) => {
-            //this.connectWS()
-          })
-        }
+        console.log("WebSocket connection established");
+      },
+      (error) => {
+        console.error("Failed to establish WebSocket connection:", error);
       }
     )
 

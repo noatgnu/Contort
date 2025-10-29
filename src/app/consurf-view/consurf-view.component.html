@@ -53,10 +53,11 @@
               <div style="display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid rgba(0,0,0,0.12); border-radius: 4px;">
                 <input 
                   type="color" 
-                  [(ngModel)]="dataService.color_map[g]"
+                  [value]="getColor(g)"
+                  (input)="setColor(g, $any($event.target).value)"
                   [id]="'color-' + g"
-                  style="width: 40px; height: 40px; border: none; cursor: pointer;">
-                <label [for]="'color-' + g" style="font-size: 15pt; padding-left: 12px; cursor: pointer; user-select: none;">{{g}}</label>
+                  style="width: 40px; height: 40px; border: none; cursor: pointer; border-radius: 4px;">
+                <label [for]="'color-' + g" style="font-size: 15pt; padding-left: 12px; cursor: pointer; user-select: none;">Grade {{g}}</label>
               </div>
             }
           </div>

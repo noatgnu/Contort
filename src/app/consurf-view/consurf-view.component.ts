@@ -15,6 +15,39 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 })
 export class ConsurfViewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  
+  // Helper to convert RGB to Hex for color picker
+  rgbToHex(rgb: string): string {
+    const result = rgb.match(/\d+/g);
+    if (!result || result.length < 3) return '#000000';
+    const r = parseInt(result[0]);
+    const g = parseInt(result[1]);
+    const b = parseInt(result[2]);
+    return '#' + [r, g, b].map(x => {
+      const hex = x.toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+  }
+  
+  // Helper to convert Hex to RGB for storage
+  hexToRgb(hex: string): string {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return 'rgb(0, 0, 0)';
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+  
+  // Get color for picker
+  getColor(grade: string): string {
+    return this.rgbToHex(this.dataService.color_map[grade]);
+  }
+  
+  // Set color from picker
+  setColor(grade: string, hex: string): void {
+    this.dataService.color_map[grade] = this.hexToRgb(hex);
+  }
   @Input() set accid(value: string) {
     if (value !== "") {
       this.form.controls.term.setValue(value);
