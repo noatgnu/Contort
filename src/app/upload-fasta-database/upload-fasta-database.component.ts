@@ -203,9 +203,15 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
   }
 
   private resetFileInputs(): void {
-    this.fileInput?.nativeElement?.reset();
-    this.fileInputMSA?.nativeElement?.reset();
-    this.fileInputStructure?.nativeElement?.reset();
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
+    }
+    if (this.fileInputMSA?.nativeElement) {
+      this.fileInputMSA.nativeElement.value = '';
+    }
+    if (this.fileInputStructure?.nativeElement) {
+      this.fileInputStructure.nativeElement.value = '';
+    }
   }
 
   private getFileExtension(file: File): string {

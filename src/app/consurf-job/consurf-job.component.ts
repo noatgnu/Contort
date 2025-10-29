@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnDestroy, signal} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {WebService} from "../web.service";
 import {ProteinFastaDatabaseQuery} from "../protein-fasta-database";
@@ -10,7 +10,7 @@ import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/sav
 import {Router} from "@angular/router";
 import {WebsocketService} from "../websocket.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
-import {forkJoin, Observable} from "rxjs";
+import {forkJoin, Observable, Subject, debounceTime, distinctUntilChanged, takeUntil} from "rxjs";
 import {ConsurfJob} from "../consurf-job";
 import {AccountService} from "../account.service";
 
@@ -20,65 +20,36 @@ import {AccountService} from "../account.service";
   styleUrl: './consurf-job.component.scss',
   standalone: false,
 })
-export class ConsurfJobComponent {
-  private _jobid: string = ""
-  status: string = "unsubmitted"
-  log_data: string = ""
-  error_data: string = ""
-  uniprot: any = {}
+export class ConsurfJobComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  private _jobid: string = "";
+  status = signal<string>("unsubmitted");
+  log_data = signal<string>("");
+  error_data = signal<string>("");
+  uniprot: any = {};
 
-  chainArray: string[] = []
-  currentTabIndex: number = 0
-  sequence_names: string[] = []
+  chainArray = signal<string[]>([]);
+  currentTabIndex: number = 0;
+  sequence_names = signal<string[]>([]);
+  numberOfSequences = signal<number>(0);
+  isSubmitting = signal<boolean>(false);
 
   @Input() set jobid(value: string) {
-    this._jobid = value
+    this._jobid = value;
     if (value) {
-      this.currentTabIndex = 1
-      this.web.getConsurfJob(parseInt(value)).subscribe((value) => {
-        this.form.controls.query_sequence.setValue(value.query_sequence)
-        if (value.query_sequence) {
-          this.numberOfSequences = value.query_sequence.split("\n").filter((a) => a[0] === ">").length
-        }
-        this.form.controls.alignment_program.setValue(value.alignment_program)
-        // @ts-ignore
-        this.form.controls.fasta_database_id.setValue([value.fasta_database])
-        // @ts-ignore
-        this.form.controls.msa_id.setValue([value.msa])
-        if (value.msa) {
-          this.web.getAllSequenceNamesFromMSA(value.msa).subscribe((value) => {
-            this.sequence_names = value
-          })
-        }
-        this.form.controls.query_name.setValue(value.query_name)
-        // @ts-ignore
-        this.form.controls.structure_id.setValue([value.structure_file])
-        this.form.controls.max_homologs.setValue(value.max_homologs)
-        this.form.controls.closest.setValue(value.closest)
-        this.form.controls.max_id.setValue(value.max_id)
-        this.form.controls.min_id.setValue(value.min_id)
-        this.form.controls.maximum_likelihood.setValue(value.maximum_likelihood)
-        this.form.controls.algorithm.setValue(value.algorithm)
-        this.form.controls.job_title.setValue(value.job_title)
-        this.form.controls.model.setValue(value.substitution_model)
-        this.form.controls.iterations.setValue(value.max_iterations)
-        this.form.controls.cutoff.setValue(value.cutoff)
-        this.form.controls.email_notification.setValue(value.email_notification)
-        this.form.controls.uniprot_id.setValue(value.uniprot_accession)
-        this.log_data = value.log_data
-        this.error_data = value.error_data
-        this.status = value.status
-      })
+      this.currentTabIndex = 1;
+      this.loadJobData(parseInt(value));
     }
   }
 
   get jobid(): string {
-    return this._jobid
+    return this._jobid;
   }
 
-  model_options = ["BEST", "JTT", "LG", "mtREV", "cpREV", "WAG", "Dayhoff"]
-  alignment_options = ["MAFFT", "CLUSTALW", "PRANK", "MUSCLE"]
-  algorithm_options = ["HMMER", "BLAST", "MMseqs2"]
+  readonly model_options = ["BEST", "JTT", "LG", "mtREV", "cpREV", "WAG", "Dayhoff"] as const;
+  readonly alignment_options = ["MAFFT", "CLUSTALW", "PRANK", "MUSCLE"] as const;
+  readonly algorithm_options = ["HMMER", "BLAST", "MMseqs2"] as const;
   form = this.fb.group({
     uniprot_id: [''],
     query_sequence: ['', Validators.required],
@@ -102,236 +73,396 @@ export class ConsurfJobComponent {
     chain: [""],
     msa_id: [""],
     query_name: [""]
-  })
+  });
 
-  page = 1
-  limit = 10
-  msaPage = 1
-  msaLimit = 10
-  pdbPage = 1
-  pdbLimit = 10
+  readonly page = 1;
+  readonly limit = 10;
+  msaPage = 1;
+  msaLimit = 10;
+  pdbPage = 1;
+  pdbLimit = 10;
 
-  proteinDatabaseQuery: ProteinFastaDatabaseQuery|undefined = undefined
-  msaQuery: MultipleSequenceAlignmentQuery|undefined = undefined
-  structureQuery: StructureFileQuery|undefined = undefined
-  numberOfSequences: number = 0
+  proteinDatabaseQuery: ProteinFastaDatabaseQuery | undefined;
+  msaQuery: MultipleSequenceAlignmentQuery | undefined;
+  structureQuery: StructureFileQuery | undefined;
 
-  constructor(private sb: MatSnackBar, private websocket: WebsocketService, private router: Router, private fb: FormBuilder, private web: WebService, private dialog: MatDialog, public accountService: AccountService) {
-    this.websocket.jobMessage.subscribe((value) => {
-      if (value.job_id === parseInt(this.jobid)) {
-        this.status = value.status
-        this.web.getConsurfJob(parseInt(this.jobid)).subscribe((value) => {
-          this.log_data = value.log_data
-          this.error_data = value.error_data
-          this.status = value.status
-        })
-      }
-    })
-
-    this.form.controls.query_sequence.valueChanges.subscribe((value) => {
-      if (value) {
-        this.numberOfSequences = value.split("\n").filter((a) => a[0] === ">").length
-      }
-    })
-
-    this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((value) => {
-      this.proteinDatabaseQuery = value
-    })
-    this.web.getMSAs(this.msaLimit, this.msaPage).subscribe((value) => {
-      this.msaQuery = value
-    })
-    this.web.getStructures(this.pdbLimit, this.pdbPage).subscribe((value) => {
-      this.structureQuery = value
-    })
-
-    this.form.controls.searchTerm.valueChanges.subscribe((value) => {
-      if (value) {
-        this.web.getProteinFastaDatabases(this.limit, this.page, value).subscribe((data) => {
-          this.proteinDatabaseQuery = data
-        })
-      }
-    })
-    this.form.controls.searchTermMSA.valueChanges.subscribe((value) => {
-      if (value) {
-        this.web.getMSAs(this.msaLimit, this.msaPage, value).subscribe((data) => {
-          this.msaQuery = data
-        })
-      }
-    })
-    this.form.controls.searchTermPDB.valueChanges.subscribe((value) => {
-      if (value) {
-        this.web.getStructures(this.pdbLimit, this.pdbPage, value).subscribe((data) => {
-          this.structureQuery = data
-        })
-      }
-    })
+  constructor(
+    private sb: MatSnackBar,
+    private websocket: WebsocketService,
+    private router: Router,
+    private fb: FormBuilder,
+    private web: WebService,
+    private dialog: MatDialog,
+    public accountService: AccountService
+  ) {
+    this.setupWebsocketListener();
+    this.setupFormListeners();
+    this.loadInitialData();
   }
 
-  onPageChange(event: any, type: string) {
-    this.page = event.pageIndex
-    this.limit = event.pageSize
-    let term = ""
-    if (type === "database") {
-      if (this.form.controls.searchTerm.value) {
-        term = this.form.controls.searchTerm.value
-      }
-      this.web.getProteinFastaDatabases(this.limit, this.page, term).subscribe((value) => {
-        this.proteinDatabaseQuery = value
-      })
-    } else if (type === "msa") {
-      if (this.form.controls.searchTermMSA.value) {
-        term = this.form.controls.searchTermMSA.value
-      }
-      this.web.getMSAs(this.limit, this.page, term).subscribe((value) => {
-        this.msaQuery = value
-      })
-    } else if (type === "structure") {
-      if (this.form.controls.searchTermPDB.value) {
-        term = this.form.controls.searchTermPDB.value
-      }
-      this.web.getStructures(this.limit, this.page, term).subscribe((value) => {
-        this.structureQuery = value
-      })
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadJobData(jobId: number): void {
+    this.web.getConsurfJob(jobId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(job => {
+        this.populateFormFromJob(job);
+        this.log_data.set(job.log_data);
+        this.error_data.set(job.error_data);
+        this.status.set(job.status);
+      });
+  }
+
+  private populateFormFromJob(job: any): void {
+    this.form.patchValue({
+      query_sequence: job.query_sequence,
+      alignment_program: job.alignment_program,
+      fasta_database_id: job.fasta_database,
+      msa_id: job.msa,
+      query_name: job.query_name,
+      structure_id: job.structure_file,
+      max_homologs: job.max_homologs,
+      closest: job.closest,
+      max_id: job.max_id,
+      min_id: job.min_id,
+      maximum_likelihood: job.maximum_likelihood,
+      algorithm: job.algorithm,
+      job_title: job.job_title,
+      model: job.substitution_model,
+      iterations: job.max_iterations,
+      cutoff: job.cutoff,
+      email_notification: job.email_notification,
+      uniprot_id: job.uniprot_accession
+    });
+
+    if (job.query_sequence) {
+      const count = job.query_sequence.split("\n").filter((a: string) => a[0] === ">").length;
+      this.numberOfSequences.set(count);
     }
 
+    if (job.msa) {
+      this.web.getAllSequenceNamesFromMSA(job.msa)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(names => this.sequence_names.set(names));
+    }
   }
 
-  submit() {
+  private setupWebsocketListener(): void {
+    this.websocket.jobMessage
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(message => {
+        if (message.job_id === parseInt(this.jobid)) {
+          this.status.set(message.status);
+          this.loadJobData(parseInt(this.jobid));
+        }
+      });
+  }
+
+  private setupFormListeners(): void {
+    this.form.controls.query_sequence.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        if (value) {
+          const count = value.split("\n").filter((a: string) => a[0] === ">").length;
+          this.numberOfSequences.set(count);
+        }
+      });
+
+    this.form.controls.searchTerm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(value => {
+        const term = value || '';
+        this.web.getProteinFastaDatabases(this.limit, this.page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.proteinDatabaseQuery = data);
+      });
+
+    this.form.controls.searchTermMSA.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(value => {
+        const term = value || '';
+        this.web.getMSAs(this.msaLimit, this.msaPage, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.msaQuery = data);
+      });
+
+    this.form.controls.searchTermPDB.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(value => {
+        const term = value || '';
+        this.web.getStructures(this.pdbLimit, this.pdbPage, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.structureQuery = data);
+      });
+  }
+
+  private loadInitialData(): void {
+    this.web.getProteinFastaDatabases(this.limit, this.page)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.proteinDatabaseQuery = data);
+
+    this.web.getMSAs(this.msaLimit, this.msaPage)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.msaQuery = data);
+
+    this.web.getStructures(this.pdbLimit, this.pdbPage)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.structureQuery = data);
+  }
+
+  onPageChange(event: any, type: string): void {
+    const page = event.pageIndex + 1;
+    const limit = event.pageSize;
+    const term = this.getSearchTerm(type);
+
+    const handlers = {
+      database: () => {
+        this.web.getProteinFastaDatabases(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.proteinDatabaseQuery = data);
+      },
+      msa: () => {
+        this.msaPage = page;
+        this.msaLimit = limit;
+        this.web.getMSAs(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.msaQuery = data);
+      },
+      structure: () => {
+        this.pdbPage = page;
+        this.pdbLimit = limit;
+        this.web.getStructures(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.structureQuery = data);
+      }
+    };
+
+    if (type in handlers) {
+      handlers[type as keyof typeof handlers]();
+    }
+  }
+
+  private getSearchTerm(type: string): string {
+    const termMap = {
+      database: this.form.controls.searchTerm.value,
+      msa: this.form.controls.searchTermMSA.value,
+      structure: this.form.controls.searchTermPDB.value
+    };
+    return termMap[type as keyof typeof termMap] || '';
+  }
+
+  submit(): void {
     if (this.form.invalid) {
-      this.sb.open("Form is invalid", "Dismiss")
-      return
+      this.sb.open("Form is invalid", "Dismiss", { duration: 3000 });
+      return;
     }
-    if (this.numberOfSequences > 1) {
 
-      if (this.form.controls.query_sequence.value) {
-        this.form.controls.msa_id.setValue("")
-        this.form.controls.query_name.setValue("")
-        this.form.controls.structure_id.setValue("")
-        this.form.controls.chain.setValue("")
-        let sequence = ""
-        let sequenceID = ">"
-        let observable: Observable<ConsurfJob>[] = []
-        for (const line of this.form.controls.query_sequence.value.split("\n")) {
-          if (line[0] === ">") {
-            if (sequence.length > 0 && sequenceID.length > 0) {
-              const payload = this.form.value
-              payload.query_sequence = `${sequenceID}\n${sequence}`
-              payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
-              observable.push(this.web.submitConsurfJob(payload))
-            }
-            sequence = ""
-            sequenceID = line
-          } else {
-            sequence += line
-          }
-        }
-        const payload = this.form.value
-        payload.query_sequence = `${sequenceID}\n${sequence}`
-        payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`
-        observable.push(this.web.submitConsurfJob(payload))
-        forkJoin(observable).subscribe((value) => {
-          this.sb.open( `${value.length} Jobs submitted`, "Dismiss")
-        })
-      }
+    if (this.isSubmitting()) {
+      return;
+    }
 
+    this.isSubmitting.set(true);
 
+    if (this.numberOfSequences() > 1) {
+      this.submitBatchJobs();
     } else {
-      this.web.submitConsurfJob(this.form.value).subscribe((value) => {
-        this.status = "pending"
-        this.router.navigate([`/consurf-job/${value.id}`]).then((r) => {
-          this.currentTabIndex = 1
-          this.sb.open("Job submitted", "Dismiss")
-        })
-      })
+      this.submitSingleJob();
     }
   }
 
-  downloadOutput(file_type: string = "zip") {
-    if (this.jobid) {
-      const jobID = parseInt(this.jobid)
-      this.web.generateJobDownloadToken(jobID).subscribe((value) => {
-        this.web.downloadJobResults(jobID, value.token, file_type)
-      })
+  private submitBatchJobs(): void {
+    if (!this.form.controls.query_sequence.value) {
+      this.isSubmitting.set(false);
+      return;
     }
+
+    this.form.controls.msa_id.setValue("");
+    this.form.controls.query_name.setValue("");
+    this.form.controls.structure_id.setValue("");
+    this.form.controls.chain.setValue("");
+
+    const observables = this.createBatchJobObservables(this.form.controls.query_sequence.value);
+
+    forkJoin(observables)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (results) => {
+          this.sb.open(`${results.length} jobs submitted successfully`, "Dismiss", { duration: 3000 });
+          this.isSubmitting.set(false);
+        },
+        error: () => {
+          this.sb.open("Failed to submit jobs", "Dismiss", { duration: 3000 });
+          this.isSubmitting.set(false);
+        }
+      });
   }
 
-  getUniprotSequence() {
-    if (this.form.controls.uniprot_id.value) {
-      this.web.getUniprot(this.form.controls.uniprot_id.value).subscribe((value) => {
-        this.uniprot = value
+  private createBatchJobObservables(querySequence: string): Observable<ConsurfJob>[] {
+    const observables: Observable<ConsurfJob>[] = [];
+    let sequence = "";
+    let sequenceID = ">";
+
+    for (const line of querySequence.split("\n")) {
+      if (line[0] === ">") {
+        if (sequence.length > 0 && sequenceID.length > 0) {
+          observables.push(this.createJobObservable(sequenceID, sequence));
+        }
+        sequence = "";
+        sequenceID = line;
+      } else {
+        sequence += line;
+      }
+    }
+
+    if (sequence.length > 0 && sequenceID.length > 0) {
+      observables.push(this.createJobObservable(sequenceID, sequence));
+    }
+
+    return observables;
+  }
+
+  private createJobObservable(sequenceID: string, sequence: string): Observable<ConsurfJob> {
+    const payload = { ...this.form.value };
+    payload.query_sequence = `${sequenceID}\n${sequence}`;
+    payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`;
+    return this.web.submitConsurfJob(payload);
+  }
+
+  private submitSingleJob(): void {
+    this.web.submitConsurfJob(this.form.value)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.status.set("pending");
+          this.router.navigate([`/consurf-job/${result.id}`]).then(() => {
+            this.currentTabIndex = 1;
+            this.sb.open("Job submitted successfully", "Dismiss", { duration: 3000 });
+            this.isSubmitting.set(false);
+          });
+        },
+        error: () => {
+          this.sb.open("Failed to submit job", "Dismiss", { duration: 3000 });
+          this.isSubmitting.set(false);
+        }
+      });
+  }
+
+  downloadOutput(fileType: string = "zip"): void {
+    if (!this.jobid) return;
+
+    const jobID = parseInt(this.jobid);
+    this.web.generateJobDownloadToken(jobID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(response => {
+        this.web.downloadJobResults(jobID, response.token, fileType);
+      });
+  }
+
+  getUniprotSequence(): void {
+    const uniprotId = this.form.controls.uniprot_id.value;
+    if (!uniprotId) return;
+
+    this.web.getUniprot(uniprotId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        this.uniprot = data;
         if (this.uniprot.sequence) {
-          this.form.controls.query_sequence.setValue(`>${this.form.controls.uniprot_id.value}\n${this.uniprot.sequence.value}`)
+          this.form.controls.query_sequence.setValue(
+            `>${uniprotId}\n${this.uniprot.sequence.value}`
+          );
         }
-      })
-    }
+      });
   }
 
-  getPDBStructure() {
-    if (this.form.controls.uniprot_id.value) {
-      this.web.getPDBFileFromUniProtID(this.form.controls.uniprot_id.value).subscribe((value) => {
-        this.parsePDBFile(value)
-        const ref = this.dialog.open(SaveStructureFileDialogComponent)
-        ref.afterClosed().subscribe((name) => {
-          if (name) {
-            this.web.savePDBContent(name, value).subscribe((pdbFile) => {
-              // @ts-ignore
-              this.form.controls.structure_id.setValue([pdbFile.id])
-              this.form.controls.chain.setValue(pdbFile.chains[0])
-              this.form.controls.searchTermPDB.setValue(pdbFile.name)
-              this.chainArray = pdbFile.chains.split(";")
-            })
-          }
-        })
-      })
-    }
+  getPDBStructure(): void {
+    const uniprotId = this.form.controls.uniprot_id.value;
+    if (!uniprotId) return;
+
+    this.web.getPDBFileFromUniProtID(uniprotId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(pdbContent => {
+        this.parsePDBFile(pdbContent);
+        const dialogRef = this.dialog.open(SaveStructureFileDialogComponent);
+        
+        dialogRef.afterClosed()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(name => {
+            if (name) {
+              this.savePDBFile(name, pdbContent);
+            }
+          });
+      });
   }
 
-  parsePDBFile(file: string) {
-    for (const l of file.split("\n")) {
-      const line = l.trim()
-      if (line.slice(0, 4) === "ATOM" || line.slice(0, 6) === "HETATM") {
-        const chain = line[21]
-        if (!this.chainArray.includes(chain)) {
-          this.chainArray.push(chain)
+  private savePDBFile(name: string, content: string): void {
+    this.web.savePDBContent(name, content)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(pdbFile => {
+        this.form.controls.structure_id.setValue(pdbFile.id.toString());
+        this.form.controls.chain.setValue(pdbFile.chains[0]);
+        this.form.controls.searchTermPDB.setValue(pdbFile.name);
+        this.chainArray.set(pdbFile.chains.split(";"));
+      });
+  }
+
+  private parsePDBFile(file: string): void {
+    const chains = new Set<string>();
+    
+    for (const line of file.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("ATOM") || trimmed.startsWith("HETATM")) {
+        const chain = line[21];
+        if (chain && chain.trim()) {
+          chains.add(chain);
         }
       }
     }
+    
+    this.chainArray.set(Array.from(chains));
   }
 
-  clearDatabaseFile() {
-    this.form.controls.fasta_database_id.setValue("")
+  clearDatabaseFile(): void {
+    this.form.controls.fasta_database_id.setValue("");
   }
 
-  clearAlignmentFile() {
-    this.form.controls.msa_id.setValue("")
-    this.form.controls.query_name.setValue("")
+  clearAlignmentFile(): void {
+    this.form.controls.msa_id.setValue("");
+    this.form.controls.query_name.setValue("");
   }
 
-  clearStructureFile() {
-    this.form.controls.structure_id.setValue("")
-    this.form.controls.chain.setValue("")
+  clearStructureFile(): void {
+    this.form.controls.structure_id.setValue("");
+    this.form.controls.chain.setValue("");
   }
 
-  onTabChange(event: MatTabChangeEvent) {
-    console.log(event.index)
-    this.currentTabIndex = event.index
+  onTabChange(event: MatTabChangeEvent): void {
+    this.currentTabIndex = event.index;
   }
 
-  handleAlignmentClick(msa: MultipleSequenceAlignment) {
-    this.web.getAllSequenceNamesFromMSA(msa.id).subscribe((value) => {
-      this.sequence_names = value
-    })
+  handleAlignmentClick(msa: MultipleSequenceAlignment): void {
+    this.web.getAllSequenceNamesFromMSA(msa.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(names => this.sequence_names.set(names));
   }
 
-  handleClickedJob(jobId: number){
-    this.router.navigate([`/consurf-job/${jobId}`]).then(
-      (r) => {
-        this.currentTabIndex = 1
-      }
-    )
-  }
-
-  batchSubmit() {
-
+  handleClickedJob(jobId: number): void {
+    this.router.navigate([`/consurf-job/${jobId}`]).then(() => {
+      this.currentTabIndex = 1;
+    });
   }
 }
