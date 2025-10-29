@@ -34,42 +34,60 @@ export class WebService {
     return this.http.get<number>(`${this.baseUrl}/api/consurf/count`, {responseType: 'json', observe: 'body'})
   }
 
-  getProteinFastaDatabases(limit: number = 10, page: number = 1, search: string = "") {
+  getProteinFastaDatabases(limit: number = 10, offset: number = 0, search: string = "") {
     let params = new HttpParams()
-    params = params.append("limit", limit.toString())
-    params = params.append("page", page.toString())
+      .append("limit", limit.toString())
+      .append("offset", offset.toString());
+    
     if (search !== "" && search !== null) {
-      params = params.append("search", search)
+      params = params.append("search", search);
     }
-    return this.http.get<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/`, {responseType: 'json', observe: 'body', params: params})
+    
+    return this.http.get<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/`, {
+      responseType: 'json',
+      observe: 'body',
+      params: params
+    });
   }
 
   deleteProteinFastaDatabase(id: number) {
     return this.http.delete<any>(`${this.baseUrl}/api/fasta/${id}/`, {responseType: 'json', observe: 'body'})
   }
 
-  getMSAs(limit: number = 10, page: number = 1, search: string = "") {
+  getMSAs(limit: number = 10, offset: number = 0, search: string = "") {
     let params = new HttpParams()
-    params = params.append("limit", limit.toString())
-    params = params.append("page", page.toString())
+      .append("limit", limit.toString())
+      .append("offset", offset.toString());
+    
     if (search !== "" && search !== null) {
-      params = params.append("search", search)
+      params = params.append("search", search);
     }
-    return this.http.get<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/`, {responseType: 'json', observe: 'body', params: params})
+    
+    return this.http.get<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/`, {
+      responseType: 'json',
+      observe: 'body',
+      params: params
+    });
   }
 
   deleteMSA(id: number) {
     return this.http.delete<any>(`${this.baseUrl}/api/msa/${id}/`, {responseType: 'json', observe: 'body'})
   }
 
-  getStructures(limit: number = 10, page: number = 1, search: string = "") {
+  getStructures(limit: number = 10, offset: number = 0, search: string = "") {
     let params = new HttpParams()
-    params = params.append("limit", limit.toString())
-    params = params.append("page", page.toString())
+      .append("limit", limit.toString())
+      .append("offset", offset.toString());
+    
     if (search !== "" && search !== null) {
-      params = params.append("search", search)
+      params = params.append("search", search);
     }
-    return this.http.get<StructureFileQuery>(`${this.baseUrl}/api/structure/`, {responseType: 'json', observe: 'body', params: params})
+    
+    return this.http.get<StructureFileQuery>(`${this.baseUrl}/api/structure/`, {
+      responseType: 'json',
+      observe: 'body',
+      params: params
+    });
   }
 
   deleteStructure(id: number) {
@@ -161,17 +179,24 @@ export class WebService {
     )
   }
 
-  getConsurfJobs(limit: number = 10, page: number = 1, search: string = "", status: string = "") {
+  getConsurfJobs(limit: number = 10, offset: number = 0, search: string = "", status: string = "") {
     let params = new HttpParams()
-    params = params.append("limit", limit.toString())
-    params = params.append("page", page.toString())
+      .append("limit", limit.toString())
+      .append("offset", offset.toString());
+    
     if (search !== "" && search !== null) {
-      params = params.append("search", search)
+      params = params.append("search", search);
     }
+    
     if (status !== "" && status !== null && status !== "all") {
-      params = params.append("status", status)
+      params = params.append("status", status);
     }
-    return this.http.get<ConsurfJobQuery>(`${this.baseUrl}/api/job/`, {responseType: 'json', observe: 'body', params: params})
+    
+    return this.http.get<ConsurfJobQuery>(`${this.baseUrl}/api/job/`, {
+      responseType: 'json',
+      observe: 'body',
+      params: params
+    });
   }
 
   getConsurfJob(id: number) {
