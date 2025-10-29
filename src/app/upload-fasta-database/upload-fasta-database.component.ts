@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, ViewChild, OnDestroy, signal} from '@angular/core';
 import { WebService } from '../web.service';
 import jsSHA from 'jssha';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -25,6 +25,7 @@ import {
 import {MatIcon} from "@angular/material/icon";
 import {MatTab, MatTabGroup} from "@angular/material/tabs";
 import {StructureFile, StructureFileQuery} from "../structure";
+import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
 
 @Component({
   selector: 'app-upload-fasta-database',
@@ -58,23 +59,28 @@ import {StructureFile, StructureFileQuery} from "../structure";
   ],
   styleUrls: ['./upload-fasta-database.component.scss']
 })
-export class UploadFastaDatabaseComponent {
+export class UploadFastaDatabaseComponent implements OnDestroy {
   @ViewChild("fileInput") fileInput: any;
   @ViewChild("fileInputMSA") fileInputMSA: any;
   @ViewChild("fileInputStructure") fileInputStructure: any;
-  fileList: File[] = [];
-  fileProgressMap: any = {};
-  fileType: string = '';
-  allowFileType = ['fasta', 'txt', 'fa', 'fas'];
-  allowMSAFileType = ['fasta', 'aln', 'fasta-aln', 'fas', 'txt'];
-  allowPDBFileType = ['pdb'];
+  
+  private destroy$ = new Subject<void>();
+  
+  fileList = signal<File[]>([]);
+  fileProgressMap: Record<string, { progress: number; total: number }> = {};
+  isUploading = signal(false);
+  
+  private readonly allowFileType = ['fasta', 'txt', 'fa', 'fas'] as const;
+  private readonly allowMSAFileType = ['fasta', 'aln', 'fasta-aln', 'fas', 'txt'] as const;
+  private readonly allowPDBFileType = ['pdb'] as const;
+  
   form = this.fb.group({
     name: ['', Validators.required],
     searchTerm: ['']
   });
-  displayedColumns: string[] = ['name', 'action'];
-
-  limit = 10;
+  
+  readonly displayedColumns: string[] = ['name', 'action'];
+  readonly limit = 10;
   page = 1;
 
   query: ProteinFastaDatabaseQuery | undefined;
@@ -93,197 +99,272 @@ export class UploadFastaDatabaseComponent {
     private dialogRef: MatDialogRef<UploadFastaDatabaseComponent>,
     private sb: MatSnackBar
   ) {
-    this.web.getProteinFastaDatabases().subscribe((data) => {
-      this.query = data;
-    });
-    this.web.getStructures().subscribe((data) => {
-      this.structureQuery = data;
-    })
-    this.web.getMSAs().subscribe((data) => {
-      this.msaQuery = data;
-    })
+    this.loadInitialData();
+    this.setupSearchListener();
+  }
 
-    this.form.controls.searchTerm.valueChanges.subscribe((value) => {
-      if (value) {
-        this.web.getProteinFastaDatabases(this.limit, this.page, value).subscribe((data) => {
-          this.query = data;
-        });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadInitialData(): void {
+    this.web.getProteinFastaDatabases()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.query = data);
+    
+    this.web.getStructures()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.structureQuery = data);
+    
+    this.web.getMSAs()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => this.msaQuery = data);
+  }
+
+  private setupSearchListener(): void {
+    this.form.controls.searchTerm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(value => {
+        if (value) {
+          this.web.getProteinFastaDatabases(this.limit, this.page, value)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(data => this.query = data);
+        } else {
+          this.web.getProteinFastaDatabases(this.limit, this.page)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(data => this.query = data);
+        }
+      });
+  }
+
+  onPaginate(event: PageEvent, type: 'database' | 'msa' | 'structure'): void {
+    const page = event.pageIndex + 1;
+    const limit = event.pageSize;
+    const term = this.form.value.searchTerm || '';
+
+    const handlers = {
+      database: () => {
+        this.page = page;
+        this.web.getProteinFastaDatabases(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.query = data);
+      },
+      msa: () => {
+        this.msaPage = page;
+        this.msaLimit = limit;
+        this.web.getMSAs(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.msaQuery = data);
+      },
+      structure: () => {
+        this.structurePage = page;
+        this.structureLimit = limit;
+        this.web.getStructures(limit, page, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.structureQuery = data);
       }
-    });
+    };
+
+    handlers[type]();
   }
 
-  onPaginate(event: PageEvent, type: 'database' | 'msa' | 'structure') {
-    this.page = event.pageIndex + 1;
-    this.limit = event.pageSize;
-    let term = '';
-    if (this.form.value.searchTerm) {
-      term = this.form.value.searchTerm;
-    }
-    if (type === 'database') {
-      this.web.getProteinFastaDatabases(this.limit, this.page, term).subscribe((data) => {
-        this.query = data;
-      });
-    } else if (type === 'msa') {
-      this.web.getMSAs(this.msaLimit, this.msaPage, term).subscribe((data) => {
-        this.msaQuery = data;
-      });
-    } else {
-      this.web.getStructures(this.structureLimit, this.structurePage, term).subscribe((data) => {
-        this.structureQuery = data;
-      });
-    }
-  }
-
-  close() {
+  close(): void {
     this.dialogRef.close();
   }
 
-  async uploadData(event: Event, type: 'database' | 'msa' | 'structure') {
+  async uploadData(event: Event, type: 'database' | 'msa' | 'structure'): Promise<void> {
     const files = (event.target as HTMLInputElement).files;
-    if (files) {
-      this.fileList = [];
-      for (let i = 0; i < files.length; i++) {
-        this.fileList.push(files[i]);
-        this.fileProgressMap[files[i].name] = { progress: 0, total: files[i].size };
+    if (!files || files.length === 0) return;
+
+    this.isUploading.set(true);
+    const fileArray = Array.from(files);
+    this.fileList.set(fileArray);
+    
+    fileArray.forEach(file => {
+      this.fileProgressMap[file.name] = { progress: 0, total: file.size };
+    });
+
+    try {
+      for (const file of fileArray) {
+        await this.uploadFile(file, type);
       }
-      for (let i = 0; i < files.length; i++) {
-        await this.uploadFile(files[i], type);
-      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      this.sb.open('Upload failed', 'Close', { duration: 3000 });
+    } finally {
+      this.isUploading.set(false);
+      this.resetFileInputs();
     }
-    this.fileInput.reset();
-    this.fileInputMSA.reset();
-    this.fileInputStructure.reset();
   }
 
-  getFileExntension(file: File) {
+  private resetFileInputs(): void {
+    this.fileInput?.nativeElement?.reset();
+    this.fileInputMSA?.nativeElement?.reset();
+    this.fileInputStructure?.nativeElement?.reset();
+  }
+
+  private getFileExtension(file: File): string {
     const parts = file.name.split('.');
-    if (parts.length > 1) {
-      return parts[parts.length - 1];
-    }
-    return '';
+    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
   }
 
-  private async uploadFile(file: File, type: 'database' | 'msa' | 'structure') {
-    const chunkSize = 1024 * 1024;
-    const fileSize = file.size;
-    const hashObj = new jsSHA('SHA-256', 'ARRAYBUFFER');
-    this.fileType = this.getFileExntension(file);
-    console.log(this.fileType)
-    const allowedFileType = type === 'database' ? this.allowFileType : type === 'msa' ? this.allowMSAFileType : this.allowPDBFileType;
-    console.log(allowedFileType)
-    if (!allowedFileType.includes(this.fileType)) {
-      this.sb.open('Invalid file type', 'Close', { duration: 2000 });
+  private getAllowedFileTypes(type: 'database' | 'msa' | 'structure'): readonly string[] {
+    const typeMap = {
+      database: this.allowFileType,
+      msa: this.allowMSAFileType,
+      structure: this.allowPDBFileType
+    };
+    return typeMap[type];
+  }
+
+  private async uploadFile(file: File, type: 'database' | 'msa' | 'structure'): Promise<void> {
+    const fileExtension = this.getFileExtension(file);
+    const allowedFileTypes = this.getAllowedFileTypes(type);
+    
+    if (!allowedFileTypes.includes(fileExtension as any)) {
+      this.sb.open(`Invalid file type. Allowed: ${allowedFileTypes.join(', ')}`, 'Close', { duration: 3000 });
       return;
     }
 
-    if (chunkSize > fileSize) {
-      const chunk = await file.arrayBuffer();
+    const chunkSize = 1024 * 1024;
+    const fileSize = file.size;
+    const hashObj = new jsSHA('SHA-256', 'ARRAYBUFFER');
+
+    try {
+      if (chunkSize > fileSize) {
+        await this.uploadSmallFile(file, hashObj, type);
+      } else {
+        await this.uploadLargeFile(file, hashObj, type, chunkSize, fileSize);
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
+  }
+
+  private async uploadSmallFile(file: File, hashObj: jsSHA, type: 'database' | 'msa' | 'structure'): Promise<void> {
+    const chunk = await file.arrayBuffer();
+    hashObj.update(chunk);
+    const hashDigest = hashObj.getHash('HEX');
+    const result = await this.web.uploadDataChunkComplete('', hashDigest, file, file.name).toPromise();
+    
+    this.fileProgressMap[file.name].progress = file.size;
+    
+    if (result?.completed_at && this.form.value.name) {
+      await this.bindAndRefreshData(this.form.value.name, result.id, type);
+    }
+  }
+
+  private async uploadLargeFile(
+    file: File, 
+    hashObj: jsSHA, 
+    type: 'database' | 'msa' | 'structure',
+    chunkSize: number,
+    fileSize: number
+  ): Promise<void> {
+    let currentURL = '';
+    let currentOffset = 0;
+    
+    while (fileSize > currentOffset) {
+      const end = Math.min(currentOffset + chunkSize, fileSize);
+      const chunk = await file.slice(currentOffset, end).arrayBuffer();
       hashObj.update(chunk);
+      
+      const filePart = new File([chunk], file.name, { type: file.type });
+      const contentRange = `bytes ${currentOffset}-${end - 1}/${fileSize}`;
+      const result = await this.web.uploadDataChunk(currentURL, filePart, file.name, contentRange).toPromise();
+      
+      if (result) {
+        currentURL = result.url;
+        currentOffset = result.offset;
+        this.fileProgressMap[file.name].progress = currentOffset;
+      }
+    }
+    
+    if (currentURL && this.form.value.name) {
       const hashDigest = hashObj.getHash('HEX');
-      const result = await this.web.uploadDataChunkComplete('', hashDigest, file, file.name).toPromise();
-      this.fileProgressMap[file.name].progress = fileSize;
-      if (result?.completed_at && this.form.value.name) {
-        this.web.bindUploadedFile(this.form.value.name, result?.id, type).subscribe((data) => {
-          this.sb.open('File uploaded', 'Close', { duration: 2000 });
-          if (type === 'database') {
-            this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((data) => {
+      const result = await this.web.uploadDataChunkComplete(currentURL, hashDigest).toPromise();
+      
+      if (result?.completed_at) {
+        this.fileProgressMap[file.name].progress = fileSize;
+        await this.bindAndRefreshData(this.form.value.name, result.id, type);
+      }
+    }
+  }
+
+  private async bindAndRefreshData(name: string, fileId: string, type: 'database' | 'msa' | 'structure'): Promise<void> {
+    await this.web.bindUploadedFile(name, fileId, type)
+      .pipe(takeUntil(this.destroy$))
+      .toPromise();
+    
+    this.sb.open('File uploaded successfully', 'Close', { duration: 2000 });
+    this.refreshData(type);
+  }
+
+  private refreshData(type: 'database' | 'msa' | 'structure'): void {
+    const refreshHandlers = {
+      database: () => this.web.getProteinFastaDatabases(this.limit, this.page)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(data => this.query = data),
+      msa: () => this.web.getMSAs(this.msaLimit, this.msaPage)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(data => this.msaQuery = data),
+      structure: () => this.web.getStructures(this.structureLimit, this.structurePage)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(data => this.structureQuery = data)
+    };
+
+    refreshHandlers[type]();
+  }
+
+  delete(id: number, fileType: 'database' | 'msa' | 'structure'): void {
+    const term = this.form.value.searchTerm || '';
+    
+    const deleteHandlers = {
+      database: () => this.web.deleteProteinFastaDatabase(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.web.getProteinFastaDatabases(this.limit, this.page, term)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(data => {
               this.query = data;
+              this.sb.open('Database deleted', 'Close', { duration: 2000 });
             });
-          } else if (type === 'msa') {
-            this.web.getMSAs(this.msaLimit, this.msaPage).subscribe((data) => {
+        }),
+      msa: () => this.web.deleteMSA(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.web.getMSAs(this.msaLimit, this.msaPage, term)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(data => {
               this.msaQuery = data;
+              this.sb.open('MSA deleted', 'Close', { duration: 2000 });
             });
-          } else {
-            this.web.getStructures(this.structureLimit, this.structurePage).subscribe((data) => {
+        }),
+      structure: () => this.web.deleteStructure(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          this.web.getStructures(this.structureLimit, this.structurePage, term)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(data => {
               this.structureQuery = data;
+              this.sb.open('Structure deleted', 'Close', { duration: 2000 });
             });
-          }
-        });
-      }
-    } else {
-      let currentURL = '';
-      let currentOffset = 0;
-      while (fileSize > currentOffset) {
-        let end = currentOffset + chunkSize;
-        if (end >= fileSize) {
-          end = fileSize;
-        }
-        const chunk = await file.slice(currentOffset, end).arrayBuffer();
-        hashObj.update(chunk);
-        const filePart = new File([chunk], file.name, { type: file.type });
-        const contentRange = `bytes ${currentOffset}-${end - 1}/${fileSize}`;
-        const result = await this.web.uploadDataChunk(currentURL, filePart, file.name, contentRange).toPromise();
-        if (result) {
-          currentURL = result.url;
-          currentOffset = result.offset;
-          this.fileProgressMap[file.name].progress = currentOffset;
-        }
-      }
-      if (currentURL !== '') {
-        const hashDigest = hashObj.getHash('HEX');
-        const result = await this.web.uploadDataChunkComplete(currentURL, hashDigest).toPromise();
-        if (result?.completed_at && this.form.value.name) {
-          this.web.bindUploadedFile(this.form.value.name, result?.id, type).subscribe((data) => {
-            this.fileProgressMap[file.name].progress = fileSize;
-            this.sb.open('File uploaded', 'Close', { duration: 2000 });
-            if (type === 'database') {
-              this.web.getProteinFastaDatabases(this.limit, this.page).subscribe((data) => {
-                this.query = data;
-              });
-            } else if (type === 'msa') {
-              this.web.getMSAs(this.msaLimit, this.msaPage).subscribe((data) => {
-                this.msaQuery = data;
-              });
-            } else {
-              this.web.getStructures(this.structureLimit, this.structurePage).subscribe((data) => {
-                this.structureQuery = data;
-              });
-            }
+        })
+    };
 
-          });
-        }
-      }
-    }
+    deleteHandlers[fileType]();
   }
 
-  delete(id: number, file_type: 'database' | 'msa' | 'structure') {
-    if (file_type === 'database') {
-      this.web.deleteProteinFastaDatabase(id).subscribe((data) => {
-        let term = '';
-        if (this.form.value.searchTerm) {
-          term = this.form.value.searchTerm;
-        }
-        this.web.getProteinFastaDatabases(this.limit, this.page, term).subscribe((data) => {
-          this.query = data;
-        });
-      });
-    } else if (file_type === 'msa') {
-      this.web.deleteMSA(id).subscribe((data) => {
-        let term = '';
-        if (this.form.value.searchTerm) {
-          term = this.form.value.searchTerm;
-        }
-        this.web.getMSAs(this.msaLimit, this.msaPage, term).subscribe((data) => {
-          this.msaQuery = data;
-        });
-      });
-    } else {
-      this.web.deleteStructure(id).subscribe((data) => {
-        let term = '';
-        if (this.form.value.searchTerm) {
-          term = this.form.value.searchTerm;
-        }
-        this.web.getStructures(this.structureLimit, this.structurePage, term).subscribe((data) => {
-          this.structureQuery = data;
-        });
-      })
-    }
-  }
-
-  onTabChange(event: any) {
+  onTabChange(event: any): void {
     this.form.reset();
-    this.fileInput.reset();
-    this.fileInputMSA.reset();
-    this.fileInputStructure.reset();
+    this.fileList.set([]);
+    this.fileProgressMap = {};
+    this.resetFileInputs();
   }
 }

@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { HomeComponent } from './home/home.component';
 import {MatSidenavModule} from "@angular/material/sidenav";
 import {MatToolbarModule} from "@angular/material/toolbar";
@@ -13,6 +13,7 @@ import {MatMenuModule} from "@angular/material/menu";
 import { ConsurfPlotComponent } from './consurf-plot/consurf-plot.component';
 import * as PlotlyJS from 'plotly.js-dist-min';
 import { PlotlyModule } from 'angular-plotly.js';
+import Plotly from 'plotly.js-dist-min';
 import {MatCardModule} from "@angular/material/card";
 import {NgxColorsModule} from "ngx-colors";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -35,8 +36,6 @@ import {MatListOption, MatSelectionList} from "@angular/material/list";
 import {MatPaginator} from "@angular/material/paginator";
 import {JobTableComponent} from "./consurf-job/job-table/job-table.component";
 
-PlotlyModule.plotlyjs = PlotlyJS;
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -51,7 +50,6 @@ PlotlyModule.plotlyjs = PlotlyJS;
   ],
   bootstrap: [AppComponent], imports: [BrowserModule,
     AppRoutingModule,
-    BrowserAnimationsModule,
     MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
@@ -71,8 +69,12 @@ PlotlyModule.plotlyjs = PlotlyJS;
     ConsurfViewComponent,
 
   ],
-  providers: [provideHttpClient(
-    withInterceptors([authInterceptor])
-  ),]
+  providers: [
+    provideAnimations(),
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
+    { provide: 'plotly', useValue: Plotly }
+  ]
 })
 export class AppModule { }

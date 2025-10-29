@@ -14,12 +14,19 @@
             <span>Provide a file name before upload</span>
           </p>
         </form>
-        @for (f of fileList; track f.name) {
-          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        @for (f of fileList(); track f.name) {
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="flex: 0 0 200px; overflow: hidden; text-overflow: ellipsis;">{{ f.name }}</span>
+            <mat-progress-bar style="flex: 1;" [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+            <span style="flex: 0 0 50px; text-align: right;">{{ (fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100).toFixed(0) }}%</span>
+          </div>
         }
         <input type="file" hidden #fileInput (change)="uploadData($event, 'database')">
         <div>
-          <button mat-raised-button (click)="fileInput.click()"  [disabled]="!form.value.name">Upload FASTA File</button>
+          <button mat-raised-button color="primary" (click)="fileInput.click()" [disabled]="!form.value.name || isUploading()">
+            <mat-icon>upload_file</mat-icon>
+            Upload FASTA File
+          </button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Databases</h1>
@@ -65,12 +72,19 @@
             <span>Provide a file name before upload</span>
           </p>
         </form>
-        @for (f of fileList; track f.name) {
-          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        @for (f of fileList(); track f.name) {
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="flex: 0 0 200px; overflow: hidden; text-overflow: ellipsis;">{{ f.name }}</span>
+            <mat-progress-bar style="flex: 1;" [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+            <span style="flex: 0 0 50px; text-align: right;">{{ (fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100).toFixed(0) }}%</span>
+          </div>
         }
         <input type="file" hidden #fileInputMSA (change)="uploadData($event, 'msa')">
         <div>
-          <button mat-raised-button (click)="fileInputMSA.click()" [disabled]="!form.value.name">Upload Alignment File</button>
+          <button mat-raised-button color="primary" (click)="fileInputMSA.click()" [disabled]="!form.value.name || isUploading()">
+            <mat-icon>upload_file</mat-icon>
+            Upload Alignment File
+          </button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded Multiple Sequence Alignment</h1>
@@ -117,12 +131,19 @@
             <span>Provide a file name before upload</span>
           </p>
         </form>
-        @for (f of fileList; track f.name) {
-          <mat-progress-bar [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+        @for (f of fileList(); track f.name) {
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="flex: 0 0 200px; overflow: hidden; text-overflow: ellipsis;">{{ f.name }}</span>
+            <mat-progress-bar style="flex: 1;" [value]="fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100" [mode]="'determinate'"></mat-progress-bar>
+            <span style="flex: 0 0 50px; text-align: right;">{{ (fileProgressMap[f.name].progress/fileProgressMap[f.name].total*100).toFixed(0) }}%</span>
+          </div>
         }
         <input type="file" hidden #fileInputStructure (change)="uploadData($event, 'structure')">
         <div>
-          <button mat-raised-button (click)="fileInputStructure.click()"  [disabled]="!form.value.name">Upload PDB File</button>
+          <button mat-raised-button color="primary" (click)="fileInputStructure.click()" [disabled]="!form.value.name || isUploading()">
+            <mat-icon>upload_file</mat-icon>
+            Upload PDB File
+          </button>
         </div>
         <mat-divider></mat-divider>
         <h1>User's Uploaded PDB Files</h1>
