@@ -54,7 +54,7 @@ export class ConsurfJobComponent implements OnDestroy {
     uniprot_id: [''],
     query_sequence: ['', Validators.required],
     alignment_program: ['MAFFT'],
-    fasta_database_id: ["", Validators.required],
+    fasta_database_id: [[], Validators.required],
     model: ["BEST", Validators.required],
     iterations: [1, Validators.required],
     cutoff: [0.0001, Validators.required],
@@ -69,9 +69,9 @@ export class ConsurfJobComponent implements OnDestroy {
     searchTermPDB: [""],
     searchTermMSA: [""],
     email_notification: [false],
-    structure_id: [""],
+    structure_id: [[]],
     chain: [""],
-    msa_id: [""],
+    msa_id: [[]],
     query_name: [""]
   });
 
@@ -120,10 +120,10 @@ export class ConsurfJobComponent implements OnDestroy {
     this.form.patchValue({
       query_sequence: job.query_sequence,
       alignment_program: job.alignment_program,
-      fasta_database_id: job.fasta_database,
-      msa_id: job.msa,
+      fasta_database_id: job.fasta_database ? [job.fasta_database] : [],
+      msa_id: job.msa ? [job.msa] : [],
       query_name: job.query_name,
-      structure_id: job.structure_file,
+      structure_id: job.structure_file ? [job.structure_file] : [],
       max_homologs: job.max_homologs,
       closest: job.closest,
       max_id: job.max_id,
@@ -291,9 +291,9 @@ export class ConsurfJobComponent implements OnDestroy {
       return;
     }
 
-    this.form.controls.msa_id.setValue("");
+    this.form.controls.msa_id.setValue([]);
     this.form.controls.query_name.setValue("");
-    this.form.controls.structure_id.setValue("");
+    this.form.controls.structure_id.setValue([]);
     this.form.controls.chain.setValue("");
 
     const observables = this.createBatchJobObservables(this.form.controls.query_sequence.value);
@@ -413,7 +413,7 @@ export class ConsurfJobComponent implements OnDestroy {
     this.web.savePDBContent(name, content)
       .pipe(takeUntil(this.destroy$))
       .subscribe(pdbFile => {
-        this.form.controls.structure_id.setValue(pdbFile.id.toString());
+        this.form.controls.structure_id.setValue([pdbFile.id]);
         this.form.controls.chain.setValue(pdbFile.chains[0]);
         this.form.controls.searchTermPDB.setValue(pdbFile.name);
         this.chainArray.set(pdbFile.chains.split(";"));
@@ -437,16 +437,16 @@ export class ConsurfJobComponent implements OnDestroy {
   }
 
   clearDatabaseFile(): void {
-    this.form.controls.fasta_database_id.setValue("");
+    this.form.controls.fasta_database_id.setValue([]);
   }
 
   clearAlignmentFile(): void {
-    this.form.controls.msa_id.setValue("");
+    this.form.controls.msa_id.setValue([]);
     this.form.controls.query_name.setValue("");
   }
 
   clearStructureFile(): void {
-    this.form.controls.structure_id.setValue("");
+    this.form.controls.structure_id.setValue([]);
     this.form.controls.chain.setValue("");
   }
 
