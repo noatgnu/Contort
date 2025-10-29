@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.dialog-description {
+  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+}
+
+.chains-info {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(33, 150, 243, 0.1);
+  border-radius: 4px;
+  font-size: 14px;
+  
+  strong {
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-dialog-content {
+  min-width: 400px;
+  padding: 20px 24px;
+}
+
+mat-dialog-actions {
+  padding: 8px 24px 20px;
+}
+

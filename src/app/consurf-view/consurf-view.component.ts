@@ -1,10 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {FormBuilder, FormControl,Validators} from "@angular/forms";
+import {Component, Input, OnInit, OnDestroy, signal} from '@angular/core';
+import {FormBuilder, FormControl, Validators} from "@angular/forms";
 import {DataFrame} from "data-forge";
-import {debounceTime, forkJoin, map, Observable, tap} from "rxjs";
+import {debounceTime, forkJoin, map, Observable, tap, Subject, takeUntil, distinctUntilChanged} from "rxjs";
 import {DataService} from "../data.service";
 import {WebService} from "../web.service";
 import {ConSurfGrade} from "../con-surf-data";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
     selector: 'app-consurf-view',
@@ -12,164 +13,228 @@ import {ConSurfGrade} from "../con-surf-data";
     styleUrl: './consurf-view.component.scss',
     standalone: false
 })
-export class ConsurfViewComponent implements OnInit{
+export class ConsurfViewComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   @Input() set accid(value: string) {
     if (value !== "") {
-      this.form.controls["term"].setValue(value)
-      this.getCONSURF()
+      this.form.controls.term.setValue(value);
+      this.getCONSURF();
     }
   }
-  _jobid: string = ""
+  
+  _jobid: string = "";
+  
   @Input() set jobid(value: string) {
-    this._jobid = value
+    this._jobid = value;
     if (value) {
-      this.getConsurfFromJob(parseInt(value))
+      this.getConsurfFromJob(parseInt(value));
     }
   }
 
-  grades = Object.keys(this.dataService.color_map)
+  readonly grades = Object.keys(this.dataService.color_map);
 
-  form = this.fb.group(
-    {
-      "term": new FormControl<string>("", Validators.required)
-    }
-  )
+  form = this.fb.group({
+    term: new FormControl<string>("", Validators.required)
+  });
 
   formSegment = this.fb.group({
     cellSize: new FormControl<number>(this.dataService.segmentSettings["cell-size"], [Validators.required, Validators.min(1)]),
     marginTop: new FormControl<number>(this.dataService.segmentSettings["margin-top"], [Validators.required, Validators.min(1)]),
     marginBottom: new FormControl<number>(this.dataService.segmentSettings["margin-bottom"], [Validators.required, Validators.min(1)]),
     aaPerRow: new FormControl<number>(this.dataService.segmentSettings["number-of-aa-per-row"], [Validators.required, Validators.min(1)]),
-  })
-  filteredOptions: Observable<string[]> = new Observable<string[]>()
+  });
+  
+  filteredOptions: Observable<string[]> = new Observable<string[]>();
+  dataCount: Observable<number> | undefined;
 
-  searching: boolean = false
-  retrieving: boolean = false
+  searching = signal<boolean>(false);
+  retrieving = signal<boolean>(false);
+  hasData = signal<boolean>(false);
 
-  constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
-    this.dataCount = this.web.getCount()
-    this.dataService.segmentSelection.subscribe((data) => {
-      for (const d of data) {
-        const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
-        const uniqueID = d.start+ seq + d.end
-        if (!this.dataService.selectedSeqs.includes(uniqueID)) {
-          this.dataService.selectedSeqs.push(uniqueID)
-          for (let i = d.start; i <= d.end; i++) {
-            if (!this.dataService.selectionMap[i]) {
-              this.dataService.selectionMap[i] = []
-            }
-            this.dataService.selectionMap[i].push(uniqueID)
-            this.dataService.selectionMap[i].sort((a, b) => b.length - a.length)
-          }
-          this.dataService.segments.push(d)
-          if (!this.dataService.segmentColorMap[uniqueID]) {
-            this.dataService.segmentColorMap[uniqueID] = this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
-          }
-        }
-
-      }
-      this.dataService.redrawSubject.next(true)
-    })
-
+  constructor(
+    public dataService: DataService,
+    private fb: FormBuilder,
+    private web: WebService,
+    private sb: MatSnackBar
+  ) {
+    this.dataCount = this.web.getCount();
+    this.setupSegmentSelectionListener();
   }
-
-  dataCount: Observable<number>|undefined = undefined
 
   ngOnInit(): void {
-    this.form.controls["term"].valueChanges.pipe(
-      debounceTime(200),
-      tap(() => this.searching = true),
-      map(value => this.web.getUniprotTypeAhead(value||'')),
-      tap(() => this.searching = false)
-    ).subscribe((data) => {
-      this.filteredOptions = data
-    })
+    this.setupSearchTypeahead();
   }
 
-  triggerUpdate() {
-    if (this.formSegment.valid) {
-      this.dataService.segmentSettings["cell-size"] = this.formSegment.controls["cellSize"].value
-      this.dataService.segmentSettings["margin-top"] = this.formSegment.controls["marginTop"].value
-      this.dataService.segmentSettings["margin-bottom"] = this.formSegment.controls["marginBottom"].value
-      if (this.dataService.segmentSettings["number-of-aa-per-row"] !== this.formSegment.controls["aaPerRow"].value) {
-        this.dataService.segmentSettings["number-of-aa-per-row"] = this.formSegment.controls["aaPerRow"].value
-        this.dataService.aaPerRowSubject.next(true)
-      }
-      this.dataService.redrawSubject.next(true)
-    }
-
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  getCONSURF() {
-    if (this.form.value.term &&this.form.value.term !== "") {
-      this.retrieving = true
-      forkJoin([this.web.getConsurfGrade(this.form.value.term), this.web.getConsurfMSAVar(this.form.value.term)]).subscribe((data) => {
-        const grades = data[0]
-        const msaVar = data[1]
-        this.dataService.dataMSA = new DataFrame(msaVar)
-        this.dataService.dataGrade = new DataFrame(grades)
-
-
-        this.dataService.combinedData = this.dataService.dataGrade.join(
-          this.dataService.dataMSA,
-          row => row.POS,
-          row => row.pos,
-          (left, right) => {
-            return {
-              MSA: right,
-              GRADE: left
+  private setupSegmentSelectionListener(): void {
+    this.dataService.segmentSelection
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        for (const d of data) {
+          const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("");
+          const uniqueID = d.start + seq + d.end;
+          
+          if (!this.dataService.selectedSeqs.includes(uniqueID)) {
+            this.dataService.selectedSeqs.push(uniqueID);
+            
+            for (let i = d.start; i <= d.end; i++) {
+              if (!this.dataService.selectionMap[i]) {
+                this.dataService.selectionMap[i] = [];
+              }
+              this.dataService.selectionMap[i].push(uniqueID);
+              this.dataService.selectionMap[i].sort((a, b) => b.length - a.length);
             }
-          }).bake()
-        this.dataService.displayData = this.dataService.combinedData
-        this.dataService.redrawSubject.next(true)
-        this.retrieving = false
-      }, (error) => {
+            
+            this.dataService.segments.push(d);
+            
+            if (!this.dataService.segmentColorMap[uniqueID]) {
+              this.dataService.segmentColorMap[uniqueID] = 
+                this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length];
+            }
+          }
+        }
+        
+        this.dataService.redrawSubject.next(true);
+      });
+  }
 
-        this.retrieving = false
-      })
+  private setupSearchTypeahead(): void {
+    this.form.controls.term.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(() => this.searching.set(true)),
+      map(value => this.web.getUniprotTypeAhead(value || '')),
+      tap(() => this.searching.set(false)),
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
+      this.filteredOptions = data;
+    });
+  }
+
+  triggerUpdate(): void {
+    if (!this.formSegment.valid) {
+      this.sb.open('Invalid segment settings', 'Close', { duration: 2000 });
+      return;
     }
 
+    const cellSize = this.formSegment.controls.cellSize.value;
+    const marginTop = this.formSegment.controls.marginTop.value;
+    const marginBottom = this.formSegment.controls.marginBottom.value;
+    const aaPerRow = this.formSegment.controls.aaPerRow.value;
+
+    this.dataService.segmentSettings["cell-size"] = cellSize;
+    this.dataService.segmentSettings["margin-top"] = marginTop;
+    this.dataService.segmentSettings["margin-bottom"] = marginBottom;
+
+    if (this.dataService.segmentSettings["number-of-aa-per-row"] !== aaPerRow) {
+      this.dataService.segmentSettings["number-of-aa-per-row"] = aaPerRow;
+      this.dataService.aaPerRowSubject.next(true);
+    }
+
+    this.dataService.redrawSubject.next(true);
+    this.sb.open('Settings updated', 'Close', { duration: 2000 });
   }
 
-  getConsurfFromJob(jobId: number) {
-    this.retrieving = true
-    forkJoin([this.web.getConsurfGradeFromJob(jobId), this.web.getConeurfMSAVarFromJob(jobId)]).subscribe((data) => {
-      const grades = data[0]
-      const msaVar = data[1]
-      this.dataService.dataMSA = new DataFrame(msaVar)
-      this.dataService.dataGrade = new DataFrame(grades)
+  getCONSURF(): void {
+    const term = this.form.value.term;
+    
+    if (!term || term === "") {
+      this.sb.open('Please enter a UniProt accession ID', 'Close', { duration: 3000 });
+      return;
+    }
 
+    this.retrieving.set(true);
+    this.hasData.set(false);
 
-      this.dataService.combinedData = this.dataService.dataGrade.join(
-        this.dataService.dataMSA,
-        row => row.POS,
-        row => row.pos,
-        (left, right) => {
-          return {
-            MSA: right,
-            GRADE: left
-          }
-        }).bake()
-      this.dataService.displayData = this.dataService.combinedData
-      this.dataService.redrawSubject.next(true)
-      this.retrieving = false
-    }, (error) => {
-
-      this.retrieving = false
-    })
+    forkJoin([
+      this.web.getConsurfGrade(term),
+      this.web.getConsurfMSAVar(term)
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([grades, msaVar]) => {
+          this.processConsurfData(grades, msaVar);
+          this.retrieving.set(false);
+          this.hasData.set(true);
+          this.sb.open('Data loaded successfully', 'Close', { duration: 2000 });
+        },
+        error: (error) => {
+          this.retrieving.set(false);
+          this.sb.open('Failed to load ConSurf data', 'Close', { duration: 3000 });
+        }
+      });
   }
 
-  handleFilterRange(event: {start: number, end: number}) {
-    this.dataService.displayData = this.dataService.combinedData.between(event.start-1, event.end-1).resetIndex().bake()
+  getConsurfFromJob(jobId: number): void {
+    this.retrieving.set(true);
+    this.hasData.set(false);
+
+    forkJoin([
+      this.web.getConsurfGradeFromJob(jobId),
+      this.web.getConeurfMSAVarFromJob(jobId)
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([grades, msaVar]) => {
+          this.processConsurfData(grades, msaVar);
+          this.retrieving.set(false);
+          this.hasData.set(true);
+        },
+        error: (error) => {
+          this.retrieving.set(false);
+          this.sb.open('Failed to load ConSurf data from job', 'Close', { duration: 3000 });
+        }
+      });
   }
 
-  downloadMSA() {
-    const a = document.createElement('a')
-    a.href = `${this.web.baseUrl}/api/consurf/files/msa/${this.form.value.term}`
-    a.download = `${this.form.value.term}.phy`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+  private processConsurfData(grades: any[], msaVar: any[]): void {
+    this.dataService.dataMSA = new DataFrame(msaVar);
+    this.dataService.dataGrade = new DataFrame(grades);
 
+    this.dataService.combinedData = this.dataService.dataGrade.join(
+      this.dataService.dataMSA,
+      row => row.POS,
+      row => row.pos,
+      (left, right) => ({
+        MSA: right,
+        GRADE: left
+      })
+    ).bake();
+
+    this.dataService.displayData = this.dataService.combinedData;
+    this.dataService.redrawSubject.next(true);
+  }
+
+  handleFilterRange(event: { start: number; end: number }): void {
+    if (!this.dataService.combinedData) return;
+    
+    this.dataService.displayData = this.dataService.combinedData
+      .between(event.start - 1, event.end - 1)
+      .resetIndex()
+      .bake();
+    
+    this.sb.open(`Filtered to positions ${event.start}-${event.end}`, 'Close', { duration: 2000 });
+  }
+
+  downloadMSA(): void {
+    const term = this.form.value.term;
+    
+    if (!term) {
+      this.sb.open('No sequence term available', 'Close', { duration: 2000 });
+      return;
+    }
+
+    const a = document.createElement('a');
+    a.href = `${this.web.baseUrl}/api/consurf/files/msa/${term}`;
+    a.download = `${term}.phy`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    this.sb.open('Download started', 'Close', { duration: 2000 });
   }
 }

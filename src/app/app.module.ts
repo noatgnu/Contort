@@ -14,7 +14,6 @@ import { ConsurfPlotComponent } from './consurf-plot/consurf-plot.component';
 import * as PlotlyJS from 'plotly.js-dist-min';
 import { PlotlyModule } from 'angular-plotly.js';
 import {MatCardModule} from "@angular/material/card";
-import {NgxColorsModule} from "ngx-colors";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import { SegmentFinderComponent } from './segment-finder/segment-finder.component';
 import {MatInputModule} from "@angular/material/input";
@@ -27,6 +26,7 @@ import {MatTabsModule} from "@angular/material/tabs";
 import {MsaBarChartComponent} from "./msa-bar-chart/msa-bar-chart.component";
 import {ConsurfViewComponent} from "./consurf-view/consurf-view.component";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
+import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 import {authInterceptor} from "./auth.interceptor";
 import {ConsurfJobComponent} from "./consurf-job/consurf-job.component";
 import {MatSelect} from "@angular/material/select";
@@ -56,14 +56,21 @@ import {JobTableComponent} from "./consurf-job/job-table/job-table.component";
     MatMenuModule,
     PlotlyModule.forRoot(PlotlyJS),
     MatCardModule,
-    NgxColorsModule,
     FormsModule,
     ReactiveFormsModule,
     MatInputModule,
     MatAutocompleteModule,
     MatTabsModule,
     MsaBarChartComponent,
-    MatProgressBarModule, MatSelect, MatCheckbox, MatListOption, MatPaginator, MatSelectionList, JobTableComponent],
+    MatProgressBarModule,
+    MatProgressSpinnerModule,
+    MatSelect,
+    MatCheckbox,
+    MatListOption,
+    MatPaginator,
+    MatSelectionList,
+    JobTableComponent
+  ],
   exports: [
     ConsurfViewComponent,
 

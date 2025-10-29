@@ -1,27 +1,44 @@
 <div style="display: flex; justify-content: center">
   <h1>ConSurf Annotated Sequence</h1>
 </div>
-<div style="display: flex; justify-content: center; padding: 20px" *ngIf="selected">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>
-        <h2><b>{{selected.GRADE.SEQ + selected.GRADE.POS}}</b></h2>
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>
-        <b>Grade:</b><span [ngStyle]="{'background-color': dataService.color_map[selected.GRADE.COLOR[0]]}">{{" "}}</span>{{selected.GRADE.COLOR}}<br>
-        <b>Grade confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL_COLORS}}<br>
-        <b>Score:</b> {{selected.GRADE.SCORE}}<br>
-        <b>Score confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL}}<br>
-        <b>MSA data:</b> {{selected.GRADE.MSA_DATA[0]}}/{{selected.GRADE.MSA_DATA[1]}}<br>
-        <b>Residue variety:</b> {{selected.GRADE.RESIDUE_VARIETY}}<br>
-        <b>Burried or exposed:</b> <span *ngIf="selected.GRADE.BE === 'b'"><b>b</b>urried</span><span *ngIf="selected.GRADE.BE === 'e'"><b>e</b>xposed</span><br>
-        <b>Functional or structural:</b> <span *ngIf="selected.GRADE.FUNCTION === 'f'"><b>f</b>unctional</span><span *ngIf="selected.GRADE.FUNCTION === 's'"><b>s</b>tructural</span><br>
-      </p>
-    </mat-card-content>
-  </mat-card><app-msa-bar-chart [data]="selected.MSA"></app-msa-bar-chart>
-</div>
-<div style="display: flex; justify-content: start; align-items: center;padding: 20px" *ngFor="let s of segments">
-  <app-segment [data]="s" (selectedData)="handleSelection($event)"></app-segment>
-</div>
+@if (selected) {
+  <div style="display: flex; justify-content: center; padding: 20px">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          <h2><b>{{selected.GRADE.SEQ + selected.GRADE.POS}}</b></h2>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>
+          <b>Grade:</b><span [ngStyle]="{'background-color': dataService.color_map[selected.GRADE.COLOR[0]]}">{{" "}}</span>{{selected.GRADE.COLOR}}<br>
+          <b>Grade confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL_COLORS}}<br>
+          <b>Score:</b> {{selected.GRADE.SCORE}}<br>
+          <b>Score confidence interval:</b> {{selected.GRADE.CONFIDENCE_INTERVAL}}<br>
+          <b>MSA data:</b> {{selected.GRADE.MSA_DATA[0]}}/{{selected.GRADE.MSA_DATA[1]}}<br>
+          <b>Residue variety:</b> {{selected.GRADE.RESIDUE_VARIETY}}<br>
+          <b>Buried or exposed:</b> 
+          @if (selected.GRADE.BE === 'b') {
+            <span><b>b</b>uried</span>
+          } @else if (selected.GRADE.BE === 'e') {
+            <span><b>e</b>xposed</span>
+          }
+          <br>
+          <b>Functional or structural:</b> 
+          @if (selected.GRADE.FUNCTION === 'f') {
+            <span><b>f</b>unctional</span>
+          } @else if (selected.GRADE.FUNCTION === 's') {
+            <span><b>s</b>tructural</span>
+          }
+          <br>
+        </p>
+      </mat-card-content>
+    </mat-card>
+    <app-msa-bar-chart [data]="selected.MSA"></app-msa-bar-chart>
+  </div>
+}
+@for (s of segments; track s) {
+  <div style="display: flex; justify-content: start; align-items: center; padding: 20px">
+    <app-segment [data]="s" (selectedData)="handleSelection($event)"></app-segment>
+  </div>
+}

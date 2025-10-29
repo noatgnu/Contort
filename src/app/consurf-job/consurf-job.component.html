@@ -1,7 +1,9 @@
 <mat-tab-group [(selectedIndex)]="currentTabIndex" [mat-stretch-tabs]="false" mat-align-tabs="center">
   <mat-tab [label]="'Job List'">
     @if (accountService.isLogged) {
-      <app-job-table (clickedRow)="handleClickedJob($event)" *ngIf="currentTabIndex === 0"></app-job-table>
+      @if (currentTabIndex === 0) {
+        <app-job-table (clickedRow)="handleClickedJob($event)"></app-job-table>
+      }
     } @else {
       <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 20px;">
         <p>Log in to view your jobs</p>
@@ -30,19 +32,49 @@
             </mat-form-field>
             <div style="display: flex; flex-direction: column; gap: 20px">
               <div>
-                <button mat-raised-button type="button" (click)="getUniprotSequence()">
-                  Get Fasta from UniProt
-                </button>
+                @if (isFetchingSequence()) {
+                  <button mat-raised-button 
+                          color="accent"
+                          type="button" 
+                          disabled>
+                    <mat-icon>hourglass_empty</mat-icon>
+                    Fetching Sequence...
+                  </button>
+                } @else {
+                  <button mat-raised-button 
+                          color="accent"
+                          type="button" 
+                          (click)="getUniprotSequence()"
+                          [disabled]="!form.value.uniprot_id">
+                    <mat-icon>download</mat-icon>
+                    Get Fasta from UniProt
+                  </button>
+                }
               </div>
               <div>
-                <button mat-raised-button type="button" (click)="getPDBStructure()">
-                  Get PDB Structure
-                </button>
+                @if (isFetchingStructure()) {
+                  <button mat-raised-button 
+                          color="accent"
+                          type="button" 
+                          disabled>
+                    <mat-icon>hourglass_empty</mat-icon>
+                    Fetching Structure...
+                  </button>
+                } @else {
+                  <button mat-raised-button 
+                          color="accent"
+                          type="button" 
+                          (click)="getPDBStructure()"
+                          [disabled]="!form.value.uniprot_id">
+                    <mat-icon>download</mat-icon>
+                    Get PDB Structure
+                  </button>
+                }
               </div>
 
               <p>
                 <mat-icon>info</mat-icon>
-                <span>UniProt Accession ID that can be used for metadata purpose or automatically retrieve a protein sequence in fasta format</span>
+                <span>UniProt Accession ID that can be used for metadata purpose or automatically retrieve a protein sequence in fasta format and PDB structure</span>
               </p>
             </div>
 

@@ -34,6 +34,8 @@ export class ConsurfJobComponent implements OnDestroy {
   sequence_names = signal<string[]>([]);
   numberOfSequences = signal<number>(0);
   isSubmitting = signal<boolean>(false);
+  isFetchingSequence = signal<boolean>(false);
+  isFetchingStructure = signal<boolean>(false);
 
   @Input() set jobid(value: string) {
     this._jobid = value;
@@ -379,14 +381,25 @@ export class ConsurfJobComponent implements OnDestroy {
     const uniprotId = this.form.controls.uniprot_id.value;
     if (!uniprotId) return;
 
+    this.isFetchingSequence.set(true);
     this.web.getUniprot(uniprotId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(data => {
-        this.uniprot = data;
-        if (this.uniprot.sequence) {
-          this.form.controls.query_sequence.setValue(
-            `>${uniprotId}\n${this.uniprot.sequence.value}`
-          );
+      .subscribe({
+        next: (data) => {
+          this.uniprot = data;
+          if (this.uniprot.sequence) {
+            this.form.controls.query_sequence.setValue(
+              `>${uniprotId}\n${this.uniprot.sequence.value}`
+            );
+            this.sb.open('Sequence retrieved successfully', 'Close', { duration: 2000 });
+          } else {
+            this.sb.open('No sequence found for this UniProt ID', 'Close', { duration: 3000 });
+          }
+          this.isFetchingSequence.set(false);
+        },
+        error: (error) => {
+          this.sb.open('Failed to retrieve sequence from UniProt', 'Close', { duration: 3000 });
+          this.isFetchingSequence.set(false);
         }
       });
   }
@@ -395,19 +408,37 @@ export class ConsurfJobComponent implements OnDestroy {
     const uniprotId = this.form.controls.uniprot_id.value;
     if (!uniprotId) return;
 
+    this.isFetchingStructure.set(true);
     this.web.getPDBFileFromUniProtID(uniprotId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(pdbContent => {
-        this.parsePDBFile(pdbContent);
-        const dialogRef = this.dialog.open(SaveStructureFileDialogComponent);
-        
-        dialogRef.afterClosed()
-          .pipe(takeUntil(this.destroy$))
-          .subscribe(name => {
-            if (name) {
-              this.savePDBFile(name, pdbContent);
-            }
+      .subscribe({
+        next: (pdbContent) => {
+          this.isFetchingStructure.set(false);
+          this.parsePDBFile(pdbContent);
+          const chains = this.chainArray();
+          
+          const dialogRef = this.dialog.open(SaveStructureFileDialogComponent, {
+            data: {
+              suggestedName: uniprotId,
+              chains: chains
+            },
+            width: '500px'
           });
+          
+          dialogRef.afterClosed()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(name => {
+              if (name) {
+                this.savePDBFile(name, pdbContent);
+              }
+            });
+          
+          this.sb.open('PDB structure retrieved successfully', 'Close', { duration: 2000 });
+        },
+        error: (error) => {
+          this.isFetchingStructure.set(false);
+          this.sb.open('Failed to retrieve PDB structure from UniProt', 'Close', { duration: 3000 });
+        }
       });
   }
 

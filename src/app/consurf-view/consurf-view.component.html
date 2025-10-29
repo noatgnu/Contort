@@ -8,19 +8,27 @@
           </mat-card-header>
           <mat-card-content>
             <div style="padding: 20px">
-              <form [formGroup]="form" (ngSubmit)="getCONSURF()">
-                <mat-form-field style="padding-right:20px">
-                  <mat-label>UniProt ACCID Search</mat-label>
-                  <input matInput type="search" formControlName="term" [matAutocomplete]="auto">
+              <form [formGroup]="form" (ngSubmit)="getCONSURF()" style="display: flex; flex-direction: column; gap: 16px;">
+                <mat-form-field appearance="outline" style="padding-right:20px">
+                  <mat-label>UniProt Accession ID</mat-label>
+                  <input matInput type="search" formControlName="term" [matAutocomplete]="auto" placeholder="e.g., P12345">
+                  <mat-icon matPrefix>search</mat-icon>
                   <mat-autocomplete #auto="matAutocomplete">
-                    <mat-option *ngFor="let option of filteredOptions | async" [value]="option">
-                      {{option}}
-                    </mat-option>
+                    @for (option of filteredOptions | async; track option) {
+                      <mat-option [value]="option">
+                        {{option}}
+                      </mat-option>
+                    }
                   </mat-autocomplete>
                 </mat-form-field>
-                <button mat-raised-button type="submit" color="primary">Search</button>
-                <div *ngIf="searching">
-                  <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <button mat-raised-button type="submit" color="primary" [disabled]="form.invalid || retrieving()">
+                    <mat-icon>search</mat-icon>
+                    Search ConSurf Data
+                  </button>
+                  @if (searching()) {
+                    <mat-spinner diameter="24"></mat-spinner>
+                  }
                 </div>
               </form>
               <div>
@@ -40,13 +48,17 @@
           <mat-card-title>Color settings</mat-card-title>
         </mat-card-header>
         <mat-card-content>
-          <div style="display: flex;">
-            <div *ngFor="let g of grades" style="display: flex; align-items: center; justify-content: center; padding: 2px">
-              <div>
-                <ngx-colors ngx-colors-trigger [(ngModel)]="dataService.color_map[g]"></ngx-colors>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+            @for (g of grades; track g) {
+              <div style="display: flex; align-items: center; justify-content: center; padding: 8px; border: 1px solid rgba(0,0,0,0.12); border-radius: 4px;">
+                <input 
+                  type="color" 
+                  [(ngModel)]="dataService.color_map[g]"
+                  [id]="'color-' + g"
+                  style="width: 40px; height: 40px; border: none; cursor: pointer;">
+                <label [for]="'color-' + g" style="font-size: 15pt; padding-left: 12px; cursor: pointer; user-select: none;">{{g}}</label>
               </div>
-              <div style="font-size: 15pt; padding-left: 20px">{{g}}</div>
-            </div>
+            }
           </div>
         </mat-card-content>
         <mat-card-actions>
@@ -55,12 +67,14 @@
       </mat-card>
     </div>
   </div>
-  @if (retrieving) {
-    <div style="display: flex; justify-content: center">
-      <mat-progress-bar color="warn" mode="indeterminate"></mat-progress-bar>
+  @if (retrieving()) {
+    <div style="display: flex; justify-content: center; align-items: center; padding: 40px; flex-direction: column; gap: 20px;">
+      <mat-progress-bar color="primary" mode="indeterminate" style="width: 300px;"></mat-progress-bar>
+      <p>Loading ConSurf data...</p>
     </div>
   }
-  <div style="padding: 20px" *ngIf="dataService.displayData.count() > 0">
+  @if (hasData() && dataService.displayData.count() > 0) {
+    <div style="padding: 20px">
     <div>
       <app-consurf-plot [data]="dataService.dataGrade" (filterRange)="handleFilterRange($event)"></app-consurf-plot>
     </div>
@@ -92,10 +106,15 @@
           </mat-card-content>
           <mat-card-actions>
             <div style="display: flex; gap:10px">
-              <button mat-raised-button (click)="triggerUpdate()">Update</button>
-              <button mat-raised-button (click)="downloadMSA()">Download Multiple Sequence Alignment</button>
+              <button mat-raised-button color="primary" (click)="triggerUpdate()">
+                <mat-icon>settings</mat-icon>
+                Update Settings
+              </button>
+              <button mat-raised-button color="accent" (click)="downloadMSA()">
+                <mat-icon>download</mat-icon>
+                Download MSA
+              </button>
             </div>
-
           </mat-card-actions>
         </mat-card>
       </div>
@@ -108,7 +127,7 @@
             <app-seq-view [data]="dataService.displayData"></app-seq-view>
           </div>
         </mat-tab>
-        <mat-tab label="Extracted Seqments">
+        <mat-tab label="Extracted Segments">
           <div style="display: flex; gap: 20px; padding: 20px">
             <div style="flex-grow:1">
               <app-segments-viewer></app-segments-viewer>
@@ -117,6 +136,7 @@
         </mat-tab>
       </mat-tab-group>
     </div>
-  </div>
+    </div>
+  }
 
 </div>
