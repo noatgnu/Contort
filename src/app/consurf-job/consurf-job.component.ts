@@ -75,12 +75,12 @@ export class ConsurfJobComponent implements OnDestroy {
     query_name: this.fb.control("")
   });
 
-  readonly page = 1;
   readonly limit = 10;
-  msaPage = 1;
-  msaLimit = 10;
-  pdbPage = 1;
-  pdbLimit = 10;
+  offset = 0;
+  readonly msaLimit = 10;
+  msaOffset = 0;
+  readonly pdbLimit = 10;
+  pdbOffset = 0;
 
   proteinDatabaseQuery: ProteinFastaDatabaseQuery | undefined;
   msaQuery: MultipleSequenceAlignmentQuery | undefined;
@@ -179,7 +179,8 @@ export class ConsurfJobComponent implements OnDestroy {
       )
       .subscribe(value => {
         const term = value || '';
-        this.web.getProteinFastaDatabases(this.limit, this.page, term)
+        this.offset = 0;
+        this.web.getProteinFastaDatabases(this.limit, this.offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.proteinDatabaseQuery = data);
       });
@@ -192,7 +193,8 @@ export class ConsurfJobComponent implements OnDestroy {
       )
       .subscribe(value => {
         const term = value || '';
-        this.web.getMSAs(this.msaLimit, this.msaPage, term)
+        this.msaOffset = 0;
+        this.web.getMSAs(this.msaLimit, this.msaOffset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.msaQuery = data);
       });
@@ -205,48 +207,48 @@ export class ConsurfJobComponent implements OnDestroy {
       )
       .subscribe(value => {
         const term = value || '';
-        this.web.getStructures(this.pdbLimit, this.pdbPage, term)
+        this.pdbOffset = 0;
+        this.web.getStructures(this.pdbLimit, this.pdbOffset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.structureQuery = data);
       });
   }
 
   private loadInitialData(): void {
-    this.web.getProteinFastaDatabases(this.limit, this.page)
+    this.web.getProteinFastaDatabases(this.limit, this.offset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.proteinDatabaseQuery = data);
 
-    this.web.getMSAs(this.msaLimit, this.msaPage)
+    this.web.getMSAs(this.msaLimit, this.msaOffset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.msaQuery = data);
 
-    this.web.getStructures(this.pdbLimit, this.pdbPage)
+    this.web.getStructures(this.pdbLimit, this.pdbOffset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.structureQuery = data);
   }
 
   onPageChange(event: any, type: string): void {
-    const page = event.pageIndex + 1;
     const limit = event.pageSize;
+    const offset = event.pageIndex * event.pageSize;
     const term = this.getSearchTerm(type);
 
     const handlers = {
       database: () => {
-        this.web.getProteinFastaDatabases(limit, page, term)
+        this.offset = offset;
+        this.web.getProteinFastaDatabases(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.proteinDatabaseQuery = data);
       },
       msa: () => {
-        this.msaPage = page;
-        this.msaLimit = limit;
-        this.web.getMSAs(limit, page, term)
+        this.msaOffset = offset;
+        this.web.getMSAs(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.msaQuery = data);
       },
       structure: () => {
-        this.pdbPage = page;
-        this.pdbLimit = limit;
-        this.web.getStructures(limit, page, term)
+        this.pdbOffset = offset;
+        this.web.getStructures(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.structureQuery = data);
       }

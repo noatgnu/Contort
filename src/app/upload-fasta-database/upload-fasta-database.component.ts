@@ -81,17 +81,17 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
   
   readonly displayedColumns: string[] = ['name', 'action'];
   readonly limit = 10;
-  page = 1;
+  offset = 0;
 
   query: ProteinFastaDatabaseQuery | undefined;
   msaQuery: MultipleSequenceAlignmentQuery | undefined;
 
-  msaLimit = 10;
-  msaPage = 1;
+  readonly msaLimit = 10;
+  msaOffset = 0;
 
   structureQuery: StructureFileQuery | undefined;
-  structureLimit = 10;
-  structurePage = 1;
+  readonly structureLimit = 10;
+  structureOffset = 0;
 
   constructor(
     private web: WebService,
@@ -109,15 +109,15 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
   }
 
   private loadInitialData(): void {
-    this.web.getProteinFastaDatabases()
+    this.web.getProteinFastaDatabases(this.limit, this.offset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.query = data);
     
-    this.web.getStructures()
+    this.web.getStructures(this.structureLimit, this.structureOffset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.structureQuery = data);
     
-    this.web.getMSAs()
+    this.web.getMSAs(this.msaLimit, this.msaOffset)
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.msaQuery = data);
   }
@@ -130,41 +130,35 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(value => {
-        if (value) {
-          this.web.getProteinFastaDatabases(this.limit, this.page, value)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(data => this.query = data);
-        } else {
-          this.web.getProteinFastaDatabases(this.limit, this.page)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(data => this.query = data);
-        }
+        this.offset = 0;
+        const term = value || '';
+        this.web.getProteinFastaDatabases(this.limit, this.offset, term)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(data => this.query = data);
       });
   }
 
   onPaginate(event: PageEvent, type: 'database' | 'msa' | 'structure'): void {
-    const page = event.pageIndex + 1;
     const limit = event.pageSize;
+    const offset = event.pageIndex * event.pageSize;
     const term = this.form.value.searchTerm || '';
 
     const handlers = {
       database: () => {
-        this.page = page;
-        this.web.getProteinFastaDatabases(limit, page, term)
+        this.offset = offset;
+        this.web.getProteinFastaDatabases(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.query = data);
       },
       msa: () => {
-        this.msaPage = page;
-        this.msaLimit = limit;
-        this.web.getMSAs(limit, page, term)
+        this.msaOffset = offset;
+        this.web.getMSAs(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.msaQuery = data);
       },
       structure: () => {
-        this.structurePage = page;
-        this.structureLimit = limit;
-        this.web.getStructures(limit, page, term)
+        this.structureOffset = offset;
+        this.web.getStructures(limit, offset, term)
           .pipe(takeUntil(this.destroy$))
           .subscribe(data => this.structureQuery = data);
       }
@@ -314,13 +308,13 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
 
   private refreshData(type: 'database' | 'msa' | 'structure'): void {
     const refreshHandlers = {
-      database: () => this.web.getProteinFastaDatabases(this.limit, this.page)
+      database: () => this.web.getProteinFastaDatabases(this.limit, this.offset)
         .pipe(takeUntil(this.destroy$))
         .subscribe(data => this.query = data),
-      msa: () => this.web.getMSAs(this.msaLimit, this.msaPage)
+      msa: () => this.web.getMSAs(this.msaLimit, this.msaOffset)
         .pipe(takeUntil(this.destroy$))
         .subscribe(data => this.msaQuery = data),
-      structure: () => this.web.getStructures(this.structureLimit, this.structurePage)
+      structure: () => this.web.getStructures(this.structureLimit, this.structureOffset)
         .pipe(takeUntil(this.destroy$))
         .subscribe(data => this.structureQuery = data)
     };
@@ -335,7 +329,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
       database: () => this.web.deleteProteinFastaDatabase(id)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          this.web.getProteinFastaDatabases(this.limit, this.page, term)
+          this.web.getProteinFastaDatabases(this.limit, this.offset, term)
             .pipe(takeUntil(this.destroy$))
             .subscribe(data => {
               this.query = data;
@@ -345,7 +339,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
       msa: () => this.web.deleteMSA(id)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          this.web.getMSAs(this.msaLimit, this.msaPage, term)
+          this.web.getMSAs(this.msaLimit, this.msaOffset, term)
             .pipe(takeUntil(this.destroy$))
             .subscribe(data => {
               this.msaQuery = data;
@@ -355,7 +349,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
       structure: () => this.web.deleteStructure(id)
         .pipe(takeUntil(this.destroy$))
         .subscribe(() => {
-          this.web.getStructures(this.structureLimit, this.structurePage, term)
+          this.web.getStructures(this.structureLimit, this.structureOffset, term)
             .pipe(takeUntil(this.destroy$))
             .subscribe(data => {
               this.structureQuery = data;
