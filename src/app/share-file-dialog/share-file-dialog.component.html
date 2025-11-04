@@ -1,0 +1,50 @@
+<h1 mat-dialog-title>Share "{{ data.name }}"</h1>
+<div mat-dialog-content>
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <span>Make this file public</span>
+      <mat-slide-toggle
+        [checked]="isPublic()"
+        (change)="togglePublic()">
+        {{ isPublic() ? 'Public' : 'Private' }}
+      </mat-slide-toggle>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div>
+      <h3>Share with specific users</h3>
+      <form [formGroup]="form" (ngSubmit)="addUser()" style="display: flex; gap: 10px; align-items: center;">
+        <mat-form-field style="flex: 1;">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" type="text" placeholder="Enter username">
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
+          Add User
+        </button>
+      </form>
+
+      @if (sharedUsers().length > 0) {
+        <div style="margin-top: 16px;">
+          <h4>Shared with:</h4>
+          <mat-chip-grid>
+            @for (user of sharedUsers(); track user) {
+              <mat-chip-row (removed)="removeUser(user)">
+                {{ user }}
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            }
+          </mat-chip-grid>
+        </div>
+      } @else {
+        <p style="color: #666; font-style: italic;">Not shared with any users</p>
+      }
+    </div>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()">Save</button>
+</div>

@@ -5,6 +5,9 @@ export interface StructureFile {
   user: number;
   id: number;
   chains: string;
+  is_public: boolean;
+  shared_with: number[];
+  shared_with_usernames: string[];
 }
 
 export interface StructureFileQuery {

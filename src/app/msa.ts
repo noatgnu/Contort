@@ -4,6 +4,9 @@ export interface MultipleSequenceAlignment {
   uploaded_at: Date;
   user: number;
   id: number;
+  is_public: boolean;
+  shared_with: number[];
+  shared_with_usernames: string[];
 }
 
 export interface MultipleSequenceAlignmentQuery {

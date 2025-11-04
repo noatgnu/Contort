@@ -94,6 +94,46 @@ export class WebService {
     return this.http.delete<any>(`${this.baseUrl}/api/structure/${id}/`, {responseType: 'json', observe: 'body'})
   }
 
+  shareFastaDatabase(id: number, usernames: string[]) {
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  unshareFastaDatabase(id: number, usernames: string[]) {
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  setFastaDatabasePublic(id: number, isPublic: boolean) {
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+  }
+
+  shareMSA(id: number, usernames: string[]) {
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  unshareMSA(id: number, usernames: string[]) {
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  setMSAPublic(id: number, isPublic: boolean) {
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+  }
+
+  shareStructure(id: number, usernames: string[]) {
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  unshareStructure(id: number, usernames: string[]) {
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+  }
+
+  setStructurePublic(id: number, isPublic: boolean) {
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+  }
+
+  cancelConsurfJob(id: number) {
+    return this.http.post<{message: string, status: string}>(`${this.baseUrl}/api/consurf-job/${id}/cancel/`, {}, {responseType: 'json', observe: 'body'})
+  }
+
   login(username: string, password: string) {
     return this.http.post<{token: string}>(`${this.baseUrl}/api/token-auth/`, {username: username, password: password}, {responseType: 'json', observe: 'body'})
   }

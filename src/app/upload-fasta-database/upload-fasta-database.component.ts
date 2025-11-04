@@ -2,11 +2,11 @@ import {Component, ViewChild, OnDestroy, signal} from '@angular/core';
 import { WebService } from '../web.service';
 import jsSHA from 'jssha';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle} from '@angular/material/dialog';
+import {MatDialog, MatDialogActions, MatDialogContent, MatDialogRef, MatDialogTitle} from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ProteinFastaDatabaseQuery } from '../protein-fasta-database';
+import { ProteinFastaDatabase, ProteinFastaDatabaseQuery } from '../protein-fasta-database';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
-import {MultipleSequenceAlignmentQuery} from "../msa";
+import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "../msa";
 import {MatFormField, MatLabel} from "@angular/material/form-field";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatInput} from "@angular/material/input";
@@ -24,8 +24,10 @@ import {
 } from "@angular/material/table";
 import {MatIcon} from "@angular/material/icon";
 import {MatTab, MatTabGroup} from "@angular/material/tabs";
+import {MatTooltip} from "@angular/material/tooltip";
 import {StructureFile, StructureFileQuery} from "../structure";
 import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
+import {ShareFileDialogComponent} from "../share-file-dialog/share-file-dialog.component";
 
 @Component({
   selector: 'app-upload-fasta-database',
@@ -55,7 +57,8 @@ import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
     MatPaginator,
     MatTabGroup,
     MatTab,
-    MatDialogActions
+    MatDialogActions,
+    MatTooltip
   ],
   styleUrls: ['./upload-fasta-database.component.scss']
 })
@@ -97,7 +100,8 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
     private web: WebService,
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<UploadFastaDatabaseComponent>,
-    private sb: MatSnackBar
+    private sb: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.loadInitialData();
     this.setupSearchListener();
@@ -366,5 +370,26 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
     this.fileList.set([]);
     this.fileProgressMap = {};
     this.resetFileInputs();
+  }
+
+  openShareDialog(element: ProteinFastaDatabase | MultipleSequenceAlignment | StructureFile, type: 'database' | 'msa' | 'structure'): void {
+    const dialogRef = this.dialog.open(ShareFileDialogComponent, {
+      width: '600px',
+      data: {
+        id: element.id,
+        name: element.name,
+        type: type,
+        is_public: element.is_public,
+        shared_with_usernames: element.shared_with_usernames
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        if (result) {
+          this.refreshData(type);
+        }
+      });
   }
 }

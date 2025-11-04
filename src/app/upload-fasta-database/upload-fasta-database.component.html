@@ -46,7 +46,10 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="delete(element.id, 'database')">
+                  <button mat-icon-button (click)="openShareDialog(element, 'database')" matTooltip="Share">
+                    <mat-icon>share</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="delete(element.id, 'database')" matTooltip="Delete">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </mat-cell>
@@ -104,7 +107,10 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="delete(element.id, 'msa')">
+                  <button mat-icon-button (click)="openShareDialog(element, 'msa')" matTooltip="Share">
+                    <mat-icon>share</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="delete(element.id, 'msa')" matTooltip="Delete">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </mat-cell>
@@ -163,7 +169,10 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="delete(element.id, 'structure')">
+                  <button mat-icon-button (click)="openShareDialog(element, 'structure')" matTooltip="Share">
+                    <mat-icon>share</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="delete(element.id, 'structure')" matTooltip="Delete">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </mat-cell>

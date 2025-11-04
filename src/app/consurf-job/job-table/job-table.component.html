@@ -45,6 +45,16 @@
         <th mat-header-cell *matHeaderCellDef> Updated At </th>
         <td mat-cell *matCellDef="let element"> {{element.updated_at | date: "short"}} </td>
       </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let element">
+          @if (canCancelJob(element.status)) {
+            <button mat-icon-button (click)="cancelJob($event, element.id)" matTooltip="Cancel Job" color="warn">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row (click)="clickRow(row)" *matRowDef="let row; columns: displayedColumns;"></tr>

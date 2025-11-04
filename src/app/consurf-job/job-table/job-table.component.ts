@@ -16,6 +16,10 @@ import {DatePipe} from "@angular/common";
 import {MatFormField, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {MatOption, MatSelect} from "@angular/material/select";
+import {MatIcon} from "@angular/material/icon";
+import {MatIconButton} from "@angular/material/button";
+import {MatTooltip} from "@angular/material/tooltip";
+import {MatSnackBar} from "@angular/material/snack-bar";
 import {WebsocketService} from "../../websocket.service";
 import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
 
@@ -39,7 +43,10 @@ import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
     MatInput,
     MatLabel,
     MatSelect,
-    MatOption
+    MatOption,
+    MatIcon,
+    MatIconButton,
+    MatTooltip
   ],
   templateUrl: './job-table.component.html',
   styleUrl: './job-table.component.scss'
@@ -89,6 +96,7 @@ export class JobTableComponent implements OnDestroy {
     "query_name",
     "created_at",
     "updated_at",
+    "actions"
   ];
 
   form = this.fb.group({
@@ -107,7 +115,8 @@ export class JobTableComponent implements OnDestroy {
   constructor(
     private web: WebService,
     private fb: FormBuilder,
-    private websocket: WebsocketService
+    private websocket: WebsocketService,
+    private sb: MatSnackBar
   ) {
     this.setupWebsocketListener();
     this.loadInitialData();
@@ -186,5 +195,35 @@ export class JobTableComponent implements OnDestroy {
 
   clickRow(row: any): void {
     this.clickedRow.emit(row.id);
+  }
+
+  cancelJob(event: Event, jobId: number): void {
+    event.stopPropagation();
+
+    if (!confirm('Are you sure you want to cancel this job?')) {
+      return;
+    }
+
+    this.web.cancelConsurfJob(jobId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.sb.open('Job cancelled successfully', 'Close', {duration: 2000});
+          if (this.consurfJobQuery?.results) {
+            const index = this.consurfJobQuery.results.findIndex(job => job.id === jobId);
+            if (index !== -1) {
+              this.consurfJobQuery.results[index].status = response.status;
+              this.consurfJobQuery.results = [...this.consurfJobQuery.results];
+            }
+          }
+        },
+        error: (err) => {
+          this.sb.open(err.error?.error || 'Failed to cancel job', 'Close', {duration: 3000});
+        }
+      });
+  }
+
+  canCancelJob(status: string): boolean {
+    return status === 'pending' || status === 'running';
   }
 }
