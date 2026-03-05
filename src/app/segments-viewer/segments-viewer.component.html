@@ -4,11 +4,11 @@
 
 <div style="display: flex; justify-content: center">
   @if (dataService.segments.length > 0) {
-    <div style="display: flex; justify-content: center; flex-direction: column; gap: 20px">
-      @for (s of dataService.segments; track s) {
+    <cdk-virtual-scroll-viewport [itemSize]="getItemHeight()" class="segment-viewport">
+      <div *cdkVirtualFor="let s of dataService.segments; trackBy: trackSegment" class="segment-item">
         <app-segment [data]="s"></app-segment>
-      }
-    </div>
+      </div>
+    </cdk-virtual-scroll-viewport>
   } @else {
     <div style="display: flex; justify-content: center">
       <div style="font-size: 15pt">No segments selected</div>

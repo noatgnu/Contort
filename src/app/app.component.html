@@ -28,8 +28,16 @@
           <mat-icon>logout</mat-icon>
         </button>
       }
-      @if (!websocket.connectedJobWS) {
-        <button mat-icon-button (click)="connectWS()">
+      @if (websocket.isReconnecting$ | async) {
+        <button mat-icon-button class="connection-reconnecting" matTooltip="Reconnecting...">
+          <mat-icon>sync</mat-icon>
+        </button>
+      } @else if (websocket.connectionStatus$ | async) {
+        <button mat-icon-button class="connection-connected" matTooltip="Connected">
+          <mat-icon>cloud_done</mat-icon>
+        </button>
+      } @else {
+        <button mat-icon-button class="connection-disconnected" (click)="connectWS()" matTooltip="Disconnected - Click to reconnect">
           <mat-icon>cloud_off</mat-icon>
         </button>
       }

@@ -27,6 +27,7 @@ export class WebsocketService implements OnDestroy {
   
   readonly jobMessage$ = new Subject<MessageJob>();
   readonly connectionStatus$ = new BehaviorSubject<boolean>(false);
+  readonly isReconnecting$ = new BehaviorSubject<boolean>(false);
   
   // Legacy support
   get jobMessage(): Subject<MessageJob> {
@@ -97,9 +98,8 @@ export class WebsocketService implements OnDestroy {
       openObserver: {
         next: () => {
           this.connectionStatus$.next(true);
+          this.isReconnecting$.next(false);
           this.reconnectAttempts = 0;
-          console.log("✓ Connected to job websocket");
-          this.sb.open("Connected to job notifications", "Close", { duration: 2000 });
         }
       },
       closeObserver: {
@@ -125,15 +125,8 @@ export class WebsocketService implements OnDestroy {
         retry({
           count: this.maxReconnectAttempts,
           delay: (error, retryCount) => {
-            console.error(`WebSocket error (attempt ${retryCount}/${this.maxReconnectAttempts}):`, error);
             this.reconnectAttempts = retryCount;
-            
-            this.sb.open(
-              `Reconnecting... (${retryCount}/${this.maxReconnectAttempts})`,
-              "Close",
-              { duration: 2000 }
-            );
-            
+            this.isReconnecting$.next(true);
             return timer(this.reconnectInterval);
           },
           resetOnSuccess: true
@@ -141,35 +134,16 @@ export class WebsocketService implements OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        error: (error) => {
-          console.error("WebSocket subscription error after all retry attempts:", error);
+        error: () => {
           this.connectionStatus$.next(false);
-          this.sb.open(
-            "Failed to maintain connection after multiple attempts",
-            "Close",
-            { duration: 5000 }
-          );
+          this.isReconnecting$.next(false);
         },
-        complete: () => {
-          console.log("WebSocket subscription completed");
-        }
+        complete: () => {}
       });
   }
 
   private handleDisconnection(): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.sb.open(
-        "Connection lost. Attempting to reconnect...",
-        "Close",
-        { duration: 3000 }
-      );
-    } else {
-      this.sb.open(
-        "Connection to server has closed. Please refresh the page to reconnect.",
-        "Close",
-        { duration: 5000 }
-      );
-    }
+    this.isReconnecting$.next(true);
   }
 
   disconnect(): void {
@@ -177,7 +151,7 @@ export class WebsocketService implements OnDestroy {
       this.jobConnection.complete();
       this.jobConnection = null;
       this.connectionStatus$.next(false);
-      console.log("WebSocket disconnected");
+      this.isReconnecting$.next(false);
     }
   }
 

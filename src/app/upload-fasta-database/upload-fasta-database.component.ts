@@ -28,6 +28,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {StructureFile, StructureFileQuery} from "../structure";
 import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
 import {ShareFileDialogComponent} from "../share-file-dialog/share-file-dialog.component";
+import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-dialog.component";
 
 @Component({
   selector: 'app-upload-fasta-database',
@@ -391,5 +392,23 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
           this.refreshData(type);
         }
       });
+  }
+
+  openPreview(element: ProteinFastaDatabase | MultipleSequenceAlignment | StructureFile, type: 'database' | 'msa' | 'structure'): void {
+    const fileUrlMap = {
+      database: (element as ProteinFastaDatabase).fasta_file,
+      msa: (element as MultipleSequenceAlignment).msa_file,
+      structure: (element as StructureFile).structure_file
+    };
+
+    this.dialog.open(FilePreviewDialogComponent, {
+      width: '800px',
+      maxHeight: '90vh',
+      data: {
+        fileUrl: fileUrlMap[type],
+        fileName: element.name,
+        fileType: type
+      }
+    });
   }
 }

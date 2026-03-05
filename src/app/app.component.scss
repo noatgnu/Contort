@@ -26,3 +26,25 @@ html, body {
   flex-direction: column;
   height: 100%;
 }
+
+.connection-connected {
+  color: #4caf50;
+}
+
+.connection-disconnected {
+  color: #f44336;
+}
+
+.connection-reconnecting {
+  color: #ff9800;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

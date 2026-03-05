@@ -22,6 +22,7 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {WebsocketService} from "../../websocket.service";
 import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
+import {BatchJobService, BatchJob} from '../../batch-job.service';
 
 @Component({
   selector: 'app-job-table',
@@ -94,14 +95,18 @@ export class JobTableComponent implements OnDestroy {
     "uniprot_accession",
     "status",
     "query_name",
+    "batch",
     "created_at",
     "updated_at",
     "actions"
   ];
 
+  batches: BatchJob[] = [];
+
   form = this.fb.group({
     searchTerm: [""],
-    status: ["all"]
+    status: ["all"],
+    batchId: ["all"]
   });
 
   @Output() clickedRow = new EventEmitter<number>();
@@ -116,11 +121,18 @@ export class JobTableComponent implements OnDestroy {
     private web: WebService,
     private fb: FormBuilder,
     private websocket: WebsocketService,
-    private sb: MatSnackBar
+    private sb: MatSnackBar,
+    public batchJobService: BatchJobService
   ) {
+    this.batches = this.batchJobService.getBatches();
     this.setupWebsocketListener();
     this.loadInitialData();
     this.setupFormListeners();
+  }
+
+  getBatchName(jobId: number): string {
+    const batch = this.batchJobService.getBatchForJob(jobId);
+    return batch?.name || '-';
   }
 
   ngOnDestroy(): void {
@@ -161,24 +173,32 @@ export class JobTableComponent implements OnDestroy {
         distinctUntilChanged(),
         takeUntil(this.destroy$)
       )
-      .subscribe(value => {
-        this.offset = 0;
-        const term = value || '';
-        const status = this.form.value.status || 'all';
-        this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe(data => this.consurfJobQuery = data);
-      });
+      .subscribe(() => this.refreshData());
 
     this.form.controls.status.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(value => {
-        this.offset = 0;
-        const term = this.form.value.searchTerm || '';
-        const status = value || 'all';
-        this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe(data => this.consurfJobQuery = data);
+      .subscribe(() => this.refreshData());
+
+    this.form.controls.batchId.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.refreshData());
+  }
+
+  private refreshData(): void {
+    this.offset = 0;
+    const term = this.form.value.searchTerm || '';
+    const status = this.form.value.status || 'all';
+    const batchId = this.form.value.batchId || 'all';
+
+    this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(data => {
+        if (batchId !== 'all') {
+          const batchJobIds = this.batchJobService.getBatchJobs(batchId);
+          data.results = data.results.filter(job => batchJobIds.includes(job.id));
+          data.count = data.results.length;
+        }
+        this.consurfJobQuery = data;
       });
   }
 

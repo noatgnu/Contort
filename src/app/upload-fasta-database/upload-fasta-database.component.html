@@ -46,6 +46,9 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="openPreview(element, 'database')" matTooltip="Preview">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
                   <button mat-icon-button (click)="openShareDialog(element, 'database')" matTooltip="Share">
                     <mat-icon>share</mat-icon>
                   </button>
@@ -107,6 +110,9 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="openPreview(element, 'msa')" matTooltip="Preview">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
                   <button mat-icon-button (click)="openShareDialog(element, 'msa')" matTooltip="Share">
                     <mat-icon>share</mat-icon>
                   </button>
@@ -169,6 +175,9 @@
               <ng-container matColumnDef="action">
                 <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
                 <mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="openPreview(element, 'structure')" matTooltip="Preview">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
                   <button mat-icon-button (click)="openShareDialog(element, 'structure')" matTooltip="Share">
                     <mat-icon>share</mat-icon>
                   </button>

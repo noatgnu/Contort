@@ -59,6 +59,13 @@ export class AccountService {
     this.clearUser();
   }
 
+  clearSession(): void {
+    this.clearToken();
+    this.clearUser();
+    this.userSession = undefined;
+    this.isLogged = false;
+  }
+
   private clearUser(): void {
     localStorage.removeItem(this.userKey);
   }

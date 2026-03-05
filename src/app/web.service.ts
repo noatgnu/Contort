@@ -6,9 +6,10 @@ import {ChunkUpload} from "./chunk-upload";
 import {ProteinFastaDatabaseQuery} from "./protein-fasta-database";
 import {ConsurfJob, ConsurfJobQuery} from "./consurf-job";
 import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "./msa";
-import {map, Observable, switchMap} from "rxjs";
+import {map, Observable, of, switchMap, tap} from "rxjs";
 import {StructureFile, StructureFileQuery} from "./structure";
 import {UserSession} from "./user";
+import {CacheService} from "./cache.service";
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,11 @@ import {UserSession} from "./user";
 export class WebService {
   baseUrl: string = environment.baseUrl
   keycloakCallbackUrl: string = environment.keycloakCallback
-  constructor(private http: HttpClient) { }
+
+  private readonly CACHE_TTL_TYPEAHEAD = 5 * 60 * 1000;
+  private readonly CACHE_TTL_DATA = 2 * 60 * 1000;
+
+  constructor(private http: HttpClient, private cacheService: CacheService) { }
 
   getConsurfMSAVar(uniprotId: string) {
     return this.http.get<ConSurfMSAVar[]>(`${this.baseUrl}/api/consurf/consurf_msa_variation/${uniprotId}`, {responseType: 'json', observe: 'body'})
@@ -27,7 +32,14 @@ export class WebService {
   }
 
   getUniprotTypeAhead(query: string) {
-    return this.http.get<string[]>(`${this.baseUrl}/api/consurf/typeahead/${query}`, {responseType: 'json', observe: 'body'})
+    const cacheKey = this.cacheService.generateKey('typeahead', query);
+    const cached = this.cacheService.get<string[]>(cacheKey);
+    if (cached) {
+      return of(cached);
+    }
+    return this.http.get<string[]>(`${this.baseUrl}/api/consurf/typeahead/${query}`, {responseType: 'json', observe: 'body'}).pipe(
+      tap(data => this.cacheService.set(cacheKey, data, this.CACHE_TTL_TYPEAHEAD))
+    );
   }
 
   getCount() {
@@ -35,99 +47,147 @@ export class WebService {
   }
 
   getProteinFastaDatabases(limit: number = 10, offset: number = 0, search: string = "") {
+    const cacheKey = this.cacheService.generateKey('fasta', limit, offset, search);
+    const cached = this.cacheService.get<ProteinFastaDatabaseQuery>(cacheKey);
+    if (cached) {
+      return of(cached);
+    }
+
     let params = new HttpParams()
       .append("limit", limit.toString())
       .append("offset", offset.toString());
-    
+
     if (search !== "" && search !== null) {
       params = params.append("search", search);
     }
-    
+
     return this.http.get<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/`, {
       responseType: 'json',
       observe: 'body',
       params: params
-    });
+    }).pipe(
+      tap(data => this.cacheService.set(cacheKey, data, this.CACHE_TTL_DATA))
+    );
   }
 
   deleteProteinFastaDatabase(id: number) {
-    return this.http.delete<any>(`${this.baseUrl}/api/fasta/${id}/`, {responseType: 'json', observe: 'body'})
+    return this.http.delete<any>(`${this.baseUrl}/api/fasta/${id}/`, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
   }
 
   getMSAs(limit: number = 10, offset: number = 0, search: string = "") {
+    const cacheKey = this.cacheService.generateKey('msa', limit, offset, search);
+    const cached = this.cacheService.get<MultipleSequenceAlignmentQuery>(cacheKey);
+    if (cached) {
+      return of(cached);
+    }
+
     let params = new HttpParams()
       .append("limit", limit.toString())
       .append("offset", offset.toString());
-    
+
     if (search !== "" && search !== null) {
       params = params.append("search", search);
     }
-    
+
     return this.http.get<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/`, {
       responseType: 'json',
       observe: 'body',
       params: params
-    });
+    }).pipe(
+      tap(data => this.cacheService.set(cacheKey, data, this.CACHE_TTL_DATA))
+    );
   }
 
   deleteMSA(id: number) {
-    return this.http.delete<any>(`${this.baseUrl}/api/msa/${id}/`, {responseType: 'json', observe: 'body'})
+    return this.http.delete<any>(`${this.baseUrl}/api/msa/${id}/`, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
   }
 
   getStructures(limit: number = 10, offset: number = 0, search: string = "") {
+    const cacheKey = this.cacheService.generateKey('structure', limit, offset, search);
+    const cached = this.cacheService.get<StructureFileQuery>(cacheKey);
+    if (cached) {
+      return of(cached);
+    }
+
     let params = new HttpParams()
       .append("limit", limit.toString())
       .append("offset", offset.toString());
-    
+
     if (search !== "" && search !== null) {
       params = params.append("search", search);
     }
-    
+
     return this.http.get<StructureFileQuery>(`${this.baseUrl}/api/structure/`, {
       responseType: 'json',
       observe: 'body',
       params: params
-    });
+    }).pipe(
+      tap(data => this.cacheService.set(cacheKey, data, this.CACHE_TTL_DATA))
+    );
   }
 
   deleteStructure(id: number) {
-    return this.http.delete<any>(`${this.baseUrl}/api/structure/${id}/`, {responseType: 'json', observe: 'body'})
+    return this.http.delete<any>(`${this.baseUrl}/api/structure/${id}/`, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
   }
 
   shareFastaDatabase(id: number, usernames: string[]) {
-    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
   }
 
   unshareFastaDatabase(id: number, usernames: string[]) {
-    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
   }
 
   setFastaDatabasePublic(id: number, isPublic: boolean) {
-    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
   }
 
   shareMSA(id: number, usernames: string[]) {
-    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
   }
 
   unshareMSA(id: number, usernames: string[]) {
-    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
   }
 
   setMSAPublic(id: number, isPublic: boolean) {
-    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+    return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
   }
 
   shareStructure(id: number, usernames: string[]) {
-    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
   }
 
   unshareStructure(id: number, usernames: string[]) {
-    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'})
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/unshare/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
   }
 
   setStructurePublic(id: number, isPublic: boolean) {
-    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'})
+    return this.http.post<StructureFileQuery>(`${this.baseUrl}/api/structure/${id}/set_public/`, {is_public: isPublic}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
   }
 
   cancelConsurfJob(id: number) {
@@ -195,19 +255,25 @@ export class WebService {
         `${this.baseUrl}/api/fasta/`,
         {name: file_name, upload_id: upload_id},
         {responseType: 'json', observe: 'body'}
-      )
+      ).pipe(
+        tap(() => this.cacheService.invalidateByPrefix('fasta'))
+      );
     } else if (file_type === "msa") {
       return this.http.post<any>(
         `${this.baseUrl}/api/msa/`,
         {name: file_name, upload_id: upload_id},
         {responseType: 'json', observe: 'body'}
-      )
+      ).pipe(
+        tap(() => this.cacheService.invalidateByPrefix('msa'))
+      );
     } else {
       return this.http.post<any>(
         `${this.baseUrl}/api/structure/`,
         {name: file_name, upload_id: upload_id},
         {responseType: 'json', observe: 'body'}
-      )
+      ).pipe(
+        tap(() => this.cacheService.invalidateByPrefix('structure'))
+      );
     }
   }
 
@@ -216,7 +282,9 @@ export class WebService {
       `${this.baseUrl}/api/structure/`,
       {name: file_name, content: content},
       {responseType: 'json', observe: 'body'}
-    )
+    ).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
   }
 
   getConsurfJobs(limit: number = 10, offset: number = 0, search: string = "", status: string = "") {

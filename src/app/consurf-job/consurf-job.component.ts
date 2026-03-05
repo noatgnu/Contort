@@ -10,9 +10,10 @@ import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/sav
 import {Router} from "@angular/router";
 import {WebsocketService} from "../websocket.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
-import {forkJoin, Observable, Subject, debounceTime, distinctUntilChanged, takeUntil} from "rxjs";
+import {forkJoin, Observable, Subject, debounceTime, distinctUntilChanged, takeUntil, tap} from "rxjs";
 import {ConsurfJob} from "../consurf-job";
 import {AccountService} from "../account.service";
+import {BatchJobService} from "../batch-job.service";
 
 @Component({
   selector: 'app-consurf-job',
@@ -95,7 +96,8 @@ export class ConsurfJobComponent implements OnDestroy {
     private fb: FormBuilder,
     private web: WebService,
     private dialog: MatDialog,
-    public accountService: AccountService
+    public accountService: AccountService,
+    private batchJobService: BatchJobService
   ) {
     this.setupWebsocketListener();
     this.setupFormListeners();
@@ -300,7 +302,9 @@ export class ConsurfJobComponent implements OnDestroy {
     this.form.controls.structure_id.setValue([]);
     this.form.controls.chain.setValue("");
 
-    const observables = this.createBatchJobObservables(this.form.controls.query_sequence.value);
+    const batchName = this.form.controls.job_title.value || `Batch ${new Date().toISOString()}`;
+    const batchId = this.batchJobService.createBatch(batchName);
+    const observables = this.createBatchJobObservables(this.form.controls.query_sequence.value, batchId);
 
     forkJoin(observables)
       .pipe(takeUntil(this.destroy$))
@@ -316,7 +320,7 @@ export class ConsurfJobComponent implements OnDestroy {
       });
   }
 
-  private createBatchJobObservables(querySequence: string): Observable<ConsurfJob>[] {
+  private createBatchJobObservables(querySequence: string, batchId: string): Observable<ConsurfJob>[] {
     const observables: Observable<ConsurfJob>[] = [];
     let sequence = "";
     let sequenceID = ">";
@@ -324,7 +328,7 @@ export class ConsurfJobComponent implements OnDestroy {
     for (const line of querySequence.split("\n")) {
       if (line[0] === ">") {
         if (sequence.length > 0 && sequenceID.length > 0) {
-          observables.push(this.createJobObservable(sequenceID, sequence));
+          observables.push(this.createJobObservable(sequenceID, sequence, batchId));
         }
         sequence = "";
         sequenceID = line;
@@ -334,17 +338,19 @@ export class ConsurfJobComponent implements OnDestroy {
     }
 
     if (sequence.length > 0 && sequenceID.length > 0) {
-      observables.push(this.createJobObservable(sequenceID, sequence));
+      observables.push(this.createJobObservable(sequenceID, sequence, batchId));
     }
 
     return observables;
   }
 
-  private createJobObservable(sequenceID: string, sequence: string): Observable<ConsurfJob> {
+  private createJobObservable(sequenceID: string, sequence: string, batchId: string): Observable<ConsurfJob> {
     const payload = { ...this.form.value };
     payload.query_sequence = `${sequenceID}\n${sequence}`;
     payload.job_title = `${sequenceID.slice(1)} - ${this.form.controls.job_title.value}`;
-    return this.web.submitConsurfJob(payload);
+    return this.web.submitConsurfJob(payload).pipe(
+      tap(job => this.batchJobService.addJobToBatch(batchId, job.id))
+    );
   }
 
   private submitSingleJob(): void {

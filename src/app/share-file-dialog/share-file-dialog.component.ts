@@ -11,8 +11,8 @@ import {MatIcon} from '@angular/material/icon';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatDivider} from '@angular/material/divider';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
-import {takeUntil} from 'rxjs';
-import {Subject} from 'rxjs';
+import {Subject, Observable} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 
 export interface ShareFileDialogData {
   id: number;
@@ -91,9 +91,8 @@ export class ShareFileDialogComponent {
         this.isPublic.set(newPublicState);
         this.sb.open(`File is now ${newPublicState ? 'public' : 'private'}`, 'Close', {duration: 2000});
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.sb.open('Failed to update visibility', 'Close', {duration: 3000});
-        console.error(err);
       }
     });
   }
@@ -134,15 +133,14 @@ export class ShareFileDialogComponent {
             this.dialogRef.close(true);
           }
         },
-        error: (err) => {
+        error: (err: unknown) => {
           this.sb.open('Failed to update sharing settings', 'Close', {duration: 3000});
-          console.error(err);
         }
       });
     });
   }
 
-  private getShareCall(usernames: string[]) {
+  private getShareCall(usernames: string[]): Observable<unknown> {
     switch (this.data.type) {
       case 'database':
         return this.web.shareFastaDatabase(this.data.id, usernames);
@@ -153,7 +151,7 @@ export class ShareFileDialogComponent {
     }
   }
 
-  private getUnshareCall(usernames: string[]) {
+  private getUnshareCall(usernames: string[]): Observable<unknown> {
     switch (this.data.type) {
       case 'database':
         return this.web.unshareFastaDatabase(this.data.id, usernames);
@@ -164,7 +162,7 @@ export class ShareFileDialogComponent {
     }
   }
 
-  private getSetPublicCall(isPublic: boolean) {
+  private getSetPublicCall(isPublic: boolean): Observable<unknown> {
     switch (this.data.type) {
       case 'database':
         return this.web.setFastaDatabasePublic(this.data.id, isPublic);

@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>File Preview: {{data.fileName}}</h2>
+<div mat-dialog-content>
+  @if (isLoading()) {
+    <p>Loading...</p>
+  } @else {
+    <div class="file-info">
+      <span><strong>Size:</strong> {{fileSize()}}</span>
+      <span><strong>Lines:</strong> {{lineCount()}}</span>
+      @if (sequenceCount() > 0) {
+        <span><strong>Sequences:</strong> {{sequenceCount()}}</span>
+      }
+    </div>
+
+    @if (sequences().length > 0) {
+      <div class="sequence-summary">
+        <strong>Sequences (first 10):</strong>
+        <ul>
+          @for (seq of sequences(); track seq.name) {
+            <li>{{seq.name}} ({{seq.length}} residues)</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="content-preview">
+      <pre>{{content()}}</pre>
+    </div>
+  }
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="close()">Close</button>
+</div>
