@@ -11,7 +11,7 @@ describe('CustomScoreDialogComponent', () => {
       imports: [CustomScoreDialogComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(CustomScoreDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

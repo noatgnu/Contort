@@ -6,11 +6,10 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatFormField, MatLabel} from '@angular/material/form-field';
 import {MatInput} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
-import {MatChipGrid, MatChipInput, MatChipRemove, MatChipRow} from '@angular/material/chips';
+import {MatChipGrid, MatChipRemove, MatChipRow} from '@angular/material/chips';
 import {MatIcon} from '@angular/material/icon';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatDivider} from '@angular/material/divider';
-import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import {Subject, Observable} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
@@ -37,7 +36,6 @@ export interface ShareFileDialogData {
     MatChipRow,
     MatIcon,
     MatChipRemove,
-    MatChipInput,
     MatSlideToggle,
     MatDivider
   ],
@@ -46,7 +44,6 @@ export interface ShareFileDialogData {
 })
 export class ShareFileDialogComponent {
   private destroy$ = new Subject<void>();
-  readonly separatorKeysCodes = [ENTER, COMMA] as const;
   sharedUsers = signal<string[]>([]);
   isPublic = signal<boolean>(false);
 

@@ -8,18 +8,26 @@ import { environment } from '../environments/environment';
 describe('WebService', () => {
   let service: WebService;
   let httpMock: HttpTestingController;
-  let cacheServiceSpy: jasmine.SpyObj<CacheService>;
+  let cacheServiceMock: {
+    get: jasmine.Spy;
+    set: jasmine.Spy;
+    invalidateByPrefix: jasmine.Spy;
+    generateKey: jasmine.Spy;
+  };
 
   beforeEach(() => {
-    cacheServiceSpy = jasmine.createSpyObj('CacheService', ['get', 'set', 'invalidateByPrefix', 'generateKey']);
-    cacheServiceSpy.generateKey.and.callFake((...parts) => parts.join(':'));
-    cacheServiceSpy.get.and.returnValue(null);
+    cacheServiceMock = {
+      get: jasmine.createSpy('get').and.returnValue(null),
+      set: jasmine.createSpy('set'),
+      invalidateByPrefix: jasmine.createSpy('invalidateByPrefix'),
+      generateKey: jasmine.createSpy('generateKey').and.callFake((...parts: string[]) => parts.join(':'))
+    };
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: CacheService, useValue: cacheServiceSpy }
+        { provide: CacheService, useValue: cacheServiceMock }
       ]
     });
 
@@ -68,7 +76,7 @@ describe('WebService', () => {
   describe('getUniprotTypeAhead', () => {
     it('should return cached data if available', () => {
       const cachedData = ['P12345', 'P12346'];
-      cacheServiceSpy.get.and.returnValue(cachedData);
+      cacheServiceMock.get.and.returnValue(cachedData);
 
       service.getUniprotTypeAhead('P123').subscribe(data => {
         expect(data).toEqual(cachedData);
@@ -82,7 +90,7 @@ describe('WebService', () => {
 
       service.getUniprotTypeAhead('P123').subscribe(data => {
         expect(data).toEqual(mockResults);
-        expect(cacheServiceSpy.set).toHaveBeenCalled();
+        expect(cacheServiceMock.set).toHaveBeenCalled();
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/consurf/typeahead/P123`);
@@ -120,7 +128,7 @@ describe('WebService', () => {
   describe('deleteProteinFastaDatabase', () => {
     it('should delete a database and invalidate cache', () => {
       service.deleteProteinFastaDatabase(1).subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('fasta');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('fasta');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/fasta/1/`);
@@ -219,7 +227,7 @@ describe('WebService', () => {
   describe('share methods', () => {
     it('should share database and invalidate cache', () => {
       service.shareFastaDatabase(1, ['user1']).subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('fasta');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('fasta');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/fasta/1/share/`);
@@ -228,7 +236,7 @@ describe('WebService', () => {
 
     it('should share MSA and invalidate cache', () => {
       service.shareMSA(1, ['user1']).subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('msa');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('msa');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/msa/1/share/`);
@@ -237,7 +245,7 @@ describe('WebService', () => {
 
     it('should share structure and invalidate cache', () => {
       service.shareStructure(1, ['user1']).subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('structure');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('structure');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/structure/1/share/`);
@@ -248,7 +256,7 @@ describe('WebService', () => {
   describe('bindUploadedFile', () => {
     it('should bind database file and invalidate cache', () => {
       service.bindUploadedFile('test.fasta', 'upload123', 'database').subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('fasta');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('fasta');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/fasta/`);
@@ -258,7 +266,7 @@ describe('WebService', () => {
 
     it('should bind MSA file and invalidate cache', () => {
       service.bindUploadedFile('test.aln', 'upload123', 'msa').subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('msa');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('msa');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/msa/`);
@@ -267,7 +275,7 @@ describe('WebService', () => {
 
     it('should bind structure file and invalidate cache', () => {
       service.bindUploadedFile('test.pdb', 'upload123', 'structure').subscribe(() => {
-        expect(cacheServiceSpy.invalidateByPrefix).toHaveBeenCalledWith('structure');
+        expect(cacheServiceMock.invalidateByPrefix).toHaveBeenCalledWith('structure');
       });
 
       const req = httpMock.expectOne(`${environment.baseUrl}/api/structure/`);

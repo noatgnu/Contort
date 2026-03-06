@@ -83,17 +83,17 @@ describe('CacheService', () => {
   describe('has', () => {
     it('should return true for existing keys', () => {
       service.set('existing-key', 'data');
-      expect(service.has('existing-key')).toBeTrue();
+      expect(service.has('existing-key')).toBe(true);
     });
 
     it('should return false for non-existent keys', () => {
-      expect(service.has('non-existent')).toBeFalse();
+      expect(service.has('non-existent')).toBe(false);
     });
 
     it('should return false for expired keys', (done) => {
       service.set('expiring-key', 'data', 50);
       setTimeout(() => {
-        expect(service.has('expiring-key')).toBeFalse();
+        expect(service.has('expiring-key')).toBe(false);
         done();
       }, 100);
     });

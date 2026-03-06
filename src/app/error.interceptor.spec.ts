@@ -9,22 +9,22 @@ import { AccountService } from './account.service';
 describe('errorInterceptor', () => {
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
-  let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
-  let dialogSpy: jasmine.SpyObj<MatDialog>;
-  let accountServiceSpy: jasmine.SpyObj<AccountService>;
+  let snackBarMock: { open: jasmine.Spy };
+  let dialogMock: { open: jasmine.Spy };
+  let accountServiceMock: { clearSession: jasmine.Spy };
 
   beforeEach(() => {
-    snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
-    dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
-    accountServiceSpy = jasmine.createSpyObj('AccountService', ['clearSession']);
+    snackBarMock = { open: jasmine.createSpy('open') };
+    dialogMock = { open: jasmine.createSpy('open') };
+    accountServiceMock = { clearSession: jasmine.createSpy('clearSession') };
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
-        { provide: MatSnackBar, useValue: snackBarSpy },
-        { provide: MatDialog, useValue: dialogSpy },
-        { provide: AccountService, useValue: accountServiceSpy }
+        { provide: MatSnackBar, useValue: snackBarMock },
+        { provide: MatDialog, useValue: dialogMock },
+        { provide: AccountService, useValue: accountServiceMock }
       ]
     });
 
@@ -44,13 +44,13 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
-    expect(accountServiceSpy.clearSession).toHaveBeenCalled();
-    expect(snackBarSpy.open).toHaveBeenCalledWith(
+    expect(accountServiceMock.clearSession).toHaveBeenCalled();
+    expect(snackBarMock.open).toHaveBeenCalledWith(
       'Session expired. Please log in again.',
       'Close',
       { duration: 5000 }
     );
-    expect(dialogSpy.open).toHaveBeenCalled();
+    expect(dialogMock.open).toHaveBeenCalled();
   });
 
   it('should handle 403 errors with permission message', () => {
@@ -61,7 +61,7 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith(
+    expect(snackBarMock.open).toHaveBeenCalledWith(
       'You do not have permission to perform this action.',
       'Close',
       { duration: 5000 }
@@ -76,7 +76,7 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.flush('Not Found', { status: 404, statusText: 'Not Found' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith(
+    expect(snackBarMock.open).toHaveBeenCalledWith(
       'The requested resource was not found.',
       'Close',
       { duration: 5000 }
@@ -91,7 +91,7 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.flush('Server Error', { status: 500, statusText: 'Internal Server Error' });
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith(
+    expect(snackBarMock.open).toHaveBeenCalledWith(
       'A server error occurred. Please try again later.',
       'Close',
       { duration: 5000 }
@@ -106,7 +106,7 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.error(new ProgressEvent('error'));
 
-    expect(snackBarSpy.open).toHaveBeenCalledWith(
+    expect(snackBarMock.open).toHaveBeenCalledWith(
       'Unable to connect to the server. Please check your connection.',
       'Close',
       { duration: 5000 }
@@ -121,6 +121,6 @@ describe('errorInterceptor', () => {
     const req = httpTestingController.expectOne('/api/test');
     req.flush({ data: 'test' });
 
-    expect(snackBarSpy.open).not.toHaveBeenCalled();
+    expect(snackBarMock.open).not.toHaveBeenCalled();
   });
 });

@@ -388,12 +388,14 @@
                       <mat-spinner diameter="20"></mat-spinner>
                       Submitting...
                     } @else {
-                      <mat-icon>send</mat-icon>
-                      @if (numberOfSequences() > 1) {
-                        Submit Batch ({{numberOfSequences()}} jobs)
-                      } @else {
-                        Submit Job
-                      }
+                      <ng-container>
+                        <mat-icon>send</mat-icon>
+                        @if (numberOfSequences() > 1) {
+                          Submit Batch ({{numberOfSequences()}} jobs)
+                        } @else {
+                          Submit Job
+                        }
+                      </ng-container>
                     }
                   </button>
                 </div>

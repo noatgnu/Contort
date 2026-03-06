@@ -22,7 +22,7 @@ describe('BatchJobService', () => {
     it('should create a new batch and return its ID', () => {
       const batchId = service.createBatch('Test Batch');
       expect(batchId).toBeTruthy();
-      expect(batchId.startsWith('batch_')).toBeTrue();
+      expect(batchId.startsWith('batch_')).toBe(true);
     });
 
     it('should store the batch in localStorage', () => {

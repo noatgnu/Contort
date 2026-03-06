@@ -11,7 +11,7 @@ describe('ConsurfViewComponent', () => {
       imports: [ConsurfViewComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(ConsurfViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

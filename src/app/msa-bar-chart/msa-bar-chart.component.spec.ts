@@ -11,7 +11,7 @@ describe('MsaBarChartComponent', () => {
       imports: [MsaBarChartComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(MsaBarChartComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

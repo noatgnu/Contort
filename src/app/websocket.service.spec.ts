@@ -9,22 +9,36 @@ import { of } from 'rxjs';
 
 describe('WebsocketService', () => {
   let service: WebsocketService;
-  let accountServiceSpy: jasmine.SpyObj<AccountService>;
-  let webServiceSpy: jasmine.SpyObj<WebService>;
-  let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
+  let accountServiceMock: {
+    getToken: jasmine.Spy;
+    setToken: jasmine.Spy;
+  };
+  let webServiceMock: {
+    getUserTokenThroughSession: jasmine.Spy;
+  };
+  let snackBarMock: {
+    open: jasmine.Spy;
+  };
 
   beforeEach(() => {
-    accountServiceSpy = jasmine.createSpyObj('AccountService', ['getToken', 'setToken']);
-    webServiceSpy = jasmine.createSpyObj('WebService', ['getUserTokenThroughSession']);
-    snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+    accountServiceMock = {
+      getToken: jasmine.createSpy('getToken').and.returnValue(null),
+      setToken: jasmine.createSpy('setToken')
+    };
+    webServiceMock = {
+      getUserTokenThroughSession: jasmine.createSpy('getUserTokenThroughSession').and.returnValue(of({ token: '' }))
+    };
+    snackBarMock = {
+      open: jasmine.createSpy('open')
+    };
 
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AccountService, useValue: accountServiceSpy },
-        { provide: WebService, useValue: webServiceSpy },
-        { provide: MatSnackBar, useValue: snackBarSpy }
+        { provide: AccountService, useValue: accountServiceMock },
+        { provide: WebService, useValue: webServiceMock },
+        { provide: MatSnackBar, useValue: snackBarMock }
       ]
     });
 
@@ -41,19 +55,19 @@ describe('WebsocketService', () => {
 
   describe('connectionStatus$', () => {
     it('should initially be false', () => {
-      expect(service.connectionStatus$.value).toBeFalse();
+      expect(service.connectionStatus$.value).toBe(false);
     });
   });
 
   describe('isReconnecting$', () => {
     it('should initially be false', () => {
-      expect(service.isReconnecting$.value).toBeFalse();
+      expect(service.isReconnecting$.value).toBe(false);
     });
   });
 
   describe('connectedJobWS getter', () => {
     it('should return the current connection status', () => {
-      expect(service.connectedJobWS).toBeFalse();
+      expect(service.connectedJobWS).toBe(false);
     });
   });
 
@@ -65,44 +79,44 @@ describe('WebsocketService', () => {
 
   describe('connectJobWS', () => {
     it('should not connect if no token available', fakeAsync(() => {
-      accountServiceSpy.getToken.and.returnValue(null);
-      webServiceSpy.getUserTokenThroughSession.and.returnValue(of({ token: '' }));
+      accountServiceMock.getToken.and.returnValue(null);
+      webServiceMock.getUserTokenThroughSession.and.returnValue(of({ token: '' }));
 
       service.connectJobWS('session123');
       tick();
 
-      expect(service.connectionStatus$.value).toBeFalse();
+      expect(service.connectionStatus$.value).toBe(false);
     }));
 
     it('should attempt to get token through session if not stored', fakeAsync(() => {
-      accountServiceSpy.getToken.and.returnValue(null);
-      webServiceSpy.getUserTokenThroughSession.and.returnValue(of({ token: 'newToken' }));
+      accountServiceMock.getToken.and.returnValue(null);
+      webServiceMock.getUserTokenThroughSession.and.returnValue(of({ token: 'newToken' }));
 
       service.connectJobWS('session123');
       tick();
 
-      expect(webServiceSpy.getUserTokenThroughSession).toHaveBeenCalled();
-      expect(accountServiceSpy.setToken).toHaveBeenCalledWith('newToken');
+      expect(webServiceMock.getUserTokenThroughSession).toHaveBeenCalled();
+      expect(accountServiceMock.setToken).toHaveBeenCalledWith('newToken');
     }));
   });
 
   describe('disconnect', () => {
     it('should set connection status to false', () => {
       service.disconnect();
-      expect(service.connectionStatus$.value).toBeFalse();
-      expect(service.isReconnecting$.value).toBeFalse();
+      expect(service.connectionStatus$.value).toBe(false);
+      expect(service.isReconnecting$.value).toBe(false);
     });
   });
 
   describe('reconnect', () => {
     it('should disconnect and reconnect', fakeAsync(() => {
-      accountServiceSpy.getToken.and.returnValue('token123');
-      spyOn(service, 'disconnect').and.callThrough();
+      accountServiceMock.getToken.and.returnValue('token123');
+      const disconnectSpy = spyOn(service, 'disconnect');
 
       service.reconnect('session123');
       tick();
 
-      expect(service.disconnect).toHaveBeenCalled();
+      expect(disconnectSpy).toHaveBeenCalled();
     }));
   });
 
@@ -110,20 +124,22 @@ describe('WebsocketService', () => {
     it('should not send message when not connected', () => {
       const message = { type: 'test', job_id: 1, status: 'pending', session_id: 'test', log_data: '', error_data: '', message: '' };
       service.sendMessage(message);
-      expect(snackBarSpy.open).toHaveBeenCalledWith('Cannot send message: Not connected', 'Close', { duration: 3000 });
+      expect(snackBarMock.open).toHaveBeenCalledWith('Cannot send message: Not connected', 'Close', { duration: 3000 });
     });
   });
 
   describe('jobMessage$ subscription', () => {
-    it('should emit messages to subscribers', (done) => {
-      const testMessage = { type: 'status', job_id: 1, status: 'completed', session_id: 'test', log_data: '', error_data: '', message: '' };
+    it('should emit messages to subscribers', () => {
+      return new Promise<void>((resolve) => {
+        const testMessage = { type: 'status', job_id: 1, status: 'completed', session_id: 'test', log_data: '', error_data: '', message: '' };
 
-      service.jobMessage$.subscribe(message => {
-        expect(message).toEqual(testMessage);
-        done();
+        service.jobMessage$.subscribe(message => {
+          expect(message).toEqual(testMessage);
+          resolve();
+        });
+
+        service.jobMessage$.next(testMessage);
       });
-
-      service.jobMessage$.next(testMessage);
     });
   });
 });
