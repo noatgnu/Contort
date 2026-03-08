@@ -1,6 +1,4 @@
-:host {
-  display: block;
-}
+:host { display: block; }
 
 .upload-section {
   display: flex;
@@ -19,8 +17,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(0, 0, 0, 0.6);
-  
+  color: var(--text-tertiary);
+
   mat-icon {
     font-size: 20px;
     height: 20px;
@@ -32,18 +30,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  
+
   .file-name {
     flex: 0 0 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  
-  mat-progress-bar {
-    flex: 1;
-  }
-  
+
+  mat-progress-bar { flex: 1; }
+
   .progress-percentage {
     flex: 0 0 50px;
     text-align: right;
@@ -52,19 +48,15 @@
 }
 
 .upload-button {
-  mat-icon {
-    margin-right: 8px;
-  }
+  mat-icon { margin-right: 8px; }
 }
 
-.data-table {
-  margin-top: 20px;
-}
+.data-table { margin-top: 20px; }
 
-h1 {
-  font-size: 20px;
+h3 {
+  font-size: 16px;
   font-weight: 500;
-  margin: 0 0 16px 0;
+  margin: 0 0 12px 0;
 }
 
 mat-form-field {
@@ -77,29 +69,20 @@ mat-form-field {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(107, 76, 154, 0.08);
+  background: var(--primary-container);
   border-radius: 4px;
-  border-left: 3px solid #6b4c9a;
+  border-left: 3px solid var(--accent-color);
 
   mat-icon {
     font-size: 18px;
     width: 18px;
     height: 18px;
-    color: #6b4c9a;
+    color: var(--accent-color);
     cursor: help;
   }
 
   .help-text {
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.7);
-  }
-}
-
-:host-context(.dark-theme) {
-  .help-section {
-    background: rgba(187, 134, 252, 0.1);
-    border-left-color: #bb86fc;
-    mat-icon { color: #bb86fc; }
-    .help-text { color: rgba(255, 255, 255, 0.7); }
+    color: var(--text-secondary);
   }
 }

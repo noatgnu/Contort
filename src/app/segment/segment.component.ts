@@ -1,7 +1,8 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, effect} from '@angular/core';
 import {DataFrame, IDataFrame} from "data-forge";
 import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
+import {ThemeService} from "../theme.service";
 
 @Component({
     selector: 'app-segment',
@@ -17,7 +18,6 @@ export class SegmentComponent {
   }
   @Output() selectedData: EventEmitter<ConSurfData> = new EventEmitter<ConSurfData>()
   config: any = {
-    //modeBarButtonsToRemove: ["toImage"]
     toImageButtonOptions: {
       format: 'svg',
       scale: 1
@@ -25,46 +25,80 @@ export class SegmentComponent {
   }
 
   graphData: any[] = []
-  graphLayout: any = {
-    margin: {
-      l: 0,
-      r: 0,
-      b: 20,
-      t: 0,
-    },
-    height: 120,
-    width: 50,
-    xaxis: {
-      title: '',
-      type: 'category',
-      tickmode: 'array',
-      showticklabels: true,
-      tickvals: [],
-      ticktext: [],
-      fixedrange: true,
-    },
-    yaxis: {
-      title: '',
-      type: 'category',
-      tickmode: 'array',
-      fixedrange: true,
-    },
-    shapes: [],
-    annotations: [],
+  graphLayout: any = {}
+
+  private getThemedLayout() {
+    const isDark = this.themeService.isDark();
+    const textColor = isDark ? '#e0e0e0' : '#333333';
+    const bgColor = isDark ? 'transparent' : 'transparent';
+
+    return {
+      margin: {
+        l: 0,
+        r: 0,
+        b: 20,
+        t: 0,
+      },
+      height: 120,
+      width: 50,
+      paper_bgcolor: bgColor,
+      plot_bgcolor: bgColor,
+      font: {
+        color: textColor
+      },
+      xaxis: {
+        title: '',
+        type: 'category',
+        tickmode: 'array',
+        showticklabels: true,
+        tickvals: [],
+        ticktext: [],
+        fixedrange: true,
+        color: textColor
+      },
+      yaxis: {
+        title: '',
+        type: 'category',
+        tickmode: 'array',
+        fixedrange: true,
+        color: textColor
+      },
+      shapes: [],
+      annotations: [],
+    };
   }
+
   revision = 0
-  constructor(private dataService: DataService) {
+  constructor(private dataService: DataService, private themeService: ThemeService) {
+    this.graphLayout = this.getThemedLayout();
+
+    effect(() => {
+      this.themeService.isDark();
+      const currentLayout = this.graphLayout;
+      this.graphLayout = {
+        ...this.getThemedLayout(),
+        width: currentLayout.width,
+        height: currentLayout.height,
+        shapes: currentLayout.shapes,
+        annotations: currentLayout.annotations,
+        'xaxis.tickvals': currentLayout['xaxis.tickvals']
+      };
+      this.revision++;
+    });
+
     this.dataService.redrawSubject.subscribe((data) => {
       this.drawHeatmap()
     })
   }
 
   drawHeatmap() {
+    const isDark = this.themeService.isDark();
+    const annotationColor = isDark ? '#e0e0e0' : '#333333';
+
     this.graphLayout.margin.b = this.dataService.segmentSettings["margin-bottom"]
     this.graphLayout.margin.t = this.dataService.segmentSettings["margin-top"]
     this.graphLayout.width = this.dataService.segmentSettings["cell-size"]
     this.graphLayout.height = this.dataService.segmentSettings["cell-size"] + this.dataService.segmentSettings["margin-bottom"] + this.dataService.segmentSettings["margin-top"]
-    // draw sequence using heatmap plotly with colors from the ConSurf Grade column
     const graphData: any[] = []
     const annotations: any[] = []
     const temp: any = {
@@ -134,7 +168,7 @@ export class SegmentComponent {
           font: {
             family: 'Arial',
             size: 12,
-            color: "black"
+            color: annotationColor
           }
         })
       }

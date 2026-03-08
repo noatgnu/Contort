@@ -12,19 +12,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     })
   }
   if (token && !isLoginRequest) {
+    const headers: Record<string, string> = {
+      Authorization: `Token ${token}`
+    };
     if (accountService.sessionID) {
-      req = req.clone({
-        setHeaders: {
-          'X-Contort-Session-ID': accountService.sessionID
-        }
-      })
+      headers['X-Contort-Session-ID'] = accountService.sessionID;
     }
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Token ${token}`
-      }
+    req = req.clone({
+      setHeaders: headers
     });
-    return next(cloned);
+    return next(req);
   }
   return next(req);
 };

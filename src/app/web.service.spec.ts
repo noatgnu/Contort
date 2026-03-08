@@ -203,7 +203,7 @@ describe('WebService', () => {
         expect(data).toEqual(mockResponse);
       });
 
-      const req = httpMock.expectOne(`${environment.baseUrl}/api/consurf-job/1/cancel/`);
+      const req = httpMock.expectOne(`${environment.baseUrl}/api/job/1/cancel/`);
       expect(req.request.method).toBe('POST');
       req.flush(mockResponse);
     });

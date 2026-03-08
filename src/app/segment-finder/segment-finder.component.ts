@@ -49,7 +49,6 @@ export class SegmentFinderComponent {
 
         }
         if (matches.length > 0) {
-          console.log(matches)
           this.dataService.segmentSelection.next(matches)
         }
       }

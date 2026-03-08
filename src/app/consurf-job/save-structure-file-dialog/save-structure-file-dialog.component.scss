@@ -1,35 +1,26 @@
-:host {
-  display: block;
-}
+:host { display: block; }
 
 .dialog-description {
   margin-bottom: 16px;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--text-tertiary);
   font-size: 14px;
 }
 
 .chains-info {
   margin-bottom: 16px;
   padding: 12px;
-  background-color: rgba(33, 150, 243, 0.1);
+  background-color: var(--info-container);
   border-radius: 4px;
   font-size: 14px;
-  
-  strong {
-    color: rgba(0, 0, 0, 0.87);
-  }
+
+  strong { color: var(--text-primary); }
 }
 
-.full-width {
-  width: 100%;
-}
+.full-width { width: 100%; }
 
 mat-dialog-content {
   min-width: 400px;
   padding: 20px 24px;
 }
 
-mat-dialog-actions {
-  padding: 8px 24px 20px;
-}
-
+mat-dialog-actions { padding: 8px 24px 20px; }

@@ -73,7 +73,6 @@ export class HomeComponent implements OnInit{
 
       }
       this.dataService.redrawSubject.next(true)
-      console.log(this.dataService.selectionMap)
     })
 
   }

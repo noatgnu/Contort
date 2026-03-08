@@ -6,7 +6,7 @@ import {ChunkUpload} from "./chunk-upload";
 import {ProteinFastaDatabaseQuery} from "./protein-fasta-database";
 import {ConsurfJob, ConsurfJobQuery} from "./consurf-job";
 import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "./msa";
-import {map, Observable, of, switchMap, tap} from "rxjs";
+import {forkJoin, map, Observable, of, switchMap, tap} from "rxjs";
 import {StructureFile, StructureFileQuery} from "./structure";
 import {UserSession} from "./user";
 import {CacheService} from "./cache.service";
@@ -191,43 +191,37 @@ export class WebService {
   }
 
   cancelConsurfJob(id: number) {
-    return this.http.post<{message: string, status: string}>(`${this.baseUrl}/api/consurf-job/${id}/cancel/`, {}, {responseType: 'json', observe: 'body'})
+    return this.http.post<{message: string, status: string}>(`${this.baseUrl}/api/job/${id}/cancel/`, {}, {responseType: 'json', observe: 'body'})
   }
 
   bulkShareFastaDatabase(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/fasta/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('fasta'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.shareFastaDatabase(id, usernames)));
   }
 
   bulkUnshareFastaDatabase(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/fasta/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('fasta'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.unshareFastaDatabase(id, usernames)));
   }
 
   bulkShareMSA(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/msa/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('msa'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.shareMSA(id, usernames)));
   }
 
   bulkUnshareMSA(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/msa/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('msa'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.unshareMSA(id, usernames)));
   }
 
   bulkShareStructure(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/structure/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('structure'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.shareStructure(id, usernames)));
   }
 
   bulkUnshareStructure(ids: number[], usernames: string[]) {
-    return this.http.post<any>(`${this.baseUrl}/api/structure/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
-      tap(() => this.cacheService.invalidateByPrefix('structure'))
-    );
+    if (ids.length === 0) return of([]);
+    return forkJoin(ids.map(id => this.unshareStructure(id, usernames)));
   }
 
   login(username: string, password: string) {
@@ -240,8 +234,6 @@ export class WebService {
     form.append('filename', filename)
     let headers = new HttpHeaders()
     headers = headers.append('Content-Range', contentRange)
-    //headers.append('Content-Disposition', `attachment; filename=${filename}`)
-    console.log(headers)
     if (url !== "") {
       if (url.startsWith("http://") && !url.startsWith("http://localhost")) {
         url = url.replace("http://", "https://")

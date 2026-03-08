@@ -11,11 +11,9 @@
       font-size: 48px;
       width: 48px;
       height: 48px;
-      color: #6b4c9a;
+      color: var(--accent-color);
 
-      &.danger-icon {
-        color: #f44336;
-      }
+      &.danger-icon { color: var(--error-color); }
     }
   }
 
@@ -26,10 +24,9 @@
 
   [mat-dialog-content] {
     text-align: center;
-
     p {
       margin: 0;
-      color: rgba(0, 0, 0, 0.7);
+      color: var(--text-secondary);
     }
   }
 
@@ -39,26 +36,6 @@
   }
 
   &.danger {
-    h1[mat-dialog-title] {
-      color: #f44336;
-    }
-  }
-}
-
-:host-context(.dark-theme) {
-  .confirm-dialog {
-    [mat-dialog-content] {
-      p {
-        color: rgba(255, 255, 255, 0.7);
-      }
-    }
-
-    .icon-container mat-icon {
-      color: #bb86fc;
-
-      &.danger-icon {
-        color: #f44336;
-      }
-    }
+    h1[mat-dialog-title] { color: var(--error-color); }
   }
 }

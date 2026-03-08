@@ -54,7 +54,6 @@ export class WebsocketService implements OnDestroy {
 
   async connectJobWS(sessionID: string): Promise<void> {
     if (this.jobConnection && !this.jobConnection.closed) {
-      console.log("WebSocket already connected");
       return;
     }
 
@@ -103,23 +102,19 @@ export class WebsocketService implements OnDestroy {
         }
       },
       closeObserver: {
-        next: (event) => {
-          console.log("WebSocket closed:", event);
+        next: () => {
           this.connectionStatus$.next(false);
           this.handleDisconnection();
         }
       },
       closingObserver: {
-        next: () => {
-          console.log("WebSocket closing...");
-        }
+        next: () => {}
       }
     });
 
     this.jobConnection
       .pipe(
         tap(message => {
-          console.log("WebSocket message received:", message);
           this.jobMessage$.next(message);
         }),
         retry({

@@ -1,8 +1,9 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, effect} from '@angular/core';
 import {DataFrame, IDataFrame} from "data-forge";
 import {ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 import {PlotlyModule} from "angular-plotly.js";
+import {ThemeService} from "../theme.service";
 
 @Component({
     selector: 'app-msa-bar-chart',
@@ -48,20 +49,46 @@ export class MsaBarChartComponent {
   }
 
   graphData: any[] = []
-  graphLayout: any = {
-    xaxis: {
-      title: "Amino Acid",
-      type: "category",
-      tickmode: "array",
-    },
-    yaxis: {
-      title: "Proportion",
-      range: [0, 100]
-    },
+  graphLayout: any = {}
+
+  private getThemedLayout() {
+    const isDark = this.themeService.isDark();
+    const textColor = isDark ? '#e0e0e0' : '#333333';
+    const bgColor = isDark ? 'transparent' : 'transparent';
+    const gridColor = isDark ? '#444444' : '#e0e0e0';
+
+    return {
+      paper_bgcolor: bgColor,
+      plot_bgcolor: bgColor,
+      font: {
+        color: textColor
+      },
+      xaxis: {
+        title: "Amino Acid",
+        type: "category",
+        tickmode: "array",
+        color: textColor,
+        gridcolor: gridColor
+      },
+      yaxis: {
+        title: "Proportion",
+        range: [0, 100],
+        color: textColor,
+        gridcolor: gridColor
+      },
+    };
   }
+
   aminoAcids = "ACDEFGHIKLMNPQRSTVWY"
   revision = 0
-  constructor(private dataService: DataService) {
+  constructor(private dataService: DataService, private themeService: ThemeService) {
+    this.graphLayout = this.getThemedLayout();
+
+    effect(() => {
+      this.themeService.isDark();
+      this.graphLayout = {...this.getThemedLayout(), title: this.graphLayout.title};
+      this.revision++;
+    });
   }
 
   drawGraph() {

@@ -10,13 +10,8 @@
   width: 20px;
   height: 20px;
 
-  &.valid {
-    color: #4caf50;
-  }
-
-  &.invalid {
-    color: #f44336;
-  }
+  &.valid { color: var(--success-color); }
+  &.invalid { color: var(--error-color); }
 }
 
 .error-banner {
@@ -25,10 +20,10 @@
   gap: 8px;
   padding: 12px;
   margin-top: 16px;
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: var(--error-container);
+  border: 1px solid var(--error-border);
   border-radius: 4px;
-  color: #f44336;
+  color: var(--error-color);
 
   mat-icon {
     font-size: 20px;
@@ -37,21 +32,9 @@
   }
 }
 
-:host-context(.dark-theme) {
-  .error-banner {
-    background: rgba(244, 67, 54, 0.15);
-    border-color: rgba(244, 67, 54, 0.4);
-  }
-}
-
 [mat-dialog-actions] {
   gap: 8px;
 
-  button {
-    min-width: 80px;
-  }
-
-  mat-spinner {
-    margin: 0 auto;
-  }
+  button { min-width: 80px; }
+  mat-spinner { margin: 0 auto; }
 }

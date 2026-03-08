@@ -6,9 +6,7 @@ $breakpoint-tablet: 1200px;
   max-width: 1200px;
   margin: 0 auto;
 
-  @media (max-width: $breakpoint-mobile - 1) {
-    padding: 16px;
-  }
+  @media (max-width: $breakpoint-mobile - 1) { padding: 16px; }
 }
 
 .dashboard-header {
@@ -29,9 +27,7 @@ $breakpoint-tablet: 1200px;
     font-size: 28px;
     font-weight: 400;
 
-    @media (max-width: $breakpoint-mobile - 1) {
-      font-size: 22px;
-    }
+    @media (max-width: $breakpoint-mobile - 1) { font-size: 22px; }
   }
 }
 
@@ -87,21 +83,10 @@ $breakpoint-tablet: 1200px;
     color: white;
   }
 
-  &.total {
-    background: linear-gradient(135deg, #6b4c9a, #9b7bc0);
-  }
-
-  &.running {
-    background: linear-gradient(135deg, #2196f3, #64b5f6);
-  }
-
-  &.completed {
-    background: linear-gradient(135deg, #4caf50, #81c784);
-  }
-
-  &.failed {
-    background: linear-gradient(135deg, #f44336, #e57373);
-  }
+  &.total { background: linear-gradient(135deg, #6b4c9a, #9b7bc0); }
+  &.running { background: linear-gradient(135deg, #2196f3, #64b5f6); }
+  &.completed { background: linear-gradient(135deg, #4caf50, #81c784); }
+  &.failed { background: linear-gradient(135deg, #f44336, #e57373); }
 }
 
 .stat-info {
@@ -116,13 +101,7 @@ $breakpoint-tablet: 1200px;
 
   .stat-label {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
-  }
-}
-
-:host-context(.dark-theme) {
-  .stat-info .stat-label {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-tertiary);
   }
 }
 
@@ -131,15 +110,11 @@ $breakpoint-tablet: 1200px;
   grid-template-columns: 2fr 1fr;
   gap: 24px;
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
 }
 
 .recent-activity {
-  mat-card-content {
-    padding: 16px;
-  }
+  mat-card-content { padding: 16px; }
 }
 
 .job-list {
@@ -152,30 +127,18 @@ $breakpoint-tablet: 1200px;
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: var(--hover-overlay);
     margin: 0 -16px;
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-:host-context(.dark-theme) {
-  .job-item {
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.04);
-    }
-  }
+  &:last-child { border-bottom: none; }
 }
 
 .job-info {
@@ -183,49 +146,26 @@ $breakpoint-tablet: 1200px;
   flex-direction: column;
   gap: 4px;
 
-  .job-title {
-    font-weight: 500;
-  }
-
+  .job-title { font-weight: 500; }
   .job-meta {
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.5);
-  }
-}
-
-:host-context(.dark-theme) {
-  .job-info .job-meta {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-disabled);
   }
 }
 
 .job-date {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-:host-context(.dark-theme) {
-  .job-date {
-    color: rgba(255, 255, 255, 0.5);
-  }
+  color: var(--text-disabled);
 }
 
 .no-data {
   text-align: center;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-disabled);
   padding: 24px 0;
 }
 
-:host-context(.dark-theme) {
-  .no-data {
-    color: rgba(255, 255, 255, 0.5);
-  }
-}
-
 .quick-actions {
-  mat-card-content {
-    padding: 16px;
-  }
+  mat-card-content { padding: 16px; }
 }
 
 .action-buttons {
@@ -235,9 +175,6 @@ $breakpoint-tablet: 1200px;
 
   button {
     justify-content: flex-start;
-
-    mat-icon {
-      margin-right: 8px;
-    }
+    mat-icon { margin-right: 8px; }
   }
 }

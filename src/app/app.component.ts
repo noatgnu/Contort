@@ -56,10 +56,8 @@ export class AppComponent implements OnInit {
       console.error(e)
     }
 
-    console.log(this.accountService.getToken())
     if (!this.accountService.getToken()) {
       const resp = await this.web.getCSRFToken().toPromise()
-      console.log(resp)
       if (resp) {
         if (resp.status === 200) {
           const userSession = await this.web.getAuthenticationStatus().toPromise()
@@ -111,8 +109,6 @@ export class AppComponent implements OnInit {
         this.sb.open('Login successful', 'Close')
         // refresh website
         window.location.reload()
-      } else {
-        console.log('Login cancelled');
       }
     });
   }
@@ -124,9 +120,7 @@ export class AppComponent implements OnInit {
 
   connectWS() {
     this.websocket.connectJobWS(this.accountService.sessionID).then(
-      () => {
-        console.log("WebSocket connection established");
-      },
+      () => {},
       (error) => {
         console.error("Failed to establish WebSocket connection:", error);
       }
