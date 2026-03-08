@@ -1,12 +1,162 @@
-/* You can add global styles to this file, and also import other style files */
-// custom material angular color theme
+@use '@angular/material' as mat;
 
+$light-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$violet-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  density: (
+    scale: 0
+  )
+));
 
+$dark-theme: mat.define-theme((
+  color: (
+    theme-type: dark,
+    primary: mat.$violet-palette,
+    tertiary: mat.$orange-palette,
+  ),
+  density: (
+    scale: 0
+  )
+));
+
+html {
+  @include mat.all-component-themes($light-theme);
+  @include mat.typography-hierarchy($light-theme);
+}
+
+.dark-theme {
+  @include mat.all-component-colors($dark-theme);
+
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.light-theme {
+  background-color: #fafafa;
+  color: #212121;
+}
 
 html, body {
   height: 100%;
-}
-body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.connection-connected {
+  color: #4caf50 !important;
+}
+
+.connection-disconnected {
+  color: #f44336 !important;
+}
+
+.connection-reconnecting {
+  color: #ff9800 !important;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dark-theme {
+  .mat-mdc-card {
+    background-color: #1e1e1e;
+  }
+
+  .mat-mdc-dialog-container {
+    background-color: #1e1e1e;
+  }
+
+  .mat-drawer {
+    background-color: #1e1e1e;
+  }
+
+  .mat-toolbar.mat-primary {
+    background-color: #6b4c9a;
+  }
+
+  a {
+    color: #bb86fc;
+  }
+
+  .mat-mdc-snack-bar-container {
+    background-color: #333;
+  }
+}
+
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1200px;
+
+@mixin mobile {
+  @media (max-width: #{$breakpoint-mobile - 1}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-mobile}) and (max-width: #{$breakpoint-tablet - 1}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-tablet}) {
+    @content;
+  }
+}
+
+@mixin tablet-and-below {
+  @media (max-width: #{$breakpoint-tablet - 1}) {
+    @content;
+  }
+}
+
+.hide-on-mobile {
+  @include mobile { display: none !important; }
+}
+
+.hide-on-desktop {
+  @include desktop { display: none !important; }
+}
+
+.responsive-container {
+  padding: 24px;
+  @include tablet { padding: 16px; }
+  @include mobile { padding: 12px; }
+}
+
+.responsive-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  @include mobile { grid-template-columns: 1fr; gap: 12px; }
+}
+
+.responsive-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  @include mobile { flex-direction: column; gap: 12px; }
+}
+
+.responsive-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mat-mdc-dialog-container {
+  @include mobile {
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
 }

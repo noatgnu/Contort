@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ProteinFastaDatabase, ProteinFastaDatabaseQuery } from '../protein-fasta-database';
 import {MatPaginator, PageEvent} from '@angular/material/paginator';
 import {MultipleSequenceAlignment, MultipleSequenceAlignmentQuery} from "../msa";
-import {MatFormField, MatLabel} from "@angular/material/form-field";
+import {MatFormField, MatLabel, MatHint} from "@angular/material/form-field";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatInput} from "@angular/material/input";
 import {MatDivider} from "@angular/material/divider";
@@ -29,6 +29,9 @@ import {StructureFile, StructureFileQuery} from "../structure";
 import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
 import {ShareFileDialogComponent} from "../share-file-dialog/share-file-dialog.component";
 import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-dialog.component";
+import {ConfirmDialogComponent, ConfirmDialogData} from "../shared/confirm-dialog/confirm-dialog.component";
+import {SkeletonLoaderComponent} from "../shared/skeleton-loader/skeleton-loader.component";
+import {EmptyStateComponent} from "../shared/empty-state/empty-state.component";
 
 @Component({
   selector: 'app-upload-fasta-database',
@@ -39,6 +42,7 @@ import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-di
     ReactiveFormsModule,
     MatFormField,
     MatLabel,
+    MatHint,
     MatProgressBar,
     MatInput,
     MatDivider,
@@ -59,7 +63,9 @@ import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-di
     MatTabGroup,
     MatTab,
     MatDialogActions,
-    MatTooltip
+    MatTooltip,
+    SkeletonLoaderComponent,
+    EmptyStateComponent
   ],
   styleUrls: ['./upload-fasta-database.component.scss']
 })
@@ -328,42 +334,68 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
   }
 
   delete(id: number, fileType: 'database' | 'msa' | 'structure'): void {
-    const term = this.form.value.searchTerm || '';
-    
-    const deleteHandlers = {
-      database: () => this.web.deleteProteinFastaDatabase(id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          this.web.getProteinFastaDatabases(this.limit, this.offset, term)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(data => {
-              this.query = data;
-              this.sb.open('Database deleted', 'Close', { duration: 2000 });
-            });
-        }),
-      msa: () => this.web.deleteMSA(id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          this.web.getMSAs(this.msaLimit, this.msaOffset, term)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(data => {
-              this.msaQuery = data;
-              this.sb.open('MSA deleted', 'Close', { duration: 2000 });
-            });
-        }),
-      structure: () => this.web.deleteStructure(id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          this.web.getStructures(this.structureLimit, this.structureOffset, term)
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(data => {
-              this.structureQuery = data;
-              this.sb.open('Structure deleted', 'Close', { duration: 2000 });
-            });
-        })
+    const typeLabels = {
+      database: 'FASTA Database',
+      msa: 'MSA',
+      structure: 'Structure'
     };
 
-    deleteHandlers[fileType]();
+    const dialogData: ConfirmDialogData = {
+      title: `Delete ${typeLabels[fileType]}`,
+      message: `Are you sure you want to delete this ${typeLabels[fileType].toLowerCase()}? This action cannot be undone.`,
+      icon: 'delete',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      danger: true
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: dialogData
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(confirmed => {
+        if (!confirmed) return;
+
+        const term = this.form.value.searchTerm || '';
+
+        const deleteHandlers = {
+          database: () => this.web.deleteProteinFastaDatabase(id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+              this.web.getProteinFastaDatabases(this.limit, this.offset, term)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe(data => {
+                  this.query = data;
+                  this.sb.open('Database deleted', 'Close', { duration: 2000 });
+                });
+            }),
+          msa: () => this.web.deleteMSA(id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+              this.web.getMSAs(this.msaLimit, this.msaOffset, term)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe(data => {
+                  this.msaQuery = data;
+                  this.sb.open('MSA deleted', 'Close', { duration: 2000 });
+                });
+            }),
+          structure: () => this.web.deleteStructure(id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+              this.web.getStructures(this.structureLimit, this.structureOffset, term)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe(data => {
+                  this.structureQuery = data;
+                  this.sb.open('Structure deleted', 'Close', { duration: 2000 });
+                });
+            })
+        };
+
+        deleteHandlers[fileType]();
+      });
   }
 
   onTabChange(event: any): void {

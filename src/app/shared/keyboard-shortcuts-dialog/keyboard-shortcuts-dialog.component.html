@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>
+  <mat-icon>keyboard</mat-icon>
+  Keyboard Shortcuts
+</h2>
+<div mat-dialog-content>
+  @for (category of categories; track category) {
+    <div class="shortcut-category">
+      <h3 class="category-title">{{ category }}</h3>
+      <div class="shortcuts-list">
+        @for (shortcut of getShortcutsByCategory(category); track shortcut.key) {
+          <div class="shortcut-item">
+            <span class="shortcut-description">{{ shortcut.description }}</span>
+            <kbd class="shortcut-key">{{ shortcut.key }}</kbd>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</div>

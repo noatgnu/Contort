@@ -32,6 +32,7 @@ import { VisualizationModule } from "./visualization/visualization.module";
 import { MatStepperModule } from "@angular/material/stepper";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatDividerModule } from "@angular/material/divider";
+import { BreadcrumbComponent } from "./shared/breadcrumb/breadcrumb.component";
 
 @NgModule({
   declarations: [
@@ -67,7 +68,8 @@ import { MatDividerModule } from "@angular/material/divider";
     VisualizationModule,
     MatStepperModule,
     MatExpansionModule,
-    MatDividerModule
+    MatDividerModule,
+    BreadcrumbComponent
   ],
   providers: [
     provideAnimations(),

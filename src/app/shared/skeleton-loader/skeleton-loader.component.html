@@ -1,0 +1,33 @@
+@switch (variant) {
+  @case ('table-row') {
+    @for (row of items; track row) {
+      <div class="skeleton-table-row">
+        @for (col of columnItems; track col) {
+          <div class="skeleton-cell shimmer"></div>
+        }
+      </div>
+    }
+  }
+  @case ('card') {
+    @for (item of items; track item) {
+      <div class="skeleton-card">
+        <div class="skeleton-card-header shimmer"></div>
+        <div class="skeleton-card-body">
+          <div class="skeleton-text shimmer" style="width: 80%"></div>
+          <div class="skeleton-text shimmer" style="width: 60%"></div>
+          <div class="skeleton-text shimmer" style="width: 70%"></div>
+        </div>
+      </div>
+    }
+  }
+  @case ('text') {
+    @for (item of items; track item) {
+      <div class="skeleton-text shimmer" [style.width]="width" [style.height]="height"></div>
+    }
+  }
+  @case ('circle') {
+    @for (item of items; track item) {
+      <div class="skeleton-circle shimmer" [style.width]="width" [style.height]="width"></div>
+    }
+  }
+}

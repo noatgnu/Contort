@@ -4,15 +4,16 @@
     <mat-tab label="Upload Fasta Database">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form" style="display: flex; gap: 20px">
+        <div class="help-section">
+          <mat-icon matTooltip="FASTA database files contain protein sequences used for homolog searches. Format: >header followed by sequence lines.">help_outline</mat-icon>
+          <span class="help-text">FASTA Database: Collection of protein sequences for homolog searches</span>
+        </div>
+        <form [formGroup]="form" style="display: flex; gap: 20px; align-items: center;">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>Database Name</mat-label>
+            <mat-hint>Enter a unique name for this database</mat-hint>
           </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Provide a file name before upload</span>
-          </p>
         </form>
         @for (f of fileList(); track f.name) {
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -36,31 +37,39 @@
             <mat-label>Search term...</mat-label>
           </mat-form-field>
           @if (query) {
-            <mat-table [dataSource]="query.results">
-              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-              <ng-container matColumnDef="name">
-                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
-              </ng-container>
-              <ng-container matColumnDef="action">
-                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
-                <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="openPreview(element, 'database')" matTooltip="Preview">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="openShareDialog(element, 'database')" matTooltip="Share">
-                    <mat-icon>share</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="delete(element.id, 'database')" matTooltip="Delete">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </mat-cell>
-              </ng-container>
-            </mat-table>
-            <mat-paginator [length]="query.count" [pageSize]="limit" (page)="onPaginate($event, 'database')"></mat-paginator>
+            @if (query.results.length > 0) {
+              <mat-table [dataSource]="query.results">
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+                <ng-container matColumnDef="name">
+                  <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                  <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                  <mat-cell *matCellDef="let element">
+                    <button mat-icon-button (click)="openPreview(element, 'database')" matTooltip="Preview">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="openShareDialog(element, 'database')" matTooltip="Share">
+                      <mat-icon>share</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="delete(element.id, 'database')" matTooltip="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </mat-cell>
+                </ng-container>
+              </mat-table>
+              <mat-paginator [length]="query.count" [pageSize]="limit" (page)="onPaginate($event, 'database')"></mat-paginator>
+            } @else {
+              <app-empty-state
+                icon="storage"
+                title="No FASTA databases"
+                description="Upload a FASTA database file to get started.">
+              </app-empty-state>
+            }
           } @else {
-            <p>No data found</p>
+            <app-skeleton-loader variant="table-row" [count]="3" [columns]="2"></app-skeleton-loader>
           }
         </form>
       </div>
@@ -68,15 +77,16 @@
     <mat-tab label="Upload Multiple Sequence Alignment">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form" style="display: flex; gap: 20px">
+        <div class="help-section">
+          <mat-icon matTooltip="Pre-computed alignment file. Supported formats: FASTA alignment, ClustalW, Stockholm. Must contain multiple aligned sequences.">help_outline</mat-icon>
+          <span class="help-text">MSA: Pre-aligned sequences to skip the alignment step</span>
+        </div>
+        <form [formGroup]="form" style="display: flex; gap: 20px; align-items: center;">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>MSA Name</mat-label>
+            <mat-hint>Enter a unique name for this alignment</mat-hint>
           </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Provide a file name before upload</span>
-          </p>
         </form>
         @for (f of fileList(); track f.name) {
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -100,31 +110,39 @@
             <mat-label>Search term...</mat-label>
           </mat-form-field>
           @if (msaQuery) {
-            <mat-table [dataSource]="msaQuery.results">
-              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-              <ng-container matColumnDef="name">
-                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
-              </ng-container>
-              <ng-container matColumnDef="action">
-                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
-                <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="openPreview(element, 'msa')" matTooltip="Preview">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="openShareDialog(element, 'msa')" matTooltip="Share">
-                    <mat-icon>share</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="delete(element.id, 'msa')" matTooltip="Delete">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </mat-cell>
-              </ng-container>
-            </mat-table>
-            <mat-paginator [length]="msaQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
+            @if (msaQuery.results.length > 0) {
+              <mat-table [dataSource]="msaQuery.results">
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+                <ng-container matColumnDef="name">
+                  <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                  <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                  <mat-cell *matCellDef="let element">
+                    <button mat-icon-button (click)="openPreview(element, 'msa')" matTooltip="Preview">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="openShareDialog(element, 'msa')" matTooltip="Share">
+                      <mat-icon>share</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="delete(element.id, 'msa')" matTooltip="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </mat-cell>
+                </ng-container>
+              </mat-table>
+              <mat-paginator [length]="msaQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
+            } @else {
+              <app-empty-state
+                icon="align_horizontal_left"
+                title="No MSA files"
+                description="Upload a multiple sequence alignment file to get started.">
+              </app-empty-state>
+            }
           } @else {
-            <p>No data found</p>
+            <app-skeleton-loader variant="table-row" [count]="3" [columns]="2"></app-skeleton-loader>
           }
 
         </form>
@@ -133,15 +151,16 @@
     <mat-tab label="PDB Files">
       <mat-divider></mat-divider>
       <div style="display: flex; flex-direction: column; gap: 20px; padding:20px">
-        <form [formGroup]="form" style="display: flex; gap: 20px">
+        <div class="help-section">
+          <mat-icon matTooltip="PDB structure files for 3D visualization of conservation scores. Standard PDB format with ATOM records.">help_outline</mat-icon>
+          <span class="help-text">PDB: 3D protein structure for visualizing conservation</span>
+        </div>
+        <form [formGroup]="form" style="display: flex; gap: 20px; align-items: center;">
           <mat-form-field>
             <input matInput formControlName="name" type="text">
             <mat-label>PDB File Name</mat-label>
+            <mat-hint>Enter a unique name for this structure</mat-hint>
           </mat-form-field>
-          <p>
-            <mat-icon>info</mat-icon>
-            <span>Provide a file name before upload</span>
-          </p>
         </form>
         @for (f of fileList(); track f.name) {
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -165,31 +184,39 @@
             <mat-label>Search term...</mat-label>
           </mat-form-field>
           @if (structureQuery) {
-            <mat-table [dataSource]="structureQuery.results">
-              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-              <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-              <ng-container matColumnDef="name">
-                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
-              </ng-container>
-              <ng-container matColumnDef="action">
-                <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
-                <mat-cell *matCellDef="let element">
-                  <button mat-icon-button (click)="openPreview(element, 'structure')" matTooltip="Preview">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="openShareDialog(element, 'structure')" matTooltip="Share">
-                    <mat-icon>share</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="delete(element.id, 'structure')" matTooltip="Delete">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </mat-cell>
-              </ng-container>
-            </mat-table>
-            <mat-paginator [length]="structureQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'structure')"></mat-paginator>
+            @if (structureQuery.results.length > 0) {
+              <mat-table [dataSource]="structureQuery.results">
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+                <ng-container matColumnDef="name">
+                  <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+                  <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="action">
+                  <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>
+                  <mat-cell *matCellDef="let element">
+                    <button mat-icon-button (click)="openPreview(element, 'structure')" matTooltip="Preview">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="openShareDialog(element, 'structure')" matTooltip="Share">
+                      <mat-icon>share</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="delete(element.id, 'structure')" matTooltip="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </mat-cell>
+                </ng-container>
+              </mat-table>
+              <mat-paginator [length]="structureQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'structure')"></mat-paginator>
+            } @else {
+              <app-empty-state
+                icon="view_in_ar"
+                title="No PDB files"
+                description="Upload a PDB structure file to get started.">
+              </app-empty-state>
+            }
           } @else {
-            <p>No data found</p>
+            <app-skeleton-loader variant="table-row" [count]="3" [columns]="2"></app-skeleton-loader>
           }
         </form>
       </div>

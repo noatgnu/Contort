@@ -1,4 +1,57 @@
-.error-message {
-  color: red;
-  margin-top: 10px;
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 280px;
+}
+
+.validation-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+
+  &.valid {
+    color: #4caf50;
+  }
+
+  &.invalid {
+    color: #f44336;
+  }
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 16px;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 4px;
+  color: #f44336;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+:host-context(.dark-theme) {
+  .error-banner {
+    background: rgba(244, 67, 54, 0.15);
+    border-color: rgba(244, 67, 54, 0.4);
+  }
+}
+
+[mat-dialog-actions] {
+  gap: 8px;
+
+  button {
+    min-width: 80px;
+  }
+
+  mat-spinner {
+    margin: 0 auto;
+  }
 }

@@ -194,6 +194,42 @@ export class WebService {
     return this.http.post<{message: string, status: string}>(`${this.baseUrl}/api/consurf-job/${id}/cancel/`, {}, {responseType: 'json', observe: 'body'})
   }
 
+  bulkShareFastaDatabase(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/fasta/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
+  }
+
+  bulkUnshareFastaDatabase(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/fasta/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
+  }
+
+  bulkShareMSA(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/msa/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
+  }
+
+  bulkUnshareMSA(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/msa/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('msa'))
+    );
+  }
+
+  bulkShareStructure(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/structure/bulk-share/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
+  }
+
+  bulkUnshareStructure(ids: number[], usernames: string[]) {
+    return this.http.post<any>(`${this.baseUrl}/api/structure/bulk-unshare/`, { ids, usernames }, { responseType: 'json', observe: 'body' }).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('structure'))
+    );
+  }
+
   login(username: string, password: string) {
     return this.http.post<{token: string}>(`${this.baseUrl}/api/token-auth/`, {username: username, password: password}, {responseType: 'json', observe: 'body'})
   }

@@ -1,8 +1,9 @@
 <mat-drawer-container autosize class="drawer-container">
   <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
     <div style="display: flex; flex-direction: column">
-      <a mat-button routerLink="/consurf-view" (click)="drawer.toggle()">Consurf Database Viewer</a>
-      <a mat-button routerLink="/consurf-job" (click)="drawer.toggle()">Consurf Job</a>
+      <a mat-button routerLink="/dashboard" (click)="drawer.toggle()">Dashboard</a>
+      <a mat-button routerLink="/consurf-job" (click)="drawer.toggle()">Jobs</a>
+      <a mat-button routerLink="/consurf-view" (click)="drawer.toggle()">Visualization</a>
     </div>
   </mat-drawer>
   <mat-toolbar color="primary">
@@ -18,6 +19,12 @@
 
       <button mat-icon-button (click)="openCustomScoreEditor()">
         <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button (click)="themeService.toggle()" [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
+        <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+      <button mat-icon-button (click)="keyboardShortcuts.showShortcutsDialog()" matTooltip="Keyboard shortcuts (?)">
+        <mat-icon>keyboard</mat-icon>
       </button>
       @if (!accountService.isLogged) {
         <button mat-icon-button (click)="openLoginDialog()">
@@ -48,6 +55,7 @@
     </div>-->
   </mat-toolbar>
   @if (ready) {
+    <app-breadcrumb></app-breadcrumb>
     <router-outlet></router-outlet>
   }
 

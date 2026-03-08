@@ -71,3 +71,35 @@ mat-form-field {
   width: 100%;
   max-width: 400px;
 }
+
+.help-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(107, 76, 154, 0.08);
+  border-radius: 4px;
+  border-left: 3px solid #6b4c9a;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #6b4c9a;
+    cursor: help;
+  }
+
+  .help-text {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+:host-context(.dark-theme) {
+  .help-section {
+    background: rgba(187, 134, 252, 0.1);
+    border-left-color: #bb86fc;
+    mat-icon { color: #bb86fc; }
+    .help-text { color: rgba(255, 255, 255, 0.7); }
+  }
+}

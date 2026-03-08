@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, signal} from '@angular/core';
+import {Component, Input, OnDestroy, signal, computed} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {WebService} from "../web.service";
 import {ProteinFastaDatabaseQuery} from "../protein-fasta-database";
@@ -14,6 +14,7 @@ import {forkJoin, Observable, Subject, debounceTime, distinctUntilChanged, takeU
 import {ConsurfJob} from "../consurf-job";
 import {AccountService} from "../account.service";
 import {BatchJobService} from "../batch-job.service";
+import {CustomValidators} from "../shared/validators";
 
 @Component({
   selector: 'app-consurf-job',
@@ -54,20 +55,20 @@ export class ConsurfJobComponent implements OnDestroy {
   readonly alignment_options = ["MAFFT", "CLUSTALW", "PRANK", "MUSCLE"] as const;
   readonly algorithm_options = ["HMMER", "BLAST", "MMseqs2"] as const;
   form = this.fb.group({
-    uniprot_id: this.fb.control(''),
-    query_sequence: this.fb.control('', Validators.required),
+    uniprot_id: this.fb.control('', [CustomValidators.uniprotAccession()]),
+    query_sequence: this.fb.control('', [Validators.required, CustomValidators.fastaFormat()]),
     alignment_program: this.fb.control('MAFFT'),
-    fasta_database_id: this.fb.control<any[]>([], Validators.required),
+    fasta_database_id: this.fb.control<any[]>([], [Validators.required, CustomValidators.minArrayLength(1)]),
     model: this.fb.control("BEST", Validators.required),
-    iterations: this.fb.control(1, Validators.required),
-    cutoff: this.fb.control(0.0001, Validators.required),
-    max_homologs: this.fb.control(150, Validators.required),
+    iterations: this.fb.control(1, [Validators.required, Validators.min(1), Validators.max(10)]),
+    cutoff: this.fb.control(0.0001, [Validators.required, Validators.min(0), Validators.max(1)]),
+    max_homologs: this.fb.control(150, [Validators.required, Validators.min(1), Validators.max(500)]),
     closest: this.fb.control(false),
-    max_id: this.fb.control(95, Validators.required),
-    min_id: this.fb.control(35, Validators.required),
+    max_id: this.fb.control(95, [Validators.required, Validators.min(0), Validators.max(100)]),
+    min_id: this.fb.control(35, [Validators.required, Validators.min(0), Validators.max(100)]),
     maximum_likelihood: this.fb.control(false),
     algorithm: this.fb.control("HMMER", Validators.required),
-    job_title: this.fb.control("", Validators.required),
+    job_title: this.fb.control("", [Validators.required, Validators.maxLength(100)]),
     searchTerm: this.fb.control(""),
     searchTermPDB: this.fb.control(""),
     searchTermMSA: this.fb.control(""),
@@ -76,6 +77,23 @@ export class ConsurfJobComponent implements OnDestroy {
     chain: this.fb.control(""),
     msa_id: this.fb.control<any[]>([]),
     query_name: this.fb.control("")
+  });
+
+  formErrors = computed(() => {
+    const errors: string[] = [];
+    if (this.form.controls.job_title.errors?.['required']) {
+      errors.push('Job name is required');
+    }
+    if (this.form.controls.query_sequence.errors?.['required']) {
+      errors.push('Sequence is required');
+    }
+    if (this.form.controls.query_sequence.errors?.['fastaNoHeader']) {
+      errors.push('Sequence must start with ">" header');
+    }
+    if (this.form.controls.fasta_database_id.errors?.['minArrayLength']) {
+      errors.push('Please select a FASTA database');
+    }
+    return errors;
   });
 
   readonly limit = 10;
@@ -273,8 +291,15 @@ export class ConsurfJobComponent implements OnDestroy {
   }
 
   submit(): void {
+    this.form.markAllAsTouched();
+
     if (this.form.invalid) {
-      this.sb.open("Form is invalid", "Dismiss", { duration: 3000 });
+      const errors = this.formErrors();
+      if (errors.length > 0) {
+        this.sb.open(errors[0], "Dismiss", { duration: 3000 });
+      } else {
+        this.sb.open("Please correct the form errors", "Dismiss", { duration: 3000 });
+      }
       return;
     }
 
@@ -289,6 +314,61 @@ export class ConsurfJobComponent implements OnDestroy {
     } else {
       this.submitSingleJob();
     }
+  }
+
+  getUniprotErrorMessage(): string {
+    const control = this.form.controls.uniprot_id;
+    if (control.hasError('invalidUniprot')) {
+      return 'Invalid UniProt accession format (e.g., P12345, Q9Y6K9)';
+    }
+    return '';
+  }
+
+  getJobTitleErrorMessage(): string {
+    const control = this.form.controls.job_title;
+    if (control.hasError('required')) {
+      return 'Job name is required';
+    }
+    if (control.hasError('maxlength')) {
+      return 'Job name must be less than 100 characters';
+    }
+    return '';
+  }
+
+  getSequenceErrorMessage(): string {
+    const control = this.form.controls.query_sequence;
+    if (control.hasError('required')) {
+      return 'Sequence is required';
+    }
+    if (control.hasError('fastaNoHeader')) {
+      return 'Sequence must start with a ">" header line';
+    }
+    if (control.hasError('fastaNoSequence')) {
+      return 'Sequence data is missing after the header';
+    }
+    return '';
+  }
+
+  getIterationsErrorMessage(): string {
+    const control = this.form.controls.iterations;
+    if (control.hasError('min')) {
+      return 'Minimum value is 1';
+    }
+    if (control.hasError('max')) {
+      return 'Maximum value is 10';
+    }
+    return '';
+  }
+
+  getIdentityErrorMessage(field: 'max_id' | 'min_id'): string {
+    const control = this.form.get(field);
+    if (control?.hasError('min')) {
+      return 'Minimum value is 0%';
+    }
+    if (control?.hasError('max')) {
+      return 'Maximum value is 100%';
+    }
+    return '';
   }
 
   private submitBatchJobs(): void {

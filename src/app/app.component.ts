@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, HostListener} from '@angular/core';
 import {fromCSV} from "data-forge";
 import {DataService} from "./data.service";
 import {MatDialog} from "@angular/material/dialog";
@@ -9,6 +9,9 @@ import {UploadFastaDatabaseComponent} from "./upload-fasta-database/upload-fasta
 import {AccountService} from "./account.service";
 import {WebsocketService} from "./websocket.service";
 import {WebService} from "./web.service";
+import {ThemeService} from "./theme.service";
+import {ConfirmDialogComponent, ConfirmDialogData} from "./shared/confirm-dialog/confirm-dialog.component";
+import {KeyboardShortcutsService} from "./keyboard-shortcuts.service";
 
 @Component({
     selector: 'app-root',
@@ -20,9 +23,20 @@ export class AppComponent implements OnInit {
   title = 'CONTORT';
   ready = false
 
-  constructor(private web: WebService, public websocket: WebsocketService, private sb: MatSnackBar, public dataService: DataService, private dialog: MatDialog, public accountService: AccountService) {
+  constructor(
+    private web: WebService,
+    public websocket: WebsocketService,
+    private sb: MatSnackBar,
+    public dataService: DataService,
+    private dialog: MatDialog,
+    public accountService: AccountService,
+    public themeService: ThemeService,
+    public keyboardShortcuts: KeyboardShortcutsService
+  ) {}
 
-
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    this.keyboardShortcuts.handleKeydown(event);
   }
 
   ngOnInit() {
@@ -121,20 +135,38 @@ export class AppComponent implements OnInit {
   }
 
   logout() {
-    this.web.userLogoutProvider().subscribe({
-      next: (response) => {
-        this.web.logoutProvider().subscribe((data) => {
-          this.accountService.userSession = undefined
-          this.accountService.isLogged = false
-        }, (error) => {
-          this.accountService.logout()
-          this.accountService.userSession = undefined
-          this.accountService.isLogged = false
-        })
-      },
-      error: (err) => {
-        console.error('Error logging out:', err);
-      }
-    })
+    const dialogData: ConfirmDialogData = {
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      icon: 'logout',
+      confirmText: 'Logout',
+      cancelText: 'Cancel',
+      danger: false
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+
+      this.web.userLogoutProvider().subscribe({
+        next: (response) => {
+          this.web.logoutProvider().subscribe((data) => {
+            this.accountService.userSession = undefined
+            this.accountService.isLogged = false
+          }, (error) => {
+            this.accountService.logout()
+            this.accountService.userSession = undefined
+            this.accountService.isLogged = false
+          })
+        },
+        error: (err) => {
+          console.error('Error logging out:', err);
+        }
+      })
+    });
   }
 }

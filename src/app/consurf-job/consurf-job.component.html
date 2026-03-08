@@ -24,17 +24,30 @@
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="full-width">
                       <mat-label>Job Name</mat-label>
-                      <input matInput formControlName="job_title" placeholder="Enter a descriptive name">
-                      <mat-icon matSuffix matTooltip="Used to identify the job in your job list">info_outline</mat-icon>
-                      <mat-error>Job name is required</mat-error>
+                      <input matInput formControlName="job_title" placeholder="Enter a descriptive name" maxlength="100">
+                      @if (form.controls.job_title.valid && form.controls.job_title.touched && form.controls.job_title.value) {
+                        <mat-icon matSuffix class="validation-icon valid">check_circle</mat-icon>
+                      } @else {
+                        <mat-icon matSuffix matTooltip="Used to identify the job in your job list">info_outline</mat-icon>
+                      }
+                      <mat-hint align="end">{{ form.controls.job_title.value?.length || 0 }}/100</mat-hint>
+                      <mat-error>{{ getJobTitleErrorMessage() }}</mat-error>
                     </mat-form-field>
                   </div>
 
                   <div class="form-row">
                     <mat-form-field appearance="outline" class="flex-1">
                       <mat-label>UniProt Accession ID</mat-label>
-                      <input matInput formControlName="uniprot_id" placeholder="e.g., P12345">
-                      <mat-icon matSuffix matTooltip="Optional: Used to fetch sequence and structure automatically">info_outline</mat-icon>
+                      <input matInput formControlName="uniprot_id" placeholder="e.g., P12345" style="text-transform: uppercase;">
+                      @if (form.controls.uniprot_id.valid && form.controls.uniprot_id.touched && form.controls.uniprot_id.value) {
+                        <mat-icon matSuffix class="validation-icon valid">check_circle</mat-icon>
+                      } @else if (form.controls.uniprot_id.invalid && form.controls.uniprot_id.touched) {
+                        <mat-icon matSuffix class="validation-icon invalid">error</mat-icon>
+                      } @else {
+                        <mat-icon matSuffix matTooltip="Optional: Used to fetch sequence and structure automatically">info_outline</mat-icon>
+                      }
+                      <mat-hint>Format: P12345 or Q9Y6K9</mat-hint>
+                      <mat-error>{{ getUniprotErrorMessage() }}</mat-error>
                     </mat-form-field>
                     <div class="button-group">
                       <button mat-stroked-button type="button" color="primary"
@@ -75,6 +88,11 @@
                     <mat-label>Input FASTA Sequence</mat-label>
                     <textarea matInput formControlName="query_sequence" rows="8"
                               placeholder=">sequence_name&#10;MKTVLQLLPLFAGIAQGRLVPRQWEANGTQ..."></textarea>
+                    @if (form.controls.query_sequence.valid && form.controls.query_sequence.value) {
+                      <mat-icon matSuffix class="validation-icon valid">check_circle</mat-icon>
+                    } @else if (form.controls.query_sequence.invalid && form.controls.query_sequence.touched) {
+                      <mat-icon matSuffix class="validation-icon invalid">error</mat-icon>
+                    }
                     <mat-hint>
                       @if (numberOfSequences() > 0) {
                         <mat-icon class="hint-icon">check_circle</mat-icon>
@@ -82,9 +100,11 @@
                         @if (numberOfSequences() > 1) {
                           - will submit as batch job
                         }
+                      } @else {
+                        Enter a FASTA sequence starting with ">" header
                       }
                     </mat-hint>
-                    <mat-error>Sequence is required</mat-error>
+                    <mat-error>{{ getSequenceErrorMessage() }}</mat-error>
                   </mat-form-field>
                 </div>
                 <div class="step-actions">
@@ -265,6 +285,7 @@
                           <mat-option [value]="o">{{o}}</mat-option>
                         }
                       </mat-select>
+                      <mat-icon matSuffix matTooltip="MAFFT: Fast and accurate (recommended). MUSCLE: High accuracy for divergent sequences. ClustalW: Classic algorithm. PRANK: Good for insertions/deletions.">help_outline</mat-icon>
                       <mat-hint>Ignored if MSA is selected</mat-hint>
                     </mat-form-field>
 
@@ -275,6 +296,7 @@
                           <mat-option [value]="o">{{o}}</mat-option>
                         }
                       </mat-select>
+                      <mat-icon matSuffix matTooltip="BEST: Auto-select optimal model. JTT/LG/WAG: General protein models. mtREV/cpREV: For mitochondrial/chloroplast proteins.">help_outline</mat-icon>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
@@ -284,15 +306,16 @@
                           <mat-option [value]="o">{{o}}</mat-option>
                         }
                       </mat-select>
+                      <mat-icon matSuffix matTooltip="HMMER: Profile-based search (most sensitive). BLAST: Fast sequence similarity. MMseqs2: Ultra-fast for large databases.">help_outline</mat-icon>
                     </mat-form-field>
                   </div>
 
                   <div class="checkbox-group">
-                    <mat-checkbox formControlName="maximum_likelihood">
+                    <mat-checkbox formControlName="maximum_likelihood" matTooltip="ML is faster but may be less accurate. Bayesian provides confidence intervals for scores.">
                       Use Maximum Likelihood
                       <span class="checkbox-hint">(Default: Bayesian)</span>
                     </mat-checkbox>
-                    <mat-checkbox formControlName="closest">
+                    <mat-checkbox formControlName="closest" matTooltip="Closest: Select most similar sequences. Random: Sample diverse sequences for better coverage.">
                       Select Closest Homologs
                       <span class="checkbox-hint">(Otherwise: Random sampling)</span>
                     </mat-checkbox>
@@ -310,30 +333,38 @@
                   <div class="advanced-params-grid">
                     <mat-form-field appearance="outline">
                       <mat-label>Iterations</mat-label>
-                      <input matInput type="number" formControlName="iterations" min="1">
+                      <input matInput type="number" formControlName="iterations" min="1" max="10">
+                      <mat-hint>1-10</mat-hint>
+                      <mat-error>{{ getIterationsErrorMessage() }}</mat-error>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline">
                       <mat-label>E-value Cutoff</mat-label>
-                      <input matInput type="number" formControlName="cutoff" step="0.0001">
+                      <input matInput type="number" formControlName="cutoff" step="0.0001" min="0" max="1">
+                      <mat-hint>0-1</mat-hint>
+                      <mat-error>Value must be between 0 and 1</mat-error>
                     </mat-form-field>
 
                     @if (!form.value.msa_id || (form.value.msa_id && form.value.msa_id.length === 0)) {
                       <mat-form-field appearance="outline">
                         <mat-label>Max Homologs</mat-label>
-                        <input matInput type="number" formControlName="max_homologs" min="1">
+                        <input matInput type="number" formControlName="max_homologs" min="1" max="500">
+                        <mat-hint>1-500</mat-hint>
+                        <mat-error>Value must be between 1 and 500</mat-error>
                       </mat-form-field>
 
                       <mat-form-field appearance="outline">
                         <mat-label>Max % Identity</mat-label>
                         <input matInput type="number" formControlName="max_id" min="0" max="100">
                         <span matSuffix>%</span>
+                        <mat-error>{{ getIdentityErrorMessage('max_id') }}</mat-error>
                       </mat-form-field>
 
                       <mat-form-field appearance="outline">
                         <mat-label>Min % Identity</mat-label>
                         <input matInput type="number" formControlName="min_id" min="0" max="100">
                         <span matSuffix>%</span>
+                        <mat-error>{{ getIdentityErrorMessage('min_id') }}</mat-error>
                       </mat-form-field>
                     }
                   </div>

@@ -1,3 +1,6 @@
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1200px;
+
 .spacer {
   flex: 1 1 auto;
   .drawer-container {
@@ -6,7 +9,6 @@
     border: 1px solid rgba(0, 0, 0, 0.5)
   }
 }
-
 
 html, body {
   height: 100%;
@@ -18,13 +20,49 @@ html, body {
 }
 
 .drawer-sidenav-content {
-  width: 250px; /* Adjust the width as needed */
+  width: 250px;
+
+  @media (max-width: $breakpoint-mobile - 1) {
+    width: 200px;
+  }
 }
 
 .mat-drawer-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+mat-toolbar {
+  @media (max-width: $breakpoint-mobile - 1) {
+    padding: 0 8px;
+
+    span:first-of-type {
+      font-size: 16px;
+    }
+
+    button[mat-icon-button] {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  @media (max-width: $breakpoint-mobile - 1) {
+    gap: 0;
+  }
 }
 
 .connection-connected {
@@ -41,10 +79,6 @@ html, body {
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

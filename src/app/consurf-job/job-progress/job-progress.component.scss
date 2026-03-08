@@ -1,0 +1,51 @@
+.compact-progress {
+  display: flex; flex-direction: column; gap: 4px; min-width: 120px;
+  .progress-info { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+  .status-badge {
+    padding: 2px 6px; border-radius: 4px; font-weight: 500;
+    background: rgba(107, 76, 154, 0.1); color: #6b4c9a;
+    &.error { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+    &.cancelled { background: rgba(158, 158, 158, 0.1); color: #9e9e9e; }
+  }
+  .percent { color: rgba(0, 0, 0, 0.6); }
+  mat-progress-bar { height: 4px; border-radius: 2px; }
+}
+
+.progress-timeline {
+  padding: 16px;
+  .timeline-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    .progress-label { font-size: 14px; font-weight: 500; color: rgba(0, 0, 0, 0.7); }
+    .progress-percent { font-size: 14px; font-weight: 600; color: #6b4c9a; }
+  }
+  .timeline-stages { display: flex; align-items: flex-start; justify-content: space-between; }
+  .stage {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto;
+    .stage-icon {
+      width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; background: rgba(0, 0, 0, 0.08); transition: all 0.3s ease;
+      mat-icon { font-size: 18px; width: 18px; height: 18px; color: rgba(0, 0, 0, 0.4); }
+    }
+    .stage-label { font-size: 11px; color: rgba(0, 0, 0, 0.5); text-align: center; max-width: 70px; }
+    &.completed { .stage-icon { background: #4caf50; mat-icon { color: white; } } .stage-label { color: #4caf50; font-weight: 500; } }
+    &.active { .stage-icon { background: #6b4c9a; animation: pulse 1.5s ease-in-out infinite; mat-icon { color: white; } } .stage-label { color: #6b4c9a; font-weight: 500; } }
+    &.error { .stage-icon { background: #f44336; mat-icon { color: white; } } .stage-label { color: #f44336; } }
+  }
+  .connector { flex: 1; height: 2px; background: rgba(0, 0, 0, 0.12); margin-top: 17px; min-width: 20px; transition: background 0.3s ease; &.completed { background: #4caf50; } }
+  .error-banner, .cancelled-banner { display: flex; align-items: center; gap: 8px; padding: 12px; margin-top: 16px; border-radius: 4px; font-size: 13px; mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+  .error-banner { background: rgba(244, 67, 54, 0.1); border: 1px solid rgba(244, 67, 54, 0.3); color: #f44336; }
+  .cancelled-banner { background: rgba(158, 158, 158, 0.1); border: 1px solid rgba(158, 158, 158, 0.3); color: #757575; }
+}
+
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+:host-context(.dark-theme) {
+  .compact-progress { .status-badge { background: rgba(187, 134, 252, 0.15); color: #bb86fc; &.error { background: rgba(244, 67, 54, 0.15); } } .percent { color: rgba(255, 255, 255, 0.6); } }
+  .progress-timeline {
+    .timeline-header { .progress-label { color: rgba(255, 255, 255, 0.7); } .progress-percent { color: #bb86fc; } }
+    .stage { .stage-icon { background: rgba(255, 255, 255, 0.08); mat-icon { color: rgba(255, 255, 255, 0.4); } } .stage-label { color: rgba(255, 255, 255, 0.5); } &.completed .stage-label { color: #81c784; } &.active { .stage-icon { background: #bb86fc; } .stage-label { color: #bb86fc; } } }
+    .connector { background: rgba(255, 255, 255, 0.12); &.completed { background: #81c784; } }
+    .error-banner { background: rgba(244, 67, 54, 0.15); border-color: rgba(244, 67, 54, 0.4); }
+    .cancelled-banner { background: rgba(158, 158, 158, 0.15); border-color: rgba(158, 158, 158, 0.4); }
+  }
+}
