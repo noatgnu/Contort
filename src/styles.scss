@@ -147,7 +147,7 @@ html {
   .mat-expansion-panel { background-color: var(--surface-elevated); }
   .mat-expansion-panel-header-title, .mat-expansion-panel-header-description { color: var(--text-primary); }
   .mat-mdc-card { background-color: var(--surface-elevated); }
-  .mat-mdc-dialog-container { background-color: var(--surface-elevated); }
+  .mat-mdc-dialog-container .mdc-dialog__surface { background-color: var(--surface-elevated); }
   .mat-drawer { background-color: var(--surface-elevated); }
   .mat-toolbar.mat-primary { background-color: #6b4c9a; }
   a { color: var(--link-color); }
@@ -237,10 +237,24 @@ $breakpoint-tablet: 1200px;
 }
 
 .mat-mdc-dialog-container {
+  .mdc-dialog__surface {
+    overflow: hidden;
+    background-color: var(--surface-elevated) !important;
+  }
+
   @include mobile {
     max-width: 95vw !important;
     max-height: 90vh !important;
   }
+}
+
+.cdk-overlay-pane {
+  max-height: 90vh;
+}
+
+.mat-mdc-dialog-content {
+  max-height: 65vh;
+  overflow-y: auto;
 }
 
 .sr-only {

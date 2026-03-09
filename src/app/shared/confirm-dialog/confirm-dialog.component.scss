@@ -1,41 +1,39 @@
-.confirm-dialog {
-  min-width: 300px;
-  max-width: 400px;
+:host {
+  display: block;
+}
 
-  .icon-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 8px;
+.icon-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
 
-    mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      color: var(--accent-color);
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--accent-color);
 
-      &.danger-icon { color: var(--error-color); }
-    }
+    &.danger-icon { color: var(--error-color); }
   }
+}
 
-  h1[mat-dialog-title] {
-    text-align: center;
-    margin-bottom: 8px;
-  }
+h1[mat-dialog-title] {
+  text-align: center;
+  margin-bottom: 8px;
 
-  [mat-dialog-content] {
-    text-align: center;
-    p {
-      margin: 0;
-      color: var(--text-secondary);
-    }
-  }
+  &.danger-title { color: var(--error-color); }
+}
 
-  [mat-dialog-actions] {
-    padding: 16px 0 0 0;
-    gap: 8px;
-  }
+[mat-dialog-content] {
+  text-align: center;
 
-  &.danger {
-    h1[mat-dialog-title] { color: var(--error-color); }
+  p {
+    margin: 0;
+    color: var(--text-secondary);
   }
+}
+
+[mat-dialog-actions] {
+  padding-top: 16px;
+  gap: 8px;
 }
