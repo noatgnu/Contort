@@ -1,47 +1,25 @@
 @if (compact) {
   <div class="compact-progress">
     <div class="progress-info">
-      <span class="status-badge" [class.error]="isError()" [class.cancelled]="isCancelled()">
+      <span class="status-badge" [class]="statusClass()">
+        <mat-icon>{{ statusIcon() }}</mat-icon>
         {{ statusLabel() }}
       </span>
-      @if (!isError() && !isCancelled()) {
-        <span class="percent">{{ progressPercent() }}%</span>
-      }
     </div>
-    <mat-progress-bar
-      [mode]="currentStageIndex() >= 0 && currentStageIndex() < 5 ? 'indeterminate' : 'determinate'"
-      [value]="progressPercent()"
-      [color]="isError() ? 'warn' : 'primary'">
-    </mat-progress-bar>
+    @if (isRunning()) {
+      <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+    }
   </div>
 } @else {
-  <div class="progress-timeline">
-    <div class="timeline-header">
-      <span class="progress-label">Progress</span>
-      @if (!isError() && !isCancelled()) {
-        <span class="progress-percent">{{ progressPercent() }}%</span>
-      }
+  <div class="progress-display">
+    <div class="status-row" [class]="statusClass()">
+      <mat-icon>{{ statusIcon() }}</mat-icon>
+      <span class="status-text">{{ statusLabel() }}</span>
     </div>
 
-    <div class="timeline-stages">
-      @for (stage of stages; track stage.id; let i = $index) {
-        <div class="stage" [class]="getStageStatus(i)">
-          <div class="stage-icon" [matTooltip]="stage.description">
-            @if (getStageStatus(i) === 'completed') {
-              <mat-icon>check</mat-icon>
-            } @else if (getStageStatus(i) === 'error') {
-              <mat-icon>close</mat-icon>
-            } @else {
-              <mat-icon>{{ stage.icon }}</mat-icon>
-            }
-          </div>
-          <span class="stage-label">{{ stage.label }}</span>
-        </div>
-        @if (i < stages.length - 1) {
-          <div class="connector" [class.completed]="getStageStatus(i) === 'completed'"></div>
-        }
-      }
-    </div>
+    @if (isRunning()) {
+      <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+    }
 
     @if (isError()) {
       <div class="error-banner">

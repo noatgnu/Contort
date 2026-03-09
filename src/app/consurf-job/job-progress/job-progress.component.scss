@@ -2,23 +2,40 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 120px;
+  min-width: 100px;
 
   .progress-info {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    font-size: 11px;
   }
 
   .status-badge {
-    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
     border-radius: 4px;
+    font-size: 12px;
     font-weight: 500;
     background: var(--primary-container);
     color: var(--accent-color);
 
-    &.error {
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+
+    &.running {
+      mat-icon { animation: spin 1s linear infinite; }
+    }
+
+    &.completed {
+      background: var(--success-container);
+      color: var(--success-color);
+    }
+
+    &.failed {
       background: var(--error-container);
       color: var(--error-color);
     }
@@ -29,111 +46,59 @@
     }
   }
 
-  .percent { color: var(--text-tertiary); }
-  mat-progress-bar { height: 4px; border-radius: 2px; }
+  mat-progress-bar {
+    height: 4px;
+    border-radius: 2px;
+  }
 }
 
-.progress-timeline {
+.progress-display {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
 
-  .timeline-header {
+  .status-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-
-    .progress-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-
-    .progress-percent {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--accent-color);
-    }
-  }
-
-  .timeline-stages {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .stage {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
 
-    .stage-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--active-overlay);
-      transition: all 0.3s ease;
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        color: var(--text-hint);
-      }
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
     }
 
-    .stage-label {
-      font-size: 11px;
-      color: var(--text-disabled);
-      text-align: center;
-      max-width: 70px;
+    .status-text {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    &.pending {
+      color: var(--text-tertiary);
+    }
+
+    &.running {
+      color: var(--accent-color);
+      mat-icon { animation: spin 1s linear infinite; }
     }
 
     &.completed {
-      .stage-icon {
-        background: var(--success-color);
-        mat-icon { color: white; }
-      }
-      .stage-label {
-        color: var(--success-color);
-        font-weight: 500;
-      }
+      color: var(--success-color);
     }
 
-    &.active {
-      .stage-icon {
-        background: var(--accent-color);
-        animation: pulse 1.5s ease-in-out infinite;
-        mat-icon { color: white; }
-      }
-      .stage-label {
-        color: var(--accent-color);
-        font-weight: 500;
-      }
+    &.failed {
+      color: var(--error-color);
     }
 
-    &.error {
-      .stage-icon {
-        background: var(--error-color);
-        mat-icon { color: white; }
-      }
-      .stage-label { color: var(--error-color); }
+    &.cancelled {
+      color: var(--text-disabled);
     }
   }
 
-  .connector {
-    flex: 1;
-    height: 2px;
-    background: var(--border-color);
-    margin-top: 17px;
-    min-width: 20px;
-    transition: background 0.3s ease;
-
-    &.completed { background: var(--success-color); }
+  mat-progress-bar {
+    height: 6px;
+    border-radius: 3px;
   }
 
   .error-banner, .cancelled-banner {
@@ -141,7 +106,6 @@
     align-items: center;
     gap: 8px;
     padding: 12px;
-    margin-top: 16px;
     border-radius: 4px;
     font-size: 13px;
 
@@ -165,7 +129,7 @@
   }
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
