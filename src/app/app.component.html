@@ -1,65 +1,88 @@
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
 <mat-drawer-container autosize class="drawer-container">
-  <mat-drawer #drawer mode="over" class="drawer-sidenav-content">
-    <div style="display: flex; flex-direction: column">
+  <mat-drawer #drawer mode="over" class="drawer-sidenav-content" role="navigation" aria-label="Main navigation">
+    <nav style="display: flex; flex-direction: column">
       <a mat-button routerLink="/dashboard" (click)="drawer.toggle()">Dashboard</a>
       <a mat-button routerLink="/consurf-job" (click)="drawer.toggle()">Jobs</a>
       <a mat-button routerLink="/consurf-view" (click)="drawer.toggle()">Visualization</a>
-    </div>
+    </nav>
   </mat-drawer>
-  <mat-toolbar color="primary">
-    <button (click)="drawer.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
-      <mat-icon>menu</mat-icon>
+  <mat-toolbar color="primary" role="banner">
+    <button (click)="drawer.toggle()"
+            mat-icon-button
+            aria-label="Toggle navigation menu"
+            [attr.aria-expanded]="drawer.opened">
+      <mat-icon aria-hidden="true">menu</mat-icon>
     </button>
     <span>Contort</span>
     <span class="spacer"></span>
-    <div>
-      <button mat-icon-button (click)="openManageDatabaseDialog()">
-        <mat-icon>storage</mat-icon>
+    <div class="toolbar-actions" role="toolbar" aria-label="Application actions">
+      <button mat-icon-button
+              (click)="openManageDatabaseDialog()"
+              aria-label="Manage databases">
+        <mat-icon aria-hidden="true">storage</mat-icon>
       </button>
 
-      <button mat-icon-button (click)="openCustomScoreEditor()">
-        <mat-icon>edit</mat-icon>
+      <button mat-icon-button
+              (click)="openCustomScoreEditor()"
+              aria-label="Edit custom scores">
+        <mat-icon aria-hidden="true">edit</mat-icon>
       </button>
-      <button mat-icon-button (click)="themeService.toggle()" [matTooltip]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
-        <mat-icon>{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      <button mat-icon-button
+              (click)="themeService.toggle()"
+              [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+              [attr.aria-pressed]="themeService.isDark()">
+        <mat-icon aria-hidden="true">{{ themeService.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
       </button>
-      <button mat-icon-button (click)="keyboardShortcuts.showShortcutsDialog()" matTooltip="Keyboard shortcuts (?)">
-        <mat-icon>keyboard</mat-icon>
+      <button mat-icon-button
+              (click)="keyboardShortcuts.showShortcutsDialog()"
+              aria-label="Show keyboard shortcuts">
+        <mat-icon aria-hidden="true">keyboard</mat-icon>
       </button>
       @if (!accountService.isLogged) {
-        <button mat-icon-button (click)="openLoginDialog()">
-          <mat-icon>login</mat-icon>
+        <button mat-icon-button
+                (click)="openLoginDialog()"
+                aria-label="Login">
+          <mat-icon aria-hidden="true">login</mat-icon>
         </button>
       } @else {
-        <button mat-icon-button (click)="logout()">
-          <mat-icon>logout</mat-icon>
+        <button mat-icon-button
+                (click)="logout()"
+                aria-label="Logout">
+          <mat-icon aria-hidden="true">logout</mat-icon>
         </button>
       }
       @if (websocket.isReconnecting$ | async) {
-        <button mat-icon-button class="connection-reconnecting" matTooltip="Reconnecting...">
-          <mat-icon>sync</mat-icon>
+        <button mat-icon-button
+                class="connection-reconnecting"
+                aria-label="Connection status: Reconnecting"
+                disabled>
+          <mat-icon aria-hidden="true">sync</mat-icon>
         </button>
       } @else if (websocket.connectionStatus$ | async) {
-        <button mat-icon-button class="connection-connected" matTooltip="Connected">
-          <mat-icon>cloud_done</mat-icon>
+        <button mat-icon-button
+                class="connection-connected"
+                aria-label="Connection status: Connected"
+                disabled>
+          <mat-icon aria-hidden="true">cloud_done</mat-icon>
         </button>
       } @else {
-        <button mat-icon-button class="connection-disconnected" (click)="connectWS()" matTooltip="Disconnected - Click to reconnect">
-          <mat-icon>cloud_off</mat-icon>
+        <button mat-icon-button
+                class="connection-disconnected"
+                (click)="connectWS()"
+                aria-label="Connection status: Disconnected. Click to reconnect">
+          <mat-icon aria-hidden="true">cloud_off</mat-icon>
         </button>
       }
-
     </div>
-<!--    <div>
-      <button (click)="inputFile.click()" aria-label="Import file button" mat-icon-button><mat-icon>upload</mat-icon></button>
-    </div>-->
   </mat-toolbar>
-  @if (ready) {
-    <app-breadcrumb></app-breadcrumb>
-    <router-outlet></router-outlet>
-  }
-
-
+  <main id="main-content" tabindex="-1">
+    @if (ready) {
+      <app-breadcrumb></app-breadcrumb>
+      <router-outlet></router-outlet>
+    }
+  </main>
 </mat-drawer-container>
 
-<input type="file" #inputFile hidden (change)="handleFileImport($event)">
+<input type="file" #inputFile hidden (change)="handleFileImport($event)" aria-hidden="true">

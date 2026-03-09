@@ -1,11 +1,10 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
 import { MatProgressBar } from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-job-progress',
-  imports: [MatIcon, MatTooltip, MatProgressBar],
+  imports: [MatIcon, MatProgressBar],
   templateUrl: './job-progress.component.html',
   styleUrl: './job-progress.component.scss'
 })
@@ -39,6 +38,18 @@ export class JobProgressComponent {
       case 'running': return 'Running';
       case 'pending':
       default: return 'Pending';
+    }
+  });
+
+  statusDescription = computed(() => {
+    const status = this._status();
+    switch (status) {
+      case 'completed': return 'Job has completed successfully';
+      case 'failed': return 'Job has failed. Check error log for details';
+      case 'cancelled': return 'Job was cancelled';
+      case 'running': return 'Job is currently running';
+      case 'pending':
+      default: return 'Job is waiting to be processed';
     }
   });
 

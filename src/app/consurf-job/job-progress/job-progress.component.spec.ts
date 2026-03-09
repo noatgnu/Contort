@@ -77,6 +77,33 @@ describe('JobProgressComponent', () => {
     });
   });
 
+  describe('status descriptions for accessibility', () => {
+    it('should return description for pending', () => {
+      component.status = 'pending';
+      expect(component.statusDescription()).toBe('Job is waiting to be processed');
+    });
+
+    it('should return description for running', () => {
+      component.status = 'running';
+      expect(component.statusDescription()).toBe('Job is currently running');
+    });
+
+    it('should return description for completed', () => {
+      component.status = 'completed';
+      expect(component.statusDescription()).toBe('Job has completed successfully');
+    });
+
+    it('should return description for failed', () => {
+      component.status = 'failed';
+      expect(component.statusDescription()).toBe('Job has failed. Check error log for details');
+    });
+
+    it('should return description for cancelled', () => {
+      component.status = 'cancelled';
+      expect(component.statusDescription()).toBe('Job was cancelled');
+    });
+  });
+
   describe('status checks', () => {
     it('should detect running state', () => {
       component.status = 'running';
@@ -108,6 +135,70 @@ describe('JobProgressComponent', () => {
       expect(component.isRunning()).toBeFalsy();
       expect(component.isError()).toBeFalsy();
       expect(component.isCancelled()).toBeFalsy();
+    });
+  });
+
+  describe('accessibility', () => {
+    it('should have role status on container', () => {
+      const container = fixture.debugElement.query(By.css('[role="status"]'));
+      expect(container).toBeTruthy();
+    });
+
+    it('should have aria-label with status description', () => {
+      component.status = 'running';
+      fixture.detectChanges();
+
+      const container = fixture.debugElement.query(By.css('.progress-display'));
+      expect(container.nativeElement.getAttribute('aria-label')).toContain('running');
+    });
+
+    it('should have aria-live polite when running', () => {
+      component.status = 'running';
+      fixture.detectChanges();
+
+      const container = fixture.debugElement.query(By.css('.progress-display'));
+      expect(container.nativeElement.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('should have aria-live off when not running', () => {
+      component.status = 'completed';
+      fixture.detectChanges();
+
+      const container = fixture.debugElement.query(By.css('.progress-display'));
+      expect(container.nativeElement.getAttribute('aria-live')).toBe('off');
+    });
+
+    it('should hide icons from screen readers', () => {
+      fixture.detectChanges();
+
+      const icons = fixture.debugElement.queryAll(By.css('mat-icon'));
+      icons.forEach(icon => {
+        expect(icon.nativeElement.getAttribute('aria-hidden')).toBe('true');
+      });
+    });
+
+    it('should have role alert on error banner', () => {
+      component.status = 'failed';
+      fixture.detectChanges();
+
+      const errorBanner = fixture.debugElement.query(By.css('.error-banner'));
+      expect(errorBanner.nativeElement.getAttribute('role')).toBe('alert');
+    });
+
+    it('should have role alert on cancelled banner', () => {
+      component.status = 'cancelled';
+      fixture.detectChanges();
+
+      const cancelledBanner = fixture.debugElement.query(By.css('.cancelled-banner'));
+      expect(cancelledBanner.nativeElement.getAttribute('role')).toBe('alert');
+    });
+
+    it('should have aria-label on progress bar', () => {
+      component.status = 'running';
+      fixture.detectChanges();
+
+      const progressBar = fixture.debugElement.query(By.css('mat-progress-bar'));
+      expect(progressBar.nativeElement.getAttribute('aria-label')).toBe('Job is processing');
     });
   });
 

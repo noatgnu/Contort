@@ -1,36 +1,51 @@
 @if (compact) {
-  <div class="compact-progress">
+  <div class="compact-progress"
+       role="status"
+       [attr.aria-label]="'Job status: ' + statusLabel()"
+       [attr.aria-live]="isRunning() ? 'polite' : 'off'">
     <div class="progress-info">
       <span class="status-badge" [class]="statusClass()">
-        <mat-icon>{{ statusIcon() }}</mat-icon>
-        {{ statusLabel() }}
+        <mat-icon [attr.aria-hidden]="true">{{ statusIcon() }}</mat-icon>
+        <span>{{ statusLabel() }}</span>
       </span>
     </div>
     @if (isRunning()) {
-      <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+      <mat-progress-bar
+        mode="indeterminate"
+        color="primary"
+        aria-label="Job is processing">
+      </mat-progress-bar>
     }
   </div>
 } @else {
-  <div class="progress-display">
+  <div class="progress-display"
+       role="status"
+       [attr.aria-label]="statusDescription()"
+       [attr.aria-live]="isRunning() ? 'polite' : 'off'">
     <div class="status-row" [class]="statusClass()">
-      <mat-icon>{{ statusIcon() }}</mat-icon>
+      <mat-icon [attr.aria-hidden]="true">{{ statusIcon() }}</mat-icon>
       <span class="status-text">{{ statusLabel() }}</span>
+      <span class="sr-only">{{ statusDescription() }}</span>
     </div>
 
     @if (isRunning()) {
-      <mat-progress-bar mode="indeterminate" color="primary"></mat-progress-bar>
+      <mat-progress-bar
+        mode="indeterminate"
+        color="primary"
+        aria-label="Job is processing">
+      </mat-progress-bar>
     }
 
     @if (isError()) {
-      <div class="error-banner">
-        <mat-icon>error_outline</mat-icon>
+      <div class="error-banner" role="alert">
+        <mat-icon [attr.aria-hidden]="true">error_outline</mat-icon>
         <span>Job failed. Check the error log for details.</span>
       </div>
     }
 
     @if (isCancelled()) {
-      <div class="cancelled-banner">
-        <mat-icon>cancel</mat-icon>
+      <div class="cancelled-banner" role="alert">
+        <mat-icon [attr.aria-hidden]="true">cancel</mat-icon>
         <span>Job was cancelled.</span>
       </div>
     }

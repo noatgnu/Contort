@@ -1,5 +1,5 @@
-<div class="empty-state">
-  <div class="empty-state-icon">
+<div class="empty-state" role="status" [attr.aria-label]="title">
+  <div class="empty-state-icon" aria-hidden="true">
     <mat-icon>{{ icon }}</mat-icon>
   </div>
   <h3 class="empty-state-title">{{ title }}</h3>

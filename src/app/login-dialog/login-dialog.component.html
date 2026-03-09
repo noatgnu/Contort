@@ -1,48 +1,81 @@
-<h1 mat-dialog-title>Login</h1>
+<h1 mat-dialog-title id="login-dialog-title">Login</h1>
 <div mat-dialog-content>
-  <form [formGroup]="form" (ngSubmit)="login()" class="login-form">
+  <form [formGroup]="form"
+        (ngSubmit)="login()"
+        class="login-form"
+        aria-labelledby="login-dialog-title">
     <mat-form-field appearance="outline">
       <mat-label>Username</mat-label>
-      <input matInput formControlName="username" autocomplete="username" />
+      <input matInput
+             formControlName="username"
+             autocomplete="username"
+             [attr.aria-invalid]="form.get('username')?.invalid && form.get('username')?.touched"
+             [attr.aria-describedby]="'username-hint username-error'" />
       @if (form.get('username')?.valid && form.get('username')?.touched) {
-        <mat-icon matSuffix class="validation-icon valid">check_circle</mat-icon>
+        <mat-icon matSuffix class="validation-icon valid" aria-hidden="true">check_circle</mat-icon>
       }
       @if (form.get('username')?.invalid && form.get('username')?.touched) {
-        <mat-icon matSuffix class="validation-icon invalid">error</mat-icon>
+        <mat-icon matSuffix class="validation-icon invalid" aria-hidden="true">error</mat-icon>
       }
-      <mat-hint>Minimum 3 characters</mat-hint>
-      <mat-error>{{ getErrorMessage('username') }}</mat-error>
+      <mat-hint id="username-hint">Minimum 3 characters</mat-hint>
+      <mat-error id="username-error" role="alert">{{ getErrorMessage('username') }}</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Password</mat-label>
-      <input matInput formControlName="password" [type]="hidePassword() ? 'password' : 'text'" autocomplete="current-password" />
-      <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()">
-        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      <input matInput
+             formControlName="password"
+             [type]="hidePassword() ? 'password' : 'text'"
+             autocomplete="current-password"
+             [attr.aria-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+             [attr.aria-describedby]="'password-hint password-error'" />
+      <button mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+              [attr.aria-pressed]="!hidePassword()">
+        <mat-icon aria-hidden="true">{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
       </button>
-      <mat-hint>Minimum 6 characters</mat-hint>
-      <mat-error>{{ getErrorMessage('password') }}</mat-error>
+      <mat-hint id="password-hint">Minimum 6 characters</mat-hint>
+      <mat-error id="password-error" role="alert">{{ getErrorMessage('password') }}</mat-error>
     </mat-form-field>
   </form>
 
   @if (errorMessage) {
-    <div class="error-banner">
-      <mat-icon>error_outline</mat-icon>
+    <div class="error-banner" role="alert" aria-live="assertive">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
       <span>{{ errorMessage }}</span>
     </div>
   }
 </div>
 <div mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="close()" [disabled]="isLoading()">Cancel</button>
-  <button mat-flat-button color="primary" type="submit" (click)="login()" [disabled]="isLoading()">
+  <button mat-button
+          type="button"
+          (click)="close()"
+          [disabled]="isLoading()"
+          aria-label="Cancel login">
+    Cancel
+  </button>
+  <button mat-flat-button
+          color="primary"
+          type="submit"
+          (click)="login()"
+          [disabled]="isLoading()"
+          [attr.aria-busy]="isLoading()"
+          aria-label="Submit login">
     @if (isLoading()) {
-      <mat-spinner diameter="18"></mat-spinner>
+      <mat-spinner diameter="18" aria-label="Logging in"></mat-spinner>
     } @else {
       Login
     }
   </button>
-  <button mat-stroked-button type="button" (click)="connectKeycloak()" [disabled]="isLoading()">
-    <mat-icon>key</mat-icon>
+  <button mat-stroked-button
+          type="button"
+          (click)="connectKeycloak()"
+          [disabled]="isLoading()"
+          aria-label="Login with Keycloak">
+    <mat-icon aria-hidden="true">key</mat-icon>
     Keycloak
   </button>
 </div>

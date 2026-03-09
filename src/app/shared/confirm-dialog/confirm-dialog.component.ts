@@ -8,6 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { A11yModule } from '@angular/cdk/a11y';
 
 export interface ConfirmDialogData {
   title: string;
@@ -25,7 +26,8 @@ export interface ConfirmDialogData {
     MatDialogContent,
     MatDialogActions,
     MatButton,
-    MatIcon
+    MatIcon,
+    A11yModule
   ],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.scss'

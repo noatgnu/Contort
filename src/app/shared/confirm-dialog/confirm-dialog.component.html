@@ -1,19 +1,30 @@
-<div class="confirm-dialog" [class.danger]="data.danger">
+<div class="confirm-dialog"
+     [class.danger]="data.danger"
+     role="alertdialog"
+     [attr.aria-labelledby]="'confirm-dialog-title'"
+     [attr.aria-describedby]="'confirm-dialog-description'">
   @if (data.icon) {
-    <div class="icon-container">
+    <div class="icon-container" aria-hidden="true">
       <mat-icon [class.danger-icon]="data.danger">{{ data.icon }}</mat-icon>
     </div>
   }
-  <h1 mat-dialog-title>{{ data.title }}</h1>
+  <h1 mat-dialog-title id="confirm-dialog-title">{{ data.title }}</h1>
   <div mat-dialog-content>
-    <p>{{ data.message }}</p>
+    <p id="confirm-dialog-description">{{ data.message }}</p>
   </div>
   <div mat-dialog-actions align="end">
-    <button mat-button (click)="cancel()">{{ data.cancelText }}</button>
-    <button
-      mat-raised-button
-      [color]="data.danger ? 'warn' : 'primary'"
-      (click)="confirm()">
+    <button mat-button
+            (click)="cancel()"
+            type="button"
+            [attr.aria-label]="data.cancelText + ', cancel this action'">
+      {{ data.cancelText }}
+    </button>
+    <button mat-raised-button
+            [color]="data.danger ? 'warn' : 'primary'"
+            (click)="confirm()"
+            type="button"
+            cdkFocusInitial
+            [attr.aria-label]="data.confirmText + (data.danger ? ', this action cannot be undone' : '')">
       {{ data.confirmText }}
     </button>
   </div>
