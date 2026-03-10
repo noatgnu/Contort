@@ -36,7 +36,7 @@ export class SegmentComponent {
       margin: {
         l: 0,
         r: 0,
-        b: 20,
+        b: 40,
         t: 0,
       },
       height: 120,
@@ -44,7 +44,8 @@ export class SegmentComponent {
       paper_bgcolor: bgColor,
       plot_bgcolor: bgColor,
       font: {
-        color: textColor
+        color: textColor,
+        size: 10
       },
       xaxis: {
         title: '',
@@ -52,14 +53,18 @@ export class SegmentComponent {
         tickmode: 'array',
         showticklabels: true,
         tickvals: [],
-        ticktext: [],
+        tickangle: -45,
         fixedrange: true,
-        color: textColor
+        color: textColor,
+        tickfont: {
+          size: 9
+        }
       },
       yaxis: {
         title: '',
         type: 'category',
         tickmode: 'array',
+        showticklabels: false,
         fixedrange: true,
         color: textColor
       },
@@ -75,13 +80,18 @@ export class SegmentComponent {
     effect(() => {
       this.themeService.isDark();
       const currentLayout = this.graphLayout;
+      const themedLayout = this.getThemedLayout();
       this.graphLayout = {
-        ...this.getThemedLayout(),
+        ...themedLayout,
         width: currentLayout.width,
         height: currentLayout.height,
+        margin: currentLayout.margin,
         shapes: currentLayout.shapes,
         annotations: currentLayout.annotations,
-        'xaxis.tickvals': currentLayout['xaxis.tickvals']
+        xaxis: {
+          ...themedLayout.xaxis,
+          tickvals: currentLayout.xaxis?.tickvals || []
+        }
       };
       this.revision++;
     });
@@ -95,10 +105,14 @@ export class SegmentComponent {
     const isDark = this.themeService.isDark();
     const annotationColor = isDark ? '#e0e0e0' : '#333333';
 
-    this.graphLayout.margin.b = this.dataService.segmentSettings["margin-bottom"]
-    this.graphLayout.margin.t = this.dataService.segmentSettings["margin-top"]
-    this.graphLayout.width = this.dataService.segmentSettings["cell-size"]
-    this.graphLayout.height = this.dataService.segmentSettings["cell-size"] + this.dataService.segmentSettings["margin-bottom"] + this.dataService.segmentSettings["margin-top"]
+    const cellSize = this.dataService.segmentSettings["cell-size"]
+    const marginBottom = this.dataService.segmentSettings["margin-bottom"] || 40
+    const marginTop = this.dataService.segmentSettings["margin-top"] || 0
+
+    this.graphLayout.margin.b = marginBottom
+    this.graphLayout.margin.t = marginTop
+    this.graphLayout.width = cellSize
+    this.graphLayout.height = cellSize + marginBottom + marginTop
     const graphData: any[] = []
     const annotations: any[] = []
     const temp: any = {
@@ -196,9 +210,13 @@ export class SegmentComponent {
     })
 
     this.graphData = graphData
-    this.graphLayout.width = temp.x.length * this.dataService.segmentSettings["cell-size"]
-    //this.graphLayout.xaxis.tickvals =[ticks[0], ticks[Math.round(ticks.length/2)], ticks[ticks.length-1]]
-    this.graphLayout.xaxis.tickvals = ticks.filter((_, index) => index % 5 === 0 || index === ticks.length-1);
+    this.graphLayout.width = temp.x.length * cellSize
+    this.graphLayout.height = cellSize + marginBottom + marginTop
+
+    const tickInterval = Math.max(1, Math.floor(ticks.length / 10))
+    this.graphLayout.xaxis.tickvals = ticks.filter((_, index) =>
+      index % tickInterval === 0 || index === ticks.length - 1
+    )
     this.graphLayout.annotations = annotations
     this.graphLayout.shapes = shapes
     this.revision++
