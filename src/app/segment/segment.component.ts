@@ -53,7 +53,7 @@ export class SegmentComponent {
         tickmode: 'array',
         showticklabels: true,
         tickvals: [],
-        tickangle: -45,
+        tickangle: 0,
         fixedrange: true,
         color: textColor,
         tickfont: {
@@ -213,9 +213,8 @@ export class SegmentComponent {
     this.graphLayout.width = temp.x.length * cellSize
     this.graphLayout.height = cellSize + marginBottom + marginTop
 
-    const tickInterval = Math.max(1, Math.floor(ticks.length / 10))
-    this.graphLayout.xaxis.tickvals = ticks.filter((_, index) =>
-      index % tickInterval === 0 || index === ticks.length - 1
+    this.graphLayout.xaxis.tickvals = ticks.filter((pos, index) =>
+      index === 0 || index === ticks.length - 1 || pos % 10 === 0
     )
     this.graphLayout.annotations = annotations
     this.graphLayout.shapes = shapes
