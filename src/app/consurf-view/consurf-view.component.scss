@@ -6,3 +6,35 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
 }
+
+:host {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  :host ::ng-deep {
+    > div > div:first-child {
+      flex-direction: column !important;
+      padding: 12px !important;
+      gap: 12px !important;
+    }
+
+    mat-card { width: 100%; }
+
+    .color-setting-item {
+      flex: 1 1 calc(50% - 6px);
+      min-width: 0;
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  :host ::ng-deep {
+    > div > div:first-child {
+      flex-wrap: wrap !important;
+      padding: 16px !important;
+    }
+
+    mat-card { flex: 1 1 calc(50% - 10px); min-width: 280px; }
+  }
+}

@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle, MatCardActions } from '@angular/material/card';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatDivider } from '@angular/material/divider';
+import { MatTooltip } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
@@ -29,8 +29,9 @@ interface DashboardStats {
     MatCardTitle,
     MatCardActions,
     MatButton,
+    MatIconButton,
     MatIcon,
-    MatDivider,
+    MatTooltip,
     DatePipe,
     SkeletonLoaderComponent
   ],

@@ -86,3 +86,16 @@ mat-form-field {
     color: var(--text-secondary);
   }
 }
+
+@media (max-width: 767px) {
+  .upload-section { padding: 12px; gap: 16px; }
+  .upload-form { flex-direction: column; gap: 12px; }
+  mat-form-field { max-width: 100%; }
+  .progress-item {
+    flex-wrap: wrap;
+    .file-name { flex: 1 1 100%; }
+    mat-progress-bar { flex: 1 1 80%; }
+    .progress-percentage { flex: 0 0 auto; }
+  }
+  .data-table { margin-top: 12px; }
+}

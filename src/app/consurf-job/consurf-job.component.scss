@@ -284,3 +284,27 @@ form { width: 100%; }
   &.valid { color: var(--success-color); }
   &.invalid { color: var(--error-color); }
 }
+
+@media (max-width: 767px) {
+  .form-container { padding: 12px 16px; }
+  .form-row { flex-direction: column; gap: 12px; }
+  .flex-1 { min-width: 100%; }
+  .search-field { max-width: 100%; }
+  .query-select, .chain-select { max-width: 100%; }
+  .params-grid { grid-template-columns: 1fr; }
+  .advanced-params-grid { grid-template-columns: 1fr 1fr; }
+  .summary-grid { grid-template-columns: 1fr 1fr; }
+  .step-actions { flex-direction: column; }
+  .step-actions button { width: 100%; }
+  .submit-actions { flex-direction: column; }
+  .submit-button { width: 100%; }
+  .download-buttons { flex-direction: column; }
+  .download-buttons button { width: 100%; }
+  .login-prompt { padding: 24px 16px; }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .form-container { padding: 16px 20px; }
+  .params-grid { grid-template-columns: repeat(2, 1fr); }
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
