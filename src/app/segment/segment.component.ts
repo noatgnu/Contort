@@ -170,13 +170,12 @@ export class SegmentComponent {
       if (row.GRADE.BE !== "") {
         annotationText += row.GRADE.BE
       }
-      const xloc = 1/total * current
       if (annotationText !== "") {
         annotations.push({
-          xref: 'paper',
+          xref: 'x',
           yref: 'paper',
-          x: xloc + 1/total/2,
-          y: -1.5,
+          x: row.GRADE.POS,
+          y: -0.5,
           text: annotationText,
           showarrow: false,
           font: {
@@ -189,16 +188,16 @@ export class SegmentComponent {
 
       if (this.dataService.selectionMap[row.GRADE.POS]) {
         for (const seq of this.dataService.selectionMap[row.GRADE.POS]) {
-          const x0Paper = xloc
-          const x1Paper = xloc + 1/total
+          const x0 = current - 0.5
+          const x1 = current + 0.5
           shapes.push({
             type: 'line',
             yref: 'paper',
-            xref: 'paper',
-            x0: x0Paper,
-            x1: x1Paper,
-            y0: -1,
-            y1: -1,
+            xref: 'x',
+            x0: x0,
+            x1: x1,
+            y0: -0.2,
+            y1: -0.2,
             line: {
               color: this.dataService.segmentColorMap[seq],
               width: 2,
