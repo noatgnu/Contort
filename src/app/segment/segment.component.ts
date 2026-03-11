@@ -178,7 +178,7 @@ export class SegmentComponent {
           xref: 'x',
           yref: 'paper',
           x: current,
-          y: -0.6,
+          y: -1.1,
           text: annotationText,
           showarrow: false,
           font: {
@@ -199,8 +199,8 @@ export class SegmentComponent {
             xref: 'x',
             x0: x0,
             x1: x1,
-            y0: -0.15,
-            y1: -0.15,
+            y0: -0.1,
+            y1: -0.1,
             line: {
               color: this.dataService.segmentColorMap[seq],
               width: 2,
