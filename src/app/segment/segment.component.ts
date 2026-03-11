@@ -140,9 +140,9 @@ export class SegmentComponent {
     for (const c in this.dataService.color_map) {
       temp.colorscale.push([(parseInt(c)-1)/(9-1), this.dataService.color_map[c]])
     }
-    const ticks: number[] = []
-    const shapes: any[] = []
-    this.segment.seq.forEach((row) => {
+    const tickvals: number[] = []
+    const ticktext: string[] = []
+    this.segment.seq.forEach((row, index) => {
       temp.x.push(row.GRADE.POS)
       if (this.dataService.customScore[row.GRADE.POS]) {
         temp.z[0].push(this.dataService.customScore[row.GRADE.POS])
@@ -150,9 +150,11 @@ export class SegmentComponent {
         temp.z[0].push(row.GRADE.COLOR[0])
       }
       temp.text[0].push(row.GRADE.SEQ)
-      ticks.push(row.GRADE.POS)
+      if (index === 0 || index === this.segment.seq.count() - 1 || row.GRADE.POS % 10 === 0) {
+        tickvals.push(index)
+        ticktext.push(row.GRADE.POS.toString())
+      }
       temp.data.push(row)
-
     })
     //this.graphLayout.title = `${this.segment.start}-${temp.text[0].join("")}-${this.segment.end}`
     graphData.push(temp)
@@ -174,8 +176,8 @@ export class SegmentComponent {
         annotations.push({
           xref: 'x',
           yref: 'paper',
-          x: row.GRADE.POS,
-          y: -0.5,
+          x: current,
+          y: -0.6,
           text: annotationText,
           showarrow: false,
           font: {
@@ -196,8 +198,8 @@ export class SegmentComponent {
             xref: 'x',
             x0: x0,
             x1: x1,
-            y0: -0.2,
-            y1: -0.2,
+            y0: -0.15,
+            y1: -0.15,
             line: {
               color: this.dataService.segmentColorMap[seq],
               width: 2,
@@ -212,9 +214,8 @@ export class SegmentComponent {
     this.graphLayout.width = temp.x.length * cellSize
     this.graphLayout.height = cellSize + marginBottom + marginTop
 
-    this.graphLayout.xaxis.tickvals = ticks.filter((pos, index) =>
-      index === 0 || index === ticks.length - 1 || pos % 10 === 0
-    )
+    this.graphLayout.xaxis.tickvals = tickvals
+    this.graphLayout.xaxis.ticktext = ticktext
     this.graphLayout.annotations = annotations
     this.graphLayout.shapes = shapes
     this.revision++
