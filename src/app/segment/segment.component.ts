@@ -142,6 +142,7 @@ export class SegmentComponent {
     }
     const tickvals: number[] = []
     const ticktext: string[] = []
+    const shapes: any[] = []
     this.segment.seq.forEach((row, index) => {
       temp.x.push(row.GRADE.POS)
       if (this.dataService.customScore[row.GRADE.POS]) {
