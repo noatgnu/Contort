@@ -154,8 +154,11 @@ export class SegmentComponent {
       temp.data.push(row)
 
     })
+    //this.graphLayout.title = `${this.segment.start}-${temp.text[0].join("")}-${this.segment.end}`
     graphData.push(temp)
-
+    //draw a line under the square that has been selected
+    const total = this.segment.seq.count()
+    let current = 0
     this.segment.seq.forEach((row) => {
       let annotationText = ""
       if (row.GRADE.COLOR.length > 1) {
@@ -167,17 +170,18 @@ export class SegmentComponent {
       if (row.GRADE.BE !== "") {
         annotationText += row.GRADE.BE
       }
+      const xloc = 1/total * current
       if (annotationText !== "") {
         annotations.push({
-          xref: 'x',
+          xref: 'paper',
           yref: 'paper',
-          x: row.GRADE.POS,
-          y: -0.15,
+          x: xloc + 1/total/2,
+          y: -1.5,
           text: annotationText,
           showarrow: false,
           font: {
             family: 'Arial',
-            size: 10,
+            size: 12,
             color: annotationColor
           }
         })
@@ -185,21 +189,24 @@ export class SegmentComponent {
 
       if (this.dataService.selectionMap[row.GRADE.POS]) {
         for (const seq of this.dataService.selectionMap[row.GRADE.POS]) {
+          const x0Paper = xloc
+          const x1Paper = xloc + 1/total
           shapes.push({
             type: 'line',
             yref: 'paper',
-            xref: 'x',
-            x0: row.GRADE.POS - 0.5,
-            x1: row.GRADE.POS + 0.5,
-            y0: -0.05,
-            y1: -0.05,
+            xref: 'paper',
+            x0: x0Paper,
+            x1: x1Paper,
+            y0: -1,
+            y1: -1,
             line: {
               color: this.dataService.segmentColorMap[seq],
-              width: 3,
+              width: 2,
             }
           })
         }
       }
+      current++
     })
 
     this.graphData = graphData
