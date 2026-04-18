@@ -457,7 +457,7 @@ export class WebService {
 
   getCSRFTokenFromCookies(): string | null {
     const cookies = document.cookie.split(';');
-    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrfToken='));
+    const csrf = cookies.find((cookie) => cookie.trim().startsWith('csrftoken='));
     if (csrf) {
       return csrf.split('=')[1];
     }

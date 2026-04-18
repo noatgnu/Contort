@@ -40,6 +40,16 @@ describe('CustomValidators', () => {
         const control = new FormControl('P12345');
         expect(validator(control)).toBeNull();
       });
+
+      it('should validate isoform accession P12345-2', () => {
+        const control = new FormControl('P12345-2');
+        expect(validator(control)).toBeNull();
+      });
+
+      it('should validate isoform accession Q9Y6K9-10', () => {
+        const control = new FormControl('Q9Y6K9-10');
+        expect(validator(control)).toBeNull();
+      });
     });
 
     describe('invalid accessions', () => {
@@ -59,7 +69,7 @@ describe('CustomValidators', () => {
       });
 
       it('should reject accession with special characters', () => {
-        const control = new FormControl('P12-345');
+        const control = new FormControl('P12#345');
         expect(validator(control)).toEqual({ invalidUniprot: true });
       });
 

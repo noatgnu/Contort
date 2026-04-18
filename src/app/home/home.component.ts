@@ -1,9 +1,10 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, inject, DestroyRef, signal} from '@angular/core';
 import {DataFrame, fromCSV, IDataFrame} from "data-forge";
 import {ConSurfGrade, ConSurfMSAVar} from "../con-surf-data";
 import {DataService} from "../data.service";
 import {FormBuilder, FormControl, Validators} from "@angular/forms";
-import {debounceTime, forkJoin, map, Observable, startWith, tap} from "rxjs";
+import {debounceTime, forkJoin, switchMap, startWith, tap} from "rxjs";
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {WebService} from "../web.service";
 
 @Component({
@@ -12,7 +13,8 @@ import {WebService} from "../web.service";
     styleUrls: ['./home.component.scss'],
     standalone: false
 })
-export class HomeComponent implements OnInit{
+export class HomeComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
 
   handleFileImport(event: Event) {
     if (event.target) {
@@ -23,7 +25,6 @@ export class HomeComponent implements OnInit{
         reader.onload = (e) => {
           if (e.target) {
             const text =  <string>reader.result
-            // skip 4 first line
             const lines = text.split("\n")
             lines.splice(0, 4)
             lines[0] = lines[0].replace(/\s/g, "_")
@@ -50,39 +51,42 @@ export class HomeComponent implements OnInit{
     marginBottom: new FormControl<number>(this.dataService.segmentSettings["margin-bottom"], [Validators.required, Validators.min(1)]),
     aaPerRow: new FormControl<number>(this.dataService.segmentSettings["number-of-aa-per-row"], [Validators.required, Validators.min(1)]),
   })
-  filteredOptions: Observable<string[]> = new Observable<string[]>()
+  filteredOptions = signal<string[]>([])
+
   constructor(public dataService: DataService, private fb: FormBuilder, private web: WebService) {
-    this.dataService.segmentSelection.subscribe((data) => {
-      for (const d of data) {
-        const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
-        const uniqueID = d.start+ seq + d.end
-        if (!this.dataService.selectedSeqs.includes(uniqueID)) {
-          this.dataService.selectedSeqs.push(uniqueID)
-          for (let i = d.start; i <= d.end; i++) {
-            if (!this.dataService.selectionMap[i]) {
-              this.dataService.selectionMap[i] = []
+    this.dataService.segmentSelection
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        for (const d of data) {
+          const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("")
+          const uniqueID = d.start + seq + d.end
+          if (!this.dataService.selectedSeqs.includes(uniqueID)) {
+            this.dataService.addSelectedSeq(uniqueID)
+            for (let i = d.start; i <= d.end; i++) {
+              const currentMap = this.dataService.selectionMap[i] || []
+              const newMap = [...currentMap, uniqueID].sort((a, b) => b.length - a.length)
+              this.dataService.updateSelectionMap(i.toString(), newMap)
             }
-            this.dataService.selectionMap[i].push(uniqueID)
-            this.dataService.selectionMap[i].sort((a, b) => b.length - a.length)
-          }
-          this.dataService.segments.push(d)
-          if (!this.dataService.segmentColorMap[uniqueID]) {
-            this.dataService.segmentColorMap[uniqueID] = this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
+            this.dataService.addSegment(d)
+            if (!this.dataService.segmentColorMap[uniqueID]) {
+              this.dataService.updateSegmentColorMap(
+                uniqueID,
+                this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
+              )
+            }
           }
         }
-
-      }
-      this.dataService.redrawSubject.next(true)
-    })
-
+        this.dataService.redrawSubject.next(true)
+      })
   }
 
   ngOnInit(): void {
     this.form.controls["term"].valueChanges.pipe(
       debounceTime(200),
-      map(value => this.web.getUniprotTypeAhead(value||'')),
+      switchMap(value => this.web.getUniprotTypeAhead(value || '')),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe((data) => {
-      this.filteredOptions = data
+      this.filteredOptions.set(data)
     })
   }
 

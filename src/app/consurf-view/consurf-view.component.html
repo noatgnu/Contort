@@ -14,7 +14,7 @@
                   <input matInput type="search" formControlName="term" [matAutocomplete]="auto" placeholder="e.g., P12345">
                   <mat-icon matPrefix>search</mat-icon>
                   <mat-autocomplete #auto="matAutocomplete">
-                    @for (option of filteredOptions | async; track option) {
+                    @for (option of filteredOptions(); track option) {
                       <mat-option [value]="option">
                         {{option}}
                       </mat-option>
@@ -32,7 +32,7 @@
                 </div>
               </form>
               <div>
-                Total number of sequences: {{dataCount|async}}
+                Total number of sequences: {{dataCount()}}
               </div>
             </div>
           </mat-card-content>
@@ -69,9 +69,9 @@
     </div>
   </div>
   @if (retrieving()) {
-    <div style="display: flex; justify-content: center; align-items: center; padding: 40px; flex-direction: column; gap: 20px;">
-      <mat-progress-bar color="primary" mode="indeterminate" style="width: 300px;"></mat-progress-bar>
-      <p>Loading ConSurf data...</p>
+    <div style="display: flex; justify-content: center; align-items: center; padding: 40px; flex-direction: column; gap: 16px;">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p style="font-size: 16px; color: var(--text-secondary);">{{ loadingStatus() || 'Loading ConSurf data...' }}</p>
     </div>
   }
   @if (hasData() && dataService.displayData.count() > 0) {

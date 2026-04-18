@@ -1,7 +1,8 @@
-import {Component, Input, OnInit, OnDestroy, signal} from '@angular/core';
+import {Component, Input, OnInit, signal, inject, DestroyRef} from '@angular/core';
 import {FormBuilder, FormControl, Validators} from "@angular/forms";
 import {DataFrame} from "data-forge";
-import {debounceTime, forkJoin, map, Observable, tap, Subject, takeUntil, distinctUntilChanged} from "rxjs";
+import {debounceTime, forkJoin, map, Observable, tap, distinctUntilChanged, switchMap} from "rxjs";
+import {takeUntilDestroyed, toSignal} from "@angular/core/rxjs-interop";
 import {DataService} from "../data.service";
 import {WebService} from "../web.service";
 import {ConSurfGrade} from "../con-surf-data";
@@ -13,10 +14,9 @@ import {MatSnackBar} from "@angular/material/snack-bar";
     styleUrl: './consurf-view.component.scss',
     standalone: false
 })
-export class ConsurfViewComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
-  
-  // Helper to convert RGB to Hex for color picker
+export class ConsurfViewComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+
   rgbToHex(rgb: string): string {
     const result = rgb.match(/\d+/g);
     if (!result || result.length < 3) return '#000000';
@@ -28,8 +28,7 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
       return hex.length === 1 ? '0' + hex : hex;
     }).join('');
   }
-  
-  // Helper to convert Hex to RGB for storage
+
   hexToRgb(hex: string): string {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!result) return 'rgb(0, 0, 0)';
@@ -77,12 +76,13 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
     aaPerRow: new FormControl<number>(this.dataService.segmentSettings["number-of-aa-per-row"], [Validators.required, Validators.min(1)]),
   });
   
-  filteredOptions: Observable<string[]> = new Observable<string[]>();
-  dataCount: Observable<number> | undefined;
+  filteredOptions = signal<string[]>([]);
+  dataCount = toSignal(this.web.getCount(), { initialValue: 0 });
 
   searching = signal<boolean>(false);
   retrieving = signal<boolean>(false);
   hasData = signal<boolean>(false);
+  loadingStatus = signal<string>('');
 
   constructor(
     public dataService: DataService,
@@ -90,7 +90,6 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
     private web: WebService,
     private sb: MatSnackBar
   ) {
-    this.dataCount = this.web.getCount();
     this.setupSegmentSelectionListener();
   }
 
@@ -98,39 +97,34 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
     this.setupSearchTypeahead();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private setupSegmentSelectionListener(): void {
     this.dataService.segmentSelection
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         for (const d of data) {
           const seq = d.seq.getSeries("GRADE").toArray().map((a: ConSurfGrade) => a.SEQ).join("");
           const uniqueID = d.start + seq + d.end;
-          
+
           if (!this.dataService.selectedSeqs.includes(uniqueID)) {
-            this.dataService.selectedSeqs.push(uniqueID);
-            
+            this.dataService.addSelectedSeq(uniqueID);
+
             for (let i = d.start; i <= d.end; i++) {
-              if (!this.dataService.selectionMap[i]) {
-                this.dataService.selectionMap[i] = [];
-              }
-              this.dataService.selectionMap[i].push(uniqueID);
-              this.dataService.selectionMap[i].sort((a, b) => b.length - a.length);
+              const currentMap = this.dataService.selectionMap[i] || [];
+              const newMap = [...currentMap, uniqueID].sort((a, b) => b.length - a.length);
+              this.dataService.updateSelectionMap(i.toString(), newMap);
             }
-            
-            this.dataService.segments.push(d);
-            
+
+            this.dataService.addSegment(d);
+
             if (!this.dataService.segmentColorMap[uniqueID]) {
-              this.dataService.segmentColorMap[uniqueID] = 
-                this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length];
+              this.dataService.updateSegmentColorMap(
+                uniqueID,
+                this.dataService.defaultColorList[this.dataService.selectedSeqs.length % this.dataService.defaultColorList.length]
+              );
             }
           }
         }
-        
+
         this.dataService.redrawSubject.next(true);
       });
   }
@@ -140,11 +134,11 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
       debounceTime(300),
       distinctUntilChanged(),
       tap(() => this.searching.set(true)),
-      map(value => this.web.getUniprotTypeAhead(value || '')),
+      switchMap(value => this.web.getUniprotTypeAhead(value || '')),
       tap(() => this.searching.set(false)),
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(data => {
-      this.filteredOptions = data;
+      this.filteredOptions.set(data);
     });
   }
 
@@ -174,7 +168,7 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
 
   getCONSURF(): void {
     const term = this.form.value.term;
-    
+
     if (!term || term === "") {
       this.sb.open('Please enter a UniProt accession ID', 'Close', { duration: 3000 });
       return;
@@ -182,20 +176,24 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
 
     this.retrieving.set(true);
     this.hasData.set(false);
+    this.loadingStatus.set('Fetching conservation grades and MSA data...');
 
     forkJoin([
       this.web.getConsurfGrade(term),
       this.web.getConsurfMSAVar(term)
     ])
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ([grades, msaVar]) => {
+          this.loadingStatus.set('Processing sequence data...');
           this.processConsurfData(grades, msaVar);
+          this.loadingStatus.set('');
           this.retrieving.set(false);
           this.hasData.set(true);
           this.sb.open('Data loaded successfully', 'Close', { duration: 2000 });
         },
         error: (error) => {
+          this.loadingStatus.set('');
           this.retrieving.set(false);
           this.sb.open('Failed to load ConSurf data', 'Close', { duration: 3000 });
         }
@@ -205,19 +203,23 @@ export class ConsurfViewComponent implements OnInit, OnDestroy {
   getConsurfFromJob(jobId: number): void {
     this.retrieving.set(true);
     this.hasData.set(false);
+    this.loadingStatus.set('Fetching job results...');
 
     forkJoin([
       this.web.getConsurfGradeFromJob(jobId),
       this.web.getConeurfMSAVarFromJob(jobId)
     ])
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ([grades, msaVar]) => {
+          this.loadingStatus.set('Processing sequence data...');
           this.processConsurfData(grades, msaVar);
+          this.loadingStatus.set('');
           this.retrieving.set(false);
           this.hasData.set(true);
         },
         error: (error) => {
+          this.loadingStatus.set('');
           this.retrieving.set(false);
           this.sb.open('Failed to load ConSurf data from job', 'Close', { duration: 3000 });
         }

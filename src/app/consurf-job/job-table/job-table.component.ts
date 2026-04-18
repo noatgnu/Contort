@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output, OnDestroy, signal} from '@angular/core';
+import {Component, EventEmitter, Input, Output, signal, inject, DestroyRef} from '@angular/core';
 import {WebService} from "../../web.service";
 import {ConsurfJobQuery} from "../../consurf-job";
 import {
@@ -25,7 +25,8 @@ import {ConsurfJob} from "../../consurf-job";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {MatDialog} from "@angular/material/dialog";
 import {WebsocketService} from "../../websocket.service";
-import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {BatchJobService, BatchJob} from '../../batch-job.service';
 import {ConfirmDialogComponent, ConfirmDialogData} from '../../shared/confirm-dialog/confirm-dialog.component';
 import {SkeletonLoaderComponent} from '../../shared/skeleton-loader/skeleton-loader.component';
@@ -73,8 +74,8 @@ import {trigger, state, style, transition, animate} from '@angular/animations';
     ])
   ]
 })
-export class JobTableComponent implements OnDestroy {
-  private destroy$ = new Subject<void>();
+export class JobTableComponent {
+  private destroyRef = inject(DestroyRef);
   private readonly STORAGE_KEY = 'consurfJobFilters';
 
   readonly pageSize = 10;
@@ -193,20 +194,15 @@ export class JobTableComponent implements OnDestroy {
     return batch?.name || '-';
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private setupWebsocketListener(): void {
     this.websocket.jobMessage
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => {
         if (this.consurfJobQuery?.results) {
           const index = this.consurfJobQuery.results.findIndex(job => job.id === data.job_id);
           if (index !== -1) {
             this.web.getConsurfJob(data.job_id)
-              .pipe(takeUntil(this.destroy$))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(job => {
                 if (this.consurfJobQuery) {
                   this.consurfJobQuery.results[index] = job;
@@ -224,7 +220,7 @@ export class JobTableComponent implements OnDestroy {
     const batchId = this.form.value.batchId || 'all';
 
     this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => {
         if (batchId !== 'all') {
           const batchJobIds = this.batchJobService.getBatchJobs(batchId);
@@ -240,19 +236,19 @@ export class JobTableComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => this.refreshData());
 
     this.form.controls.status.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.saveFilters();
         this.refreshData();
       });
 
     this.form.controls.batchId.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.saveFilters();
         this.refreshData();
@@ -266,7 +262,7 @@ export class JobTableComponent implements OnDestroy {
     const batchId = this.form.value.batchId || 'all';
 
     this.web.getConsurfJobs(this.pageSize, this.offset, term, status)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => {
         if (batchId !== 'all') {
           const batchJobIds = this.batchJobService.getBatchJobs(batchId);
@@ -284,7 +280,7 @@ export class JobTableComponent implements OnDestroy {
     
     this.offset = offset;
     this.web.getConsurfJobs(this.pageSize, offset, term, status)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.consurfJobQuery = data);
   }
 
@@ -310,12 +306,12 @@ export class JobTableComponent implements OnDestroy {
     });
 
     dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
         if (!confirmed) return;
 
         this.web.cancelConsurfJob(jobId)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe({
             next: (response) => {
               this.sb.open('Job cancelled successfully', 'Close', {duration: 2000});
@@ -380,7 +376,7 @@ export class JobTableComponent implements OnDestroy {
     });
 
     dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
         if (!confirmed) return;
 
@@ -389,7 +385,7 @@ export class JobTableComponent implements OnDestroy {
 
         cancellableJobs.forEach(job => {
           this.web.cancelConsurfJob(job.id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: (response) => {
                 completed++;

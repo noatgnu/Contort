@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatCard, MatCardContent, MatCardHeader, MatCardTitle, MatCardActions } from '@angular/material/card';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -6,7 +6,8 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
-import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebService } from '../web.service';
 import { ConsurfJob } from '../consurf-job';
 import { UploadFastaDatabaseComponent } from '../upload-fasta-database/upload-fasta-database.component';
@@ -38,8 +39,8 @@ interface DashboardStats {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class DashboardComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
 
   stats = signal<DashboardStats | null>(null);
   recentJobs = signal<ConsurfJob[]>([]);
@@ -55,11 +56,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loadDashboardData();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private loadDashboardData(): void {
     forkJoin({
       all: this.web.getConsurfJobs(1, 0, '', 'all'),
@@ -67,7 +63,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       completed: this.web.getConsurfJobs(5, 0, '', 'completed'),
       failed: this.web.getConsurfJobs(1, 0, '', 'failed'),
       pending: this.web.getConsurfJobs(1, 0, '', 'pending')
-    }).pipe(takeUntil(this.destroy$))
+    }).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           this.stats.set({

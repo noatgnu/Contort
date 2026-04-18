@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, signal, computed} from '@angular/core';
+import {Component, Input, signal, computed, inject, DestroyRef} from '@angular/core';
 import {FormBuilder, ReactiveFormsModule, Validators} from "@angular/forms";
 import {WebService} from "../web.service";
 import {ProteinFastaDatabaseQuery} from "../protein-fasta-database";
@@ -10,7 +10,8 @@ import {SaveStructureFileDialogComponent} from "./save-structure-file-dialog/sav
 import {Router} from "@angular/router";
 import {WebsocketService} from "../websocket.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
-import {forkJoin, Observable, Subject, debounceTime, distinctUntilChanged, takeUntil, tap} from "rxjs";
+import {forkJoin, Observable, debounceTime, distinctUntilChanged, tap} from "rxjs";
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {ConsurfJob} from "../consurf-job";
 import {AccountService} from "../account.service";
 import {BatchJobService} from "../batch-job.service";
@@ -22,9 +23,9 @@ import {CustomValidators} from "../shared/validators";
   styleUrl: './consurf-job.component.scss',
   standalone: false,
 })
-export class ConsurfJobComponent implements OnDestroy {
-  private destroy$ = new Subject<void>();
-  
+export class ConsurfJobComponent {
+  private destroyRef = inject(DestroyRef);
+
   private _jobid: string = "";
   status = signal<string>("unsubmitted");
   log_data = signal<string>("");
@@ -122,14 +123,9 @@ export class ConsurfJobComponent implements OnDestroy {
     this.loadInitialData();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private loadJobData(jobId: number): void {
     this.web.getConsurfJob(jobId)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(job => {
         this.populateFormFromJob(job);
         this.log_data.set(job.log_data);
@@ -167,14 +163,14 @@ export class ConsurfJobComponent implements OnDestroy {
 
     if (job.msa) {
       this.web.getAllSequenceNamesFromMSA(job.msa)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(names => this.sequence_names.set(names));
     }
   }
 
   private setupWebsocketListener(): void {
     this.websocket.jobMessage
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(message => {
         if (message.job_id === parseInt(this.jobid)) {
           this.status.set(message.status);
@@ -185,7 +181,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
   private setupFormListeners(): void {
     this.form.controls.query_sequence.valueChanges
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
         if (value) {
           const count = value.split("\n").filter((a: string) => a[0] === ">").length;
@@ -197,13 +193,13 @@ export class ConsurfJobComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(value => {
         const term = value || '';
         this.offset = 0;
         this.web.getProteinFastaDatabases(this.limit, this.offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.proteinDatabaseQuery = data);
       });
 
@@ -211,13 +207,13 @@ export class ConsurfJobComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(value => {
         const term = value || '';
         this.msaOffset = 0;
         this.web.getMSAs(this.msaLimit, this.msaOffset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.msaQuery = data);
       });
 
@@ -225,28 +221,28 @@ export class ConsurfJobComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(value => {
         const term = value || '';
         this.pdbOffset = 0;
         this.web.getStructures(this.pdbLimit, this.pdbOffset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.structureQuery = data);
       });
   }
 
   private loadInitialData(): void {
     this.web.getProteinFastaDatabases(this.limit, this.offset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.proteinDatabaseQuery = data);
 
     this.web.getMSAs(this.msaLimit, this.msaOffset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.msaQuery = data);
 
     this.web.getStructures(this.pdbLimit, this.pdbOffset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.structureQuery = data);
   }
 
@@ -259,19 +255,19 @@ export class ConsurfJobComponent implements OnDestroy {
       database: () => {
         this.offset = offset;
         this.web.getProteinFastaDatabases(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.proteinDatabaseQuery = data);
       },
       msa: () => {
         this.msaOffset = offset;
         this.web.getMSAs(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.msaQuery = data);
       },
       structure: () => {
         this.pdbOffset = offset;
         this.web.getStructures(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.structureQuery = data);
       }
     };
@@ -387,7 +383,7 @@ export class ConsurfJobComponent implements OnDestroy {
     const observables = this.createBatchJobObservables(this.form.controls.query_sequence.value, batchId);
 
     forkJoin(observables)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (results) => {
           this.sb.open(`${results.length} jobs submitted successfully`, "Dismiss", { duration: 3000 });
@@ -435,7 +431,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
   private submitSingleJob(): void {
     this.web.submitConsurfJob(this.form.value)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
           this.status.set("pending");
@@ -457,7 +453,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
     const jobID = parseInt(this.jobid);
     this.web.generateJobDownloadToken(jobID)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(response => {
         this.web.downloadJobResults(jobID, response.token, fileType);
       });
@@ -469,7 +465,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
     this.isFetchingSequence.set(true);
     this.web.getUniprot(uniprotId)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           this.uniprot = data;
@@ -496,7 +492,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
     this.isFetchingStructure.set(true);
     this.web.getPDBFileFromUniProtID(uniprotId)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (pdbContent) => {
           this.isFetchingStructure.set(false);
@@ -512,7 +508,7 @@ export class ConsurfJobComponent implements OnDestroy {
           });
           
           dialogRef.afterClosed()
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(name => {
               if (name) {
                 this.savePDBFile(name, pdbContent);
@@ -530,7 +526,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
   private savePDBFile(name: string, content: string): void {
     this.web.savePDBContent(name, content)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(pdbFile => {
         this.form.controls.structure_id.setValue([pdbFile.id]);
         this.form.controls.chain.setValue(pdbFile.chains[0]);
@@ -575,7 +571,7 @@ export class ConsurfJobComponent implements OnDestroy {
 
   handleAlignmentClick(msa: MultipleSequenceAlignment): void {
     this.web.getAllSequenceNamesFromMSA(msa.id)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(names => this.sequence_names.set(names));
   }
 

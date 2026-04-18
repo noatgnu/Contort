@@ -53,14 +53,14 @@
           <mat-icon aria-hidden="true">logout</mat-icon>
         </button>
       }
-      @if (websocket.isReconnecting$ | async) {
+      @if (websocket.isReconnecting()) {
         <button mat-icon-button
                 class="connection-reconnecting"
                 aria-label="Connection status: Reconnecting"
                 disabled>
           <mat-icon aria-hidden="true">sync</mat-icon>
         </button>
-      } @else if (websocket.connectionStatus$ | async) {
+      } @else if (websocket.connectionStatus()) {
         <button mat-icon-button
                 class="connection-connected"
                 aria-label="Connection status: Connected"
@@ -78,7 +78,7 @@
     </div>
   </mat-toolbar>
   <main id="main-content" tabindex="-1">
-    @if (ready) {
+    @if (ready()) {
       <app-breadcrumb></app-breadcrumb>
       <router-outlet></router-outlet>
     }

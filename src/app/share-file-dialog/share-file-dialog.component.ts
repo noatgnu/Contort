@@ -1,4 +1,4 @@
-import {Component, Inject, signal} from '@angular/core';
+import {Component, Inject, signal, inject, DestroyRef} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef, MatDialogTitle, MatDialogContent, MatDialogActions} from '@angular/material/dialog';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {WebService} from '../web.service';
@@ -10,8 +10,8 @@ import {MatChipGrid, MatChipRemove, MatChipRow} from '@angular/material/chips';
 import {MatIcon} from '@angular/material/icon';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {MatDivider} from '@angular/material/divider';
-import {Subject, Observable} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 export interface ShareFileDialogData {
   id: number;
@@ -43,7 +43,7 @@ export interface ShareFileDialogData {
   styleUrl: './share-file-dialog.component.scss'
 })
 export class ShareFileDialogComponent {
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   sharedUsers = signal<string[]>([]);
   isPublic = signal<boolean>(false);
 
@@ -62,11 +62,6 @@ export class ShareFileDialogComponent {
     this.isPublic.set(data.is_public);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   addUser(): void {
     const username = this.form.value.username?.trim();
     if (username && !this.sharedUsers().includes(username)) {
@@ -83,7 +78,7 @@ export class ShareFileDialogComponent {
     const newPublicState = !this.isPublic();
     const serviceCall = this.getSetPublicCall(newPublicState);
 
-    serviceCall.pipe(takeUntil(this.destroy$)).subscribe({
+    serviceCall.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.isPublic.set(newPublicState);
         this.sb.open(`File is now ${newPublicState ? 'public' : 'private'}`, 'Close', {duration: 2000});
@@ -105,13 +100,13 @@ export class ShareFileDialogComponent {
 
     if (usersToAdd.length > 0) {
       operations.push(
-        this.getShareCall(usersToAdd).pipe(takeUntil(this.destroy$))
+        this.getShareCall(usersToAdd).pipe(takeUntilDestroyed(this.destroyRef))
       );
     }
 
     if (usersToRemove.length > 0) {
       operations.push(
-        this.getUnshareCall(usersToRemove).pipe(takeUntil(this.destroy$))
+        this.getUnshareCall(usersToRemove).pipe(takeUntilDestroyed(this.destroyRef))
       );
     }
 

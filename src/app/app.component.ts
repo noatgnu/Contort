@@ -1,4 +1,4 @@
-import {Component, OnInit, HostListener} from '@angular/core';
+import {Component, OnInit, HostListener, signal} from '@angular/core';
 import {fromCSV} from "data-forge";
 import {DataService} from "./data.service";
 import {MatDialog} from "@angular/material/dialog";
@@ -21,7 +21,7 @@ import {KeyboardShortcutsService} from "./keyboard-shortcuts.service";
 })
 export class AppComponent implements OnInit {
   title = 'CONTORT';
-  ready = false
+  ready = signal(false);
 
   constructor(
     private web: WebService,
@@ -41,8 +41,8 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.initialize().then(() => {
-      this.ready = true
-    })
+      this.ready.set(true);
+    });
   }
 
   async initialize() {

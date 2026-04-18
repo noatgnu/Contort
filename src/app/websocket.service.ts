@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, signal, computed } from '@angular/core';
 import { environment } from "../environments/environment";
 import { AccountService } from "./account.service";
 import { webSocket, WebSocketSubject } from "rxjs/webSocket";
@@ -28,12 +28,15 @@ export class WebsocketService implements OnDestroy {
   readonly jobMessage$ = new Subject<MessageJob>();
   readonly connectionStatus$ = new BehaviorSubject<boolean>(false);
   readonly isReconnecting$ = new BehaviorSubject<boolean>(false);
-  
-  // Legacy support
+
+  readonly connectionStatus = signal<boolean>(false);
+  readonly isReconnecting = signal<boolean>(false);
+  readonly isConnected = computed(() => this.connectionStatus() && !this.isReconnecting());
+
   get jobMessage(): Subject<MessageJob> {
     return this.jobMessage$;
   }
-  
+
   get connectedJobWS(): boolean {
     return this.connectionStatus$.value;
   }
@@ -97,13 +100,16 @@ export class WebsocketService implements OnDestroy {
       openObserver: {
         next: () => {
           this.connectionStatus$.next(true);
+          this.connectionStatus.set(true);
           this.isReconnecting$.next(false);
+          this.isReconnecting.set(false);
           this.reconnectAttempts = 0;
         }
       },
       closeObserver: {
         next: () => {
           this.connectionStatus$.next(false);
+          this.connectionStatus.set(false);
           this.handleDisconnection();
         }
       },
@@ -122,6 +128,7 @@ export class WebsocketService implements OnDestroy {
           delay: (error, retryCount) => {
             this.reconnectAttempts = retryCount;
             this.isReconnecting$.next(true);
+            this.isReconnecting.set(true);
             return timer(this.reconnectInterval);
           },
           resetOnSuccess: true
@@ -131,7 +138,9 @@ export class WebsocketService implements OnDestroy {
       .subscribe({
         error: () => {
           this.connectionStatus$.next(false);
+          this.connectionStatus.set(false);
           this.isReconnecting$.next(false);
+          this.isReconnecting.set(false);
         },
         complete: () => {}
       });
@@ -139,6 +148,7 @@ export class WebsocketService implements OnDestroy {
 
   private handleDisconnection(): void {
     this.isReconnecting$.next(true);
+    this.isReconnecting.set(true);
   }
 
   disconnect(): void {
@@ -146,7 +156,9 @@ export class WebsocketService implements OnDestroy {
       this.jobConnection.complete();
       this.jobConnection = null;
       this.connectionStatus$.next(false);
+      this.connectionStatus.set(false);
       this.isReconnecting$.next(false);
+      this.isReconnecting.set(false);
     }
   }
 

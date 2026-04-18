@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {Subject} from "rxjs";
 import {ConSurfData, ConSurfGrade, ConSurfMSAVar} from "./con-surf-data";
 import {DataFrame, IDataFrame} from "data-forge";
@@ -40,18 +40,89 @@ export class DataService {
   ]
 
   segmentSelection: Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]> = new Subject<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]>()
-  segments: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] = []
   redrawSubject: Subject<boolean> = new Subject<boolean>()
-  selectionMap: {[key: string]: string[]} = {}
-  segmentColorMap: {[key: string]: string} = {}
-  selectedSeqs: string[] = []
-  dataGrade: IDataFrame<number, ConSurfGrade> = new DataFrame()
-  dataMSA: IDataFrame<number, ConSurfMSAVar> = new DataFrame()
-  combinedData: IDataFrame<number, ConSurfData> = new DataFrame()
-  displayData: IDataFrame<number, ConSurfData> = new DataFrame()
   aaPerRowSubject: Subject<boolean> = new Subject<boolean>()
 
-  constructor() {
+  private _segments = signal<{start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]>([]);
+  private _selectionMap = signal<{[key: string]: string[]}>({});
+  private _segmentColorMap = signal<{[key: string]: string}>({});
+  private _selectedSeqs = signal<string[]>([]);
+  private _dataGrade = signal<IDataFrame<number, ConSurfGrade>>(new DataFrame());
+  private _dataMSA = signal<IDataFrame<number, ConSurfMSAVar>>(new DataFrame());
+  private _combinedData = signal<IDataFrame<number, ConSurfData>>(new DataFrame());
+  private _displayData = signal<IDataFrame<number, ConSurfData>>(new DataFrame());
 
+  get segments(): {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[] {
+    return this._segments();
   }
+  set segments(value: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}[]) {
+    this._segments.set(value);
+  }
+
+  get selectionMap(): {[key: string]: string[]} {
+    return this._selectionMap();
+  }
+  set selectionMap(value: {[key: string]: string[]}) {
+    this._selectionMap.set(value);
+  }
+
+  get segmentColorMap(): {[key: string]: string} {
+    return this._segmentColorMap();
+  }
+  set segmentColorMap(value: {[key: string]: string}) {
+    this._segmentColorMap.set(value);
+  }
+
+  get selectedSeqs(): string[] {
+    return this._selectedSeqs();
+  }
+  set selectedSeqs(value: string[]) {
+    this._selectedSeqs.set(value);
+  }
+
+  get dataGrade(): IDataFrame<number, ConSurfGrade> {
+    return this._dataGrade();
+  }
+  set dataGrade(value: IDataFrame<number, ConSurfGrade>) {
+    this._dataGrade.set(value);
+  }
+
+  get dataMSA(): IDataFrame<number, ConSurfMSAVar> {
+    return this._dataMSA();
+  }
+  set dataMSA(value: IDataFrame<number, ConSurfMSAVar>) {
+    this._dataMSA.set(value);
+  }
+
+  get combinedData(): IDataFrame<number, ConSurfData> {
+    return this._combinedData();
+  }
+  set combinedData(value: IDataFrame<number, ConSurfData>) {
+    this._combinedData.set(value);
+  }
+
+  get displayData(): IDataFrame<number, ConSurfData> {
+    return this._displayData();
+  }
+  set displayData(value: IDataFrame<number, ConSurfData>) {
+    this._displayData.set(value);
+  }
+
+  updateSelectionMap(key: string, value: string[]): void {
+    this._selectionMap.update(map => ({ ...map, [key]: value }));
+  }
+
+  updateSegmentColorMap(key: string, value: string): void {
+    this._segmentColorMap.update(map => ({ ...map, [key]: value }));
+  }
+
+  addSegment(segment: {start: number, end: number, seq: IDataFrame<number, ConSurfData>}): void {
+    this._segments.update(segments => [...segments, segment]);
+  }
+
+  addSelectedSeq(seq: string): void {
+    this._selectedSeqs.update(seqs => [...seqs, seq]);
+  }
+
+  constructor() {}
 }

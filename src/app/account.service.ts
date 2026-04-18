@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import {UserSession} from "./user";
 
 @Injectable({
@@ -7,10 +7,34 @@ import {UserSession} from "./user";
 export class AccountService {
   private tokenKey = 'contortToken';
   private userKey = 'contortUserData';
-  private _sessionID: string = ''
-  userSession?: UserSession
+  private _sessionID: string = '';
 
-  isLogged: boolean = false
+  private _userSession = signal<UserSession | undefined>(undefined);
+  private _isLogged = signal<boolean>(false);
+
+  readonly isAuthenticated = computed(() => {
+    const session = this._userSession();
+    if (session && session.status === 200) {
+      return true;
+    }
+    return !!this.getToken();
+  });
+
+  get userSession(): UserSession | undefined {
+    return this._userSession();
+  }
+
+  set userSession(value: UserSession | undefined) {
+    this._userSession.set(value);
+  }
+
+  get isLogged(): boolean {
+    return this._isLogged();
+  }
+
+  set isLogged(value: boolean) {
+    this._isLogged.set(value);
+  }
 
   set sessionID(value: string) {
     localStorage.setItem('contortSessionID', value);
@@ -23,7 +47,8 @@ export class AccountService {
     }
     return this._sessionID;
   }
-  constructor() { }
+
+  constructor() {}
 
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
@@ -42,17 +67,7 @@ export class AccountService {
     return user ? JSON.parse(user) : null;
   }
 
-  private setUser(user: any): void {
-  }
-
-  isAuthenticated(): boolean {
-    if (this.userSession) {
-      if (this.userSession.status === 200) {
-        return true
-      }
-    }
-    return !!this.getToken();
-  }
+  private setUser(user: any): void {}
 
   logout(): void {
     this.clearToken();
@@ -62,8 +77,8 @@ export class AccountService {
   clearSession(): void {
     this.clearToken();
     this.clearUser();
-    this.userSession = undefined;
-    this.isLogged = false;
+    this._userSession.set(undefined);
+    this._isLogged.set(false);
   }
 
   private clearUser(): void {

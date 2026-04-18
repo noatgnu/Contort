@@ -1,4 +1,4 @@
-import {Component, ViewChild, OnDestroy, signal} from '@angular/core';
+import {Component, ViewChild, signal, inject, DestroyRef} from '@angular/core';
 import { WebService } from '../web.service';
 import jsSHA from 'jssha';
 import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -26,7 +26,8 @@ import {MatIcon} from "@angular/material/icon";
 import {MatTab, MatTabGroup} from "@angular/material/tabs";
 import {MatTooltip} from "@angular/material/tooltip";
 import {StructureFile, StructureFileQuery} from "../structure";
-import {Subject, debounceTime, distinctUntilChanged, takeUntil} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs';
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {ShareFileDialogComponent} from "../share-file-dialog/share-file-dialog.component";
 import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-dialog.component";
 import {ConfirmDialogComponent, ConfirmDialogData} from "../shared/confirm-dialog/confirm-dialog.component";
@@ -69,13 +70,13 @@ import {EmptyStateComponent} from "../shared/empty-state/empty-state.component";
   ],
   styleUrls: ['./upload-fasta-database.component.scss']
 })
-export class UploadFastaDatabaseComponent implements OnDestroy {
+export class UploadFastaDatabaseComponent {
   @ViewChild("fileInput") fileInput: any;
   @ViewChild("fileInputMSA") fileInputMSA: any;
   @ViewChild("fileInputStructure") fileInputStructure: any;
-  
-  private destroy$ = new Subject<void>();
-  
+
+  private destroyRef = inject(DestroyRef);
+
   fileList = signal<File[]>([]);
   fileProgressMap: Record<string, { progress: number; total: number }> = {};
   isUploading = signal(false);
@@ -114,22 +115,17 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
     this.setupSearchListener();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   private loadInitialData(): void {
     this.web.getProteinFastaDatabases(this.limit, this.offset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.query = data);
     
     this.web.getStructures(this.structureLimit, this.structureOffset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.structureQuery = data);
     
     this.web.getMSAs(this.msaLimit, this.msaOffset)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.msaQuery = data);
   }
 
@@ -138,13 +134,13 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(value => {
         this.offset = 0;
         const term = value || '';
         this.web.getProteinFastaDatabases(this.limit, this.offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.query = data);
       });
   }
@@ -158,19 +154,19 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
       database: () => {
         this.offset = offset;
         this.web.getProteinFastaDatabases(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.query = data);
       },
       msa: () => {
         this.msaOffset = offset;
         this.web.getMSAs(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.msaQuery = data);
       },
       structure: () => {
         this.structureOffset = offset;
         this.web.getStructures(limit, offset, term)
-          .pipe(takeUntil(this.destroy$))
+          .pipe(takeUntilDestroyed(this.destroyRef))
           .subscribe(data => this.structureQuery = data);
       }
     };
@@ -310,7 +306,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
 
   private async bindAndRefreshData(name: string, fileId: string, type: 'database' | 'msa' | 'structure'): Promise<void> {
     await this.web.bindUploadedFile(name, fileId, type)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .toPromise();
     
     this.sb.open('File uploaded successfully', 'Close', { duration: 2000 });
@@ -320,13 +316,13 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
   private refreshData(type: 'database' | 'msa' | 'structure'): void {
     const refreshHandlers = {
       database: () => this.web.getProteinFastaDatabases(this.limit, this.offset)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(data => this.query = data),
       msa: () => this.web.getMSAs(this.msaLimit, this.msaOffset)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(data => this.msaQuery = data),
       structure: () => this.web.getStructures(this.structureLimit, this.structureOffset)
-        .pipe(takeUntil(this.destroy$))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(data => this.structureQuery = data)
     };
 
@@ -355,7 +351,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
     });
 
     dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
         if (!confirmed) return;
 
@@ -363,30 +359,30 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
 
         const deleteHandlers = {
           database: () => this.web.deleteProteinFastaDatabase(id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
               this.web.getProteinFastaDatabases(this.limit, this.offset, term)
-                .pipe(takeUntil(this.destroy$))
+                .pipe(takeUntilDestroyed(this.destroyRef))
                 .subscribe(data => {
                   this.query = data;
                   this.sb.open('Database deleted', 'Close', { duration: 2000 });
                 });
             }),
           msa: () => this.web.deleteMSA(id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
               this.web.getMSAs(this.msaLimit, this.msaOffset, term)
-                .pipe(takeUntil(this.destroy$))
+                .pipe(takeUntilDestroyed(this.destroyRef))
                 .subscribe(data => {
                   this.msaQuery = data;
                   this.sb.open('MSA deleted', 'Close', { duration: 2000 });
                 });
             }),
           structure: () => this.web.deleteStructure(id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => {
               this.web.getStructures(this.structureLimit, this.structureOffset, term)
-                .pipe(takeUntil(this.destroy$))
+                .pipe(takeUntilDestroyed(this.destroyRef))
                 .subscribe(data => {
                   this.structureQuery = data;
                   this.sb.open('Structure deleted', 'Close', { duration: 2000 });
@@ -418,7 +414,7 @@ export class UploadFastaDatabaseComponent implements OnDestroy {
     });
 
     dialogRef.afterClosed()
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => {
         if (result) {
           this.refreshData(type);
