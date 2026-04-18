@@ -235,11 +235,8 @@ export class WebService {
     let headers = new HttpHeaders()
     headers = headers.append('Content-Range', contentRange)
     if (url !== "") {
-      if (url.startsWith("http://") && !url.startsWith("http://localhost")) {
-        url = url.replace("http://", "https://")
-      }
       return this.http.put<ChunkUpload>(
-        url,
+        this.upgradeUrl(url),
         form,
         {responseType: 'json', observe: 'body', headers: headers}
       )
@@ -257,9 +254,7 @@ export class WebService {
   uploadDataChunkComplete(url: string = "", md5: string, file?: File, filename?: string) {
     const form = new FormData()
     form.append('sha256', md5)
-    if (url.startsWith("http://") && !url.startsWith("http://localhost")) {
-      url = url.replace("http://", "https://")
-    }
+    url = this.upgradeUrl(url);
     if (file && filename) {
       form.append('file', file)
       form.append('filename', filename)
@@ -497,6 +492,13 @@ export class WebService {
     headers = headers.append('X-Session-Token', this.getSessionIDFromCookies() || "")
     headers = headers.append('X-CSRFToken', this.getCSRFTokenFromCookies() || "")
     return this.http.post(`${this.baseUrl}/api/users/logout_provider/`, {withCredentials: true, headers: headers})
+  }
+
+  upgradeUrl(url: string): string {
+    if (url.startsWith("http://") && !url.startsWith("http://localhost")) {
+      return url.replace("http://", "https://");
+    }
+    return url;
   }
 
 }

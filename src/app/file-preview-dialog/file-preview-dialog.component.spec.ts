@@ -16,6 +16,8 @@ describe('FilePreviewDialogComponent', () => {
     fileType: 'database'
   };
 
+  const upgradedUrl = 'https://example.com/test.fasta';
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FilePreviewDialogComponent],
@@ -37,21 +39,28 @@ describe('FilePreviewDialogComponent', () => {
   });
 
   it('should create', () => {
-    const req = httpMock.expectOne(mockDialogData.fileUrl);
+    const req = httpMock.expectOne(upgradedUrl);
     req.flush('>seq1\nACGT\n>seq2\nTGCA');
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
+  it('should upgrade http to https for non-localhost URLs', () => {
+    const req = httpMock.expectOne(upgradedUrl);
+    req.flush('>seq1\nACGT');
+    fixture.detectChanges();
+    expect(req.request.url).toBe(upgradedUrl);
+  });
+
   it('should load file content on init', () => {
-    const req = httpMock.expectOne(mockDialogData.fileUrl);
+    const req = httpMock.expectOne(upgradedUrl);
     req.flush('>seq1\nACGT');
     fixture.detectChanges();
     expect(component.isLoading()).toBe(false);
   });
 
   it('should parse FASTA sequences', () => {
-    const req = httpMock.expectOne(mockDialogData.fileUrl);
+    const req = httpMock.expectOne(upgradedUrl);
     req.flush('>seq1\nACGT\n>seq2\nTGCA');
     fixture.detectChanges();
     expect(component.sequenceCount()).toBe(2);

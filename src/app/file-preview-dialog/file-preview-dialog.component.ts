@@ -2,6 +2,7 @@ import { Component, Inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogTitle, MatDialogActions, MatDialogRef } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { HttpClient } from '@angular/common/http';
+import { WebService } from '../web.service';
 
 export interface FilePreviewData {
   fileUrl: string;
@@ -38,13 +39,14 @@ export class FilePreviewDialogComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: FilePreviewData,
     private dialogRef: MatDialogRef<FilePreviewDialogComponent>,
-    private http: HttpClient
+    private http: HttpClient,
+    private web: WebService
   ) {
     this.loadFileContent();
   }
 
   private loadFileContent(): void {
-    this.http.get(this.data.fileUrl, { responseType: 'text' }).subscribe({
+    this.http.get(this.web.upgradeUrl(this.data.fileUrl), { responseType: 'text' }).subscribe({
       next: (content) => {
         this.processContent(content);
         this.isLoading.set(false);
