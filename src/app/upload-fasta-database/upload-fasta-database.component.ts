@@ -423,17 +423,11 @@ export class UploadFastaDatabaseComponent {
   }
 
   openPreview(element: ProteinFastaDatabase | MultipleSequenceAlignment | StructureFile, type: 'database' | 'msa' | 'structure'): void {
-    const fileUrlMap = {
-      database: (element as ProteinFastaDatabase).fasta_file,
-      msa: (element as MultipleSequenceAlignment).msa_file,
-      structure: (element as StructureFile).structure_file
-    };
-
     this.dialog.open(FilePreviewDialogComponent, {
       width: '800px',
       maxHeight: '90vh',
       data: {
-        fileUrl: fileUrlMap[type],
+        id: element.id,
         fileName: element.name,
         fileType: type
       }

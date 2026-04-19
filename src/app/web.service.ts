@@ -501,4 +501,13 @@ export class WebService {
     return url;
   }
 
+  previewFile(id: number, fileType: 'database' | 'msa' | 'structure') {
+    const endpointMap = {
+      database: `${this.baseUrl}/api/fasta/${id}/preview/`,
+      msa: `${this.baseUrl}/api/msa/${id}/preview/`,
+      structure: `${this.baseUrl}/api/structure/${id}/preview/`
+    };
+    return this.http.get(endpointMap[fileType], { responseType: 'text', observe: 'body' });
+  }
+
 }
