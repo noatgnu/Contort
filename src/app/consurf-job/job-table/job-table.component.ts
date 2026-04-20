@@ -318,7 +318,7 @@ export class JobTableComponent {
               if (this.consurfJobQuery?.results) {
                 const index = this.consurfJobQuery.results.findIndex(job => job.id === jobId);
                 if (index !== -1) {
-                  this.consurfJobQuery.results[index].status = response.status;
+                  this.consurfJobQuery.results[index] = {...this.consurfJobQuery.results[index], status: response.status};
                   this.consurfJobQuery.results = [...this.consurfJobQuery.results];
                 }
               }
@@ -392,7 +392,7 @@ export class JobTableComponent {
                 if (this.consurfJobQuery?.results) {
                   const index = this.consurfJobQuery.results.findIndex(j => j.id === job.id);
                   if (index !== -1) {
-                    this.consurfJobQuery.results[index].status = response.status;
+                    this.consurfJobQuery.results[index] = {...this.consurfJobQuery.results[index], status: response.status};
                     this.consurfJobQuery.results = [...this.consurfJobQuery.results];
                   }
                 }
