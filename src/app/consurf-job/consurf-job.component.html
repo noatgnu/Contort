@@ -85,7 +85,7 @@
               <div class="step-content">
                 <div class="form-section">
                   <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Input FASTA Sequence</mat-label>
+                    <mat-label>Input FASTA Sequence{{ mode() === 'msa' ? ' (Optional — query identified from MSA)' : '' }}</mat-label>
                     <textarea matInput formControlName="query_sequence" rows="8"
                               placeholder=">sequence_name&#10;MKTVLQLLPLFAGIAQGRLVPRQWEANGTQ..."></textarea>
                     @if (form.controls.query_sequence.valid && form.controls.query_sequence.value) {
@@ -97,11 +97,15 @@
                       @if (numberOfSequences() > 0) {
                         <mat-icon class="hint-icon">check_circle</mat-icon>
                         {{numberOfSequences()}} sequence(s) detected
-                        @if (numberOfSequences() > 1) {
+                        @if (numberOfSequences() > 1 && mode() === 'db') {
                           - will submit as batch job
                         }
                       } @else {
-                        Enter a FASTA sequence starting with ">" header
+                        @if (mode() === 'db') {
+                          Enter a FASTA sequence starting with ">" header
+                        } @else {
+                          Optional — select the query from the MSA in the next step
+                        }
                       }
                     </mat-hint>
                     <mat-error>{{ getSequenceErrorMessage() }}</mat-error>
@@ -112,7 +116,7 @@
                     <mat-icon>arrow_back</mat-icon> Back
                   </button>
                   <button mat-flat-button color="primary" matStepperNext type="button"
-                          [disabled]="!form.value.query_sequence">
+                          [disabled]="mode() === 'db' && !form.value.query_sequence">
                     Next <mat-icon>arrow_forward</mat-icon>
                   </button>
                 </div>
@@ -122,49 +126,112 @@
             <mat-step label="Data Sources">
               <div class="step-content">
                 <div class="form-section">
-                  <h4 class="section-title">
-                    <mat-icon>storage</mat-icon>
-                    Sequence Database
-                  </h4>
-                  <div class="resource-selector">
-                    <mat-form-field appearance="outline" class="search-field">
-                      <mat-label>Search Database</mat-label>
-                      <input matInput type="search" formControlName="searchTerm">
-                      <mat-icon matPrefix>search</mat-icon>
-                    </mat-form-field>
-                    @if (proteinDatabaseQuery && proteinDatabaseQuery.results.length > 0) {
-                      <div class="selection-container">
-                        <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
-                          @for (o of proteinDatabaseQuery.results; track o.id) {
-                            <mat-list-option [value]="o.id">
-                              <mat-icon matListItemIcon>folder</mat-icon>
-                              {{ o.name }}
-                            </mat-list-option>
-                          }
-                        </mat-selection-list>
-                        <div class="selection-footer">
-                          <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count"
-                                         (page)="onPageChange($event, 'database')"
-                                         [hidePageSize]="true"></mat-paginator>
-                          <button mat-icon-button type="button" (click)="clearDatabaseFile()"
-                                  matTooltip="Clear selection" color="warn">
-                            <mat-icon>clear</mat-icon>
-                          </button>
-                        </div>
-                      </div>
-                    } @else {
-                      <p class="no-data-message">No databases found. Upload one in Storage.</p>
-                    }
+                  <div class="mode-toggle">
+                    <button mat-flat-button type="button"
+                            [color]="mode() === 'db' ? 'primary' : undefined"
+                            (click)="setMode('db')">
+                      <mat-icon>storage</mat-icon> Search Database
+                    </button>
+                    <button mat-flat-button type="button"
+                            [color]="mode() === 'msa' ? 'primary' : undefined"
+                            (click)="setMode('msa')">
+                      <mat-icon>align_horizontal_left</mat-icon> Use MSA
+                    </button>
                   </div>
                 </div>
 
-                @if (numberOfSequences() === 1) {
-                  <mat-divider></mat-divider>
+                @if (mode() === 'db') {
+                  <div class="form-section">
+                    <h4 class="section-title">
+                      <mat-icon>storage</mat-icon>
+                      Sequence Database
+                    </h4>
+                    <div class="resource-selector">
+                      <mat-form-field appearance="outline" class="search-field">
+                        <mat-label>Search Database</mat-label>
+                        <input matInput type="search" formControlName="searchTerm">
+                        <mat-icon matPrefix>search</mat-icon>
+                      </mat-form-field>
+                      @if (proteinDatabaseQuery && proteinDatabaseQuery.results.length > 0) {
+                        <div class="selection-container">
+                          <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
+                            @for (o of proteinDatabaseQuery.results; track o.id) {
+                              <mat-list-option [value]="o.id">
+                                <mat-icon matListItemIcon>folder</mat-icon>
+                                {{ o.name }}
+                              </mat-list-option>
+                            }
+                          </mat-selection-list>
+                          <div class="selection-footer">
+                            <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count"
+                                           (page)="onPageChange($event, 'database')"
+                                           [hidePageSize]="true"></mat-paginator>
+                            <button mat-icon-button type="button" (click)="clearDatabaseFile()"
+                                    matTooltip="Clear selection" color="warn">
+                              <mat-icon>clear</mat-icon>
+                            </button>
+                          </div>
+                        </div>
+                      } @else {
+                        <p class="no-data-message">No databases found. Upload one in Storage.</p>
+                      }
+                    </div>
+                  </div>
 
+                  @if (numberOfSequences() === 1) {
+                    <mat-divider></mat-divider>
+                    <div class="form-section">
+                      <h4 class="section-title">
+                        <mat-icon>align_horizontal_left</mat-icon>
+                        Pre-computed MSA (Optional)
+                      </h4>
+                      <div class="resource-selector">
+                        <mat-form-field appearance="outline" class="search-field">
+                          <mat-label>Search MSA</mat-label>
+                          <input matInput type="search" formControlName="searchTermMSA">
+                          <mat-icon matPrefix>search</mat-icon>
+                        </mat-form-field>
+                        @if (msaQuery && msaQuery.results.length > 0) {
+                          <div class="selection-container">
+                            <mat-selection-list [multiple]="false" formControlName="msa_id">
+                              @for (o of msaQuery.results; track o.id) {
+                                <mat-list-option [value]="o.id" (click)="handleAlignmentClick(o)">
+                                  <mat-icon matListItemIcon>description</mat-icon>
+                                  {{ o.name }}
+                                </mat-list-option>
+                              }
+                            </mat-selection-list>
+                            <div class="selection-footer">
+                              <mat-paginator [pageSize]="msaLimit" [length]="msaQuery.count"
+                                             (page)="onPageChange($event, 'msa')"
+                                             [hidePageSize]="true"></mat-paginator>
+                              <button mat-icon-button type="button" (click)="clearAlignmentFile()"
+                                      matTooltip="Clear selection" color="warn">
+                                <mat-icon>clear</mat-icon>
+                              </button>
+                            </div>
+                          </div>
+                          @if (sequence_names().length > 0) {
+                            <mat-form-field appearance="outline" class="query-select">
+                              <mat-label>Select Query Sequence</mat-label>
+                              <mat-select formControlName="query_name">
+                                @for (s of sequence_names(); track s; let index = $index) {
+                                  <mat-option [value]="s">{{index + 1}}. {{s}}</mat-option>
+                                }
+                              </mat-select>
+                            </mat-form-field>
+                          }
+                        } @else {
+                          <p class="no-data-message">No MSA files found.</p>
+                        }
+                      </div>
+                    </div>
+                  }
+                } @else {
                   <div class="form-section">
                     <h4 class="section-title">
                       <mat-icon>align_horizontal_left</mat-icon>
-                      Multiple Sequence Alignment (Optional)
+                      Multiple Sequence Alignment
                     </h4>
                     <div class="resource-selector">
                       <mat-form-field appearance="outline" class="search-field">
@@ -183,7 +250,7 @@
                             }
                           </mat-selection-list>
                           <div class="selection-footer">
-                            <mat-paginator [pageSize]="limit" [length]="msaQuery.count"
+                            <mat-paginator [pageSize]="msaLimit" [length]="msaQuery.count"
                                            (page)="onPageChange($event, 'msa')"
                                            [hidePageSize]="true"></mat-paginator>
                             <button mat-icon-button type="button" (click)="clearAlignmentFile()"
@@ -207,57 +274,57 @@
                       }
                     </div>
                   </div>
-
-                  <mat-divider></mat-divider>
-
-                  <div class="form-section">
-                    <h4 class="section-title">
-                      <mat-icon>view_in_ar</mat-icon>
-                      PDB Structure (Optional)
-                    </h4>
-                    <div class="resource-selector">
-                      <mat-form-field appearance="outline" class="search-field">
-                        <mat-label>Search PDB</mat-label>
-                        <input matInput type="search" formControlName="searchTermPDB">
-                        <mat-icon matPrefix>search</mat-icon>
-                      </mat-form-field>
-                      @if (structureQuery && structureQuery.results.length > 0) {
-                        <div class="selection-container">
-                          <mat-selection-list [multiple]="false" formControlName="structure_id">
-                            @for (o of structureQuery.results; track o.id) {
-                              <mat-list-option [value]="o.id"
-                                               (click)="chainArray.set(o.chains.split(';')); form.controls.chain.setValue(chainArray()[0])">
-                                <mat-icon matListItemIcon>view_in_ar</mat-icon>
-                                {{ o.name }}
-                              </mat-list-option>
-                            }
-                          </mat-selection-list>
-                          <div class="selection-footer">
-                            <mat-paginator [pageSize]="limit" [length]="structureQuery.count"
-                                           (page)="onPageChange($event, 'structure')"
-                                           [hidePageSize]="true"></mat-paginator>
-                            <button mat-icon-button type="button" (click)="clearStructureFile()"
-                                    matTooltip="Clear selection" color="warn">
-                              <mat-icon>clear</mat-icon>
-                            </button>
-                          </div>
-                        </div>
-                        @if (chainArray().length > 0) {
-                          <mat-form-field appearance="outline" class="chain-select">
-                            <mat-label>Chain</mat-label>
-                            <mat-select formControlName="chain">
-                              @for (o of chainArray(); track o) {
-                                <mat-option [value]="o">Chain {{o}}</mat-option>
-                              }
-                            </mat-select>
-                          </mat-form-field>
-                        }
-                      } @else {
-                        <p class="no-data-message">No PDB files found.</p>
-                      }
-                    </div>
-                  </div>
                 }
+
+                <mat-divider></mat-divider>
+
+                <div class="form-section">
+                  <h4 class="section-title">
+                    <mat-icon>view_in_ar</mat-icon>
+                    PDB Structure (Optional)
+                  </h4>
+                  <div class="resource-selector">
+                    <mat-form-field appearance="outline" class="search-field">
+                      <mat-label>Search PDB</mat-label>
+                      <input matInput type="search" formControlName="searchTermPDB">
+                      <mat-icon matPrefix>search</mat-icon>
+                    </mat-form-field>
+                    @if (structureQuery && structureQuery.results.length > 0) {
+                      <div class="selection-container">
+                        <mat-selection-list [multiple]="false" formControlName="structure_id">
+                          @for (o of structureQuery.results; track o.id) {
+                            <mat-list-option [value]="o.id"
+                                             (click)="chainArray.set(o.chains.split(';')); form.controls.chain.setValue(chainArray()[0])">
+                              <mat-icon matListItemIcon>view_in_ar</mat-icon>
+                              {{ o.name }}
+                            </mat-list-option>
+                          }
+                        </mat-selection-list>
+                        <div class="selection-footer">
+                          <mat-paginator [pageSize]="pdbLimit" [length]="structureQuery.count"
+                                         (page)="onPageChange($event, 'structure')"
+                                         [hidePageSize]="true"></mat-paginator>
+                          <button mat-icon-button type="button" (click)="clearStructureFile()"
+                                  matTooltip="Clear selection" color="warn">
+                            <mat-icon>clear</mat-icon>
+                          </button>
+                        </div>
+                      </div>
+                      @if (chainArray().length > 0) {
+                        <mat-form-field appearance="outline" class="chain-select">
+                          <mat-label>Chain</mat-label>
+                          <mat-select formControlName="chain">
+                            @for (o of chainArray(); track o) {
+                              <mat-option [value]="o">Chain {{o}}</mat-option>
+                            }
+                          </mat-select>
+                        </mat-form-field>
+                      }
+                    } @else {
+                      <p class="no-data-message">No PDB files found.</p>
+                    }
+                  </div>
+                </div>
 
                 <div class="step-actions">
                   <button mat-button matStepperPrevious type="button">
@@ -278,16 +345,17 @@
                     Analysis Settings
                   </h4>
                   <div class="params-grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Alignment Program</mat-label>
-                      <mat-select formControlName="alignment_program">
-                        @for (o of alignment_options; track o) {
-                          <mat-option [value]="o">{{o}}</mat-option>
-                        }
-                      </mat-select>
-                      <mat-icon matSuffix matTooltip="MAFFT: Fast and accurate (recommended). MUSCLE: High accuracy for divergent sequences. ClustalW: Classic algorithm. PRANK: Good for insertions/deletions.">help_outline</mat-icon>
-                      <mat-hint>Ignored if MSA is selected</mat-hint>
-                    </mat-form-field>
+                    @if (mode() === 'db') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Alignment Program</mat-label>
+                        <mat-select formControlName="alignment_program">
+                          @for (o of alignment_options; track o) {
+                            <mat-option [value]="o">{{o}}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-icon matSuffix matTooltip="MAFFT: Fast and accurate (recommended). MUSCLE: High accuracy for divergent sequences. ClustalW: Classic algorithm. PRANK: Good for insertions/deletions.">help_outline</mat-icon>
+                      </mat-form-field>
+                    }
 
                     <mat-form-field appearance="outline">
                       <mat-label>Evolutionary Model</mat-label>
@@ -299,15 +367,17 @@
                       <mat-icon matSuffix matTooltip="BEST: Auto-select optimal model. JTT/LG/WAG: General protein models. mtREV/cpREV: For mitochondrial/chloroplast proteins.">help_outline</mat-icon>
                     </mat-form-field>
 
-                    <mat-form-field appearance="outline">
-                      <mat-label>Search Algorithm</mat-label>
-                      <mat-select formControlName="algorithm">
-                        @for (o of algorithm_options; track o) {
-                          <mat-option [value]="o">{{o}}</mat-option>
-                        }
-                      </mat-select>
-                      <mat-icon matSuffix matTooltip="HMMER: Profile-based search (most sensitive). BLAST: Fast sequence similarity. MMseqs2: Ultra-fast for large databases.">help_outline</mat-icon>
-                    </mat-form-field>
+                    @if (mode() === 'db') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Search Algorithm</mat-label>
+                        <mat-select formControlName="algorithm">
+                          @for (o of algorithm_options; track o) {
+                            <mat-option [value]="o">{{o}}</mat-option>
+                          }
+                        </mat-select>
+                        <mat-icon matSuffix matTooltip="HMMER: Profile-based search (most sensitive). BLAST: Fast sequence similarity. MMseqs2: Ultra-fast for large databases.">help_outline</mat-icon>
+                      </mat-form-field>
+                    }
                   </div>
 
                   <div class="checkbox-group">
@@ -331,21 +401,21 @@
                   </mat-expansion-panel-header>
 
                   <div class="advanced-params-grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Iterations</mat-label>
-                      <input matInput type="number" formControlName="iterations" min="1" max="10">
-                      <mat-hint>1-10</mat-hint>
-                      <mat-error>{{ getIterationsErrorMessage() }}</mat-error>
-                    </mat-form-field>
+                    @if (mode() === 'db') {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Iterations</mat-label>
+                        <input matInput type="number" formControlName="iterations" min="1" max="10">
+                        <mat-hint>1-10</mat-hint>
+                        <mat-error>{{ getIterationsErrorMessage() }}</mat-error>
+                      </mat-form-field>
 
-                    <mat-form-field appearance="outline">
-                      <mat-label>E-value Cutoff</mat-label>
-                      <input matInput type="number" formControlName="cutoff" step="0.0001" min="0" max="1">
-                      <mat-hint>0-1</mat-hint>
-                      <mat-error>Value must be between 0 and 1</mat-error>
-                    </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>E-value Cutoff</mat-label>
+                        <input matInput type="number" formControlName="cutoff" step="0.0001" min="0" max="1">
+                        <mat-hint>0-1</mat-hint>
+                        <mat-error>Value must be between 0 and 1</mat-error>
+                      </mat-form-field>
 
-                    @if (!form.value.msa_id || (form.value.msa_id && form.value.msa_id.length === 0)) {
                       <mat-form-field appearance="outline">
                         <mat-label>Max Homologs</mat-label>
                         <input matInput type="number" formControlName="max_homologs" min="1" max="500">
@@ -419,14 +489,12 @@
                       <mat-spinner diameter="20"></mat-spinner>
                       Submitting...
                     } @else {
-                      <ng-container>
-                        <mat-icon>send</mat-icon>
-                        @if (numberOfSequences() > 1) {
-                          Submit Batch ({{numberOfSequences()}} jobs)
-                        } @else {
-                          Submit Job
-                        }
-                      </ng-container>
+                      <mat-icon>send</mat-icon>
+                      @if (numberOfSequences() > 1) {
+                        Submit Batch ({{numberOfSequences()}} jobs)
+                      } @else {
+                        Submit Job
+                      }
                     }
                   </button>
                 </div>

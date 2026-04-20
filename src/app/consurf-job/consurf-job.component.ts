@@ -55,6 +55,9 @@ export class ConsurfJobComponent {
   readonly model_options = ["BEST", "JTT", "LG", "mtREV", "cpREV", "WAG", "Dayhoff"] as const;
   readonly alignment_options = ["MAFFT", "CLUSTALW", "PRANK", "MUSCLE"] as const;
   readonly algorithm_options = ["HMMER", "BLAST", "MMseqs2"] as const;
+
+  mode = signal<'db' | 'msa'>('db');
+
   form = this.fb.group({
     uniprot_id: this.fb.control('', [CustomValidators.uniprotAccession()]),
     query_sequence: this.fb.control('', [Validators.required, CustomValidators.fastaFormat()]),
@@ -85,17 +88,43 @@ export class ConsurfJobComponent {
     if (this.form.controls.job_title.errors?.['required']) {
       errors.push('Job name is required');
     }
-    if (this.form.controls.query_sequence.errors?.['required']) {
-      errors.push('Sequence is required');
-    }
-    if (this.form.controls.query_sequence.errors?.['fastaNoHeader']) {
-      errors.push('Sequence must start with ">" header');
-    }
-    if (this.form.controls.fasta_database_id.errors?.['minArrayLength']) {
-      errors.push('Please select a FASTA database');
+    if (this.mode() === 'db') {
+      if (this.form.controls.query_sequence.errors?.['required']) {
+        errors.push('Sequence is required');
+      }
+      if (this.form.controls.query_sequence.errors?.['fastaNoHeader']) {
+        errors.push('Sequence must start with ">" header');
+      }
+      if (this.form.controls.fasta_database_id.errors?.['minArrayLength']) {
+        errors.push('Please select a FASTA database');
+      }
+    } else {
+      if (this.form.controls.msa_id.errors?.['minArrayLength']) {
+        errors.push('Please select an MSA file');
+      }
     }
     return errors;
   });
+
+  setMode(mode: 'db' | 'msa'): void {
+    this.mode.set(mode);
+    if (mode === 'db') {
+      this.form.controls.fasta_database_id.setValidators([Validators.required, CustomValidators.minArrayLength(1)]);
+      this.form.controls.query_sequence.setValidators([Validators.required, CustomValidators.fastaFormat()]);
+      this.form.controls.msa_id.clearValidators();
+      this.form.controls.msa_id.setValue([]);
+      this.form.controls.query_name.setValue('');
+      this.sequence_names.set([]);
+    } else {
+      this.form.controls.msa_id.setValidators([Validators.required, CustomValidators.minArrayLength(1)]);
+      this.form.controls.fasta_database_id.clearValidators();
+      this.form.controls.fasta_database_id.setValue([]);
+      this.form.controls.query_sequence.clearValidators();
+    }
+    this.form.controls.fasta_database_id.updateValueAndValidity();
+    this.form.controls.msa_id.updateValueAndValidity();
+    this.form.controls.query_sequence.updateValueAndValidity();
+  }
 
   readonly limit = 10;
   offset = 0;
@@ -135,6 +164,8 @@ export class ConsurfJobComponent {
   }
 
   private populateFormFromJob(job: any): void {
+    const jobMode: 'db' | 'msa' = job.msa && !job.fasta_database ? 'msa' : 'db';
+    this.setMode(jobMode);
     this.form.patchValue({
       query_sequence: job.query_sequence,
       alignment_program: job.alignment_program,
@@ -368,7 +399,7 @@ export class ConsurfJobComponent {
   }
 
   private submitBatchJobs(): void {
-    if (!this.form.controls.query_sequence.value) {
+    if (this.mode() !== 'db' || !this.form.controls.query_sequence.value) {
       this.isSubmitting.set(false);
       return;
     }

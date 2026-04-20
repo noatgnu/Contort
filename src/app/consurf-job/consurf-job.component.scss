@@ -26,6 +26,16 @@ form { width: 100%; }
 .step-content { padding: 16px 0; }
 .form-section { margin-bottom: 24px; }
 
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  button {
+    flex: 1;
+  }
+}
+
 .section-title {
   display: flex;
   align-items: center;
@@ -209,9 +219,11 @@ form { width: 100%; }
 
 .submit-button {
   min-width: 160px;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
 
-  mat-spinner { margin-right: 8px; }
-  mat-icon { margin-right: 4px; }
+  mat-spinner { flex-shrink: 0; }
 }
 
 .download-section {
