@@ -200,12 +200,21 @@ export class ConsurfJobComponent {
   }
 
   private setupWebsocketListener(): void {
+    const terminalStates = new Set(['completed', 'failed', 'cancelled']);
     this.websocket.jobMessage
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(message => {
         if (message.job_id === parseInt(this.jobid)) {
           this.status.set(message.status);
-          this.loadJobData(parseInt(this.jobid));
+          if (message.log_data) {
+            this.log_data.set(message.log_data);
+          }
+          if (message.error_data) {
+            this.error_data.set(message.error_data);
+          }
+          if (terminalStates.has(message.status)) {
+            this.loadJobData(parseInt(this.jobid));
+          }
         }
       });
   }
