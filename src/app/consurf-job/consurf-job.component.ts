@@ -171,6 +171,10 @@ export class ConsurfJobComponent {
   msaQuery = signal<MultipleSequenceAlignmentQuery | undefined>(undefined);
   structureQuery = signal<StructureFileQuery | undefined>(undefined);
 
+  isLoadingDatabase = signal(false);
+  isLoadingMsa = signal(false);
+  isLoadingStructure = signal(false);
+
   constructor(
     private sb: MatSnackBar,
     private websocket: WebsocketService,
@@ -330,21 +334,24 @@ export class ConsurfJobComponent {
     const handlers = {
       database: () => {
         this.offset = offset;
+        this.isLoadingDatabase.set(true);
         this.web.getProteinFastaDatabases(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.proteinDatabaseQuery.set(data));
+          .subscribe(data => { this.proteinDatabaseQuery.set(data); this.isLoadingDatabase.set(false); });
       },
       msa: () => {
         this.msaOffset = offset;
+        this.isLoadingMsa.set(true);
         this.web.getMSAs(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.msaQuery.set(data));
+          .subscribe(data => { this.msaQuery.set(data); this.isLoadingMsa.set(false); });
       },
       structure: () => {
         this.pdbOffset = offset;
+        this.isLoadingStructure.set(true);
         this.web.getStructures(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.structureQuery.set(data));
+          .subscribe(data => { this.structureQuery.set(data); this.isLoadingStructure.set(false); });
       }
     };
 

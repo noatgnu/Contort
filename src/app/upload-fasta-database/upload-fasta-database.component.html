@@ -38,7 +38,7 @@
           </mat-form-field>
           @if (query) {
             @if (query.results.length > 0) {
-              <mat-table [dataSource]="query.results">
+              <mat-table [dataSource]="query.results" [class.table-loading]="isLoadingDatabase()">
                 <mat-header-row *matHeaderRowDef="dbDisplayedColumns"></mat-header-row>
                 <mat-row *matRowDef="let row; columns: dbDisplayedColumns;"></mat-row>
                 <ng-container matColumnDef="name">
@@ -52,10 +52,10 @@
                       <div class="index-entry">
                         <button mat-icon-button
                           [matTooltip]="'BLAST: ' + element.blast_index_status"
-                          [disabled]="element.blast_index_status === 'building'"
+                          [disabled]="element.blast_index_status === 'building' || isIndexPending(element.id, 'blast')"
                           (click)="buildIndex(element.id, 'blast')">
-                          <mat-icon [class]="'index-' + element.blast_index_status">
-                            {{ element.blast_index_status === 'ready' ? 'check_circle' : element.blast_index_status === 'building' ? 'hourglass_empty' : element.blast_index_status === 'failed' ? 'error' : 'build' }}
+                          <mat-icon [class]="'index-' + (isIndexPending(element.id, 'blast') ? 'building' : element.blast_index_status)">
+                            {{ (isIndexPending(element.id, 'blast') || element.blast_index_status === 'building') ? 'hourglass_empty' : element.blast_index_status === 'ready' ? 'check_circle' : element.blast_index_status === 'failed' ? 'error' : 'build' }}
                           </mat-icon>
                         </button>
                         <span class="index-label">BLAST</span>
@@ -63,10 +63,10 @@
                       <div class="index-entry">
                         <button mat-icon-button
                           [matTooltip]="'MMseqs2: ' + element.mmseqs_index_status"
-                          [disabled]="element.mmseqs_index_status === 'building'"
+                          [disabled]="element.mmseqs_index_status === 'building' || isIndexPending(element.id, 'mmseqs')"
                           (click)="buildIndex(element.id, 'mmseqs')">
-                          <mat-icon [class]="'index-' + element.mmseqs_index_status">
-                            {{ element.mmseqs_index_status === 'ready' ? 'check_circle' : element.mmseqs_index_status === 'building' ? 'hourglass_empty' : element.mmseqs_index_status === 'failed' ? 'error' : 'build' }}
+                          <mat-icon [class]="'index-' + (isIndexPending(element.id, 'mmseqs') ? 'building' : element.mmseqs_index_status)">
+                            {{ (isIndexPending(element.id, 'mmseqs') || element.mmseqs_index_status === 'building') ? 'hourglass_empty' : element.mmseqs_index_status === 'ready' ? 'check_circle' : element.mmseqs_index_status === 'failed' ? 'error' : 'build' }}
                           </mat-icon>
                         </button>
                         <span class="index-label">MMseqs2</span>
@@ -140,7 +140,7 @@
           </mat-form-field>
           @if (msaQuery) {
             @if (msaQuery.results.length > 0) {
-              <mat-table [dataSource]="msaQuery.results">
+              <mat-table [dataSource]="msaQuery.results" [class.table-loading]="isLoadingMsa()">
                 <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
                 <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
                 <ng-container matColumnDef="name">
@@ -162,7 +162,8 @@
                   </mat-cell>
                 </ng-container>
               </mat-table>
-              <mat-paginator [length]="msaQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'msa')"></mat-paginator>
+              <mat-paginator [length]="msaQuery.count" [pageSize]="limit" (page)="onPaginate($event, 'msa')"
+                             [class.table-loading]="isLoadingMsa()"></mat-paginator>
             } @else {
               <app-empty-state
                 icon="align_horizontal_left"
@@ -214,7 +215,7 @@
           </mat-form-field>
           @if (structureQuery) {
             @if (structureQuery.results.length > 0) {
-              <mat-table [dataSource]="structureQuery.results">
+              <mat-table [dataSource]="structureQuery.results" [class.table-loading]="isLoadingStructure()">
                 <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
                 <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
                 <ng-container matColumnDef="name">

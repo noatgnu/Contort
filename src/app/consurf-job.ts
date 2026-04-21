@@ -43,5 +43,8 @@ export interface MessageJob {
   'session_id': string,
   'log_data': string,
   'error_data': string,
-  'message': string
+  'message': string,
+  'db_id'?: number,
+  'index_type'?: 'blast' | 'mmseqs',
+  'error'?: string,
 }

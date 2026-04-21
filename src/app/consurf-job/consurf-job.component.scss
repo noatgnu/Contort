@@ -81,6 +81,12 @@ form { width: 100%; }
 
 .search-field { max-width: 300px; }
 
+.table-loading {
+  opacity: 0.4;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
 .selection-container {
   border: 1px solid var(--border-color);
   border-radius: 4px;

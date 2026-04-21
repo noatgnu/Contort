@@ -26,8 +26,9 @@ import {MatIcon} from "@angular/material/icon";
 import {MatTab, MatTabGroup} from "@angular/material/tabs";
 import {MatTooltip} from "@angular/material/tooltip";
 import {StructureFile, StructureFileQuery} from "../structure";
-import {debounceTime, distinctUntilChanged} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter} from 'rxjs';
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
+import {WebsocketService} from "../websocket.service";
 import {ShareFileDialogComponent} from "../share-file-dialog/share-file-dialog.component";
 import {FilePreviewDialogComponent} from "../file-preview-dialog/file-preview-dialog.component";
 import {ConfirmDialogComponent, ConfirmDialogData} from "../shared/confirm-dialog/confirm-dialog.component";
@@ -105,15 +106,21 @@ export class UploadFastaDatabaseComponent {
   readonly structureLimit = 10;
   structureOffset = 0;
 
+  isLoadingDatabase = signal(false);
+  isLoadingMsa = signal(false);
+  isLoadingStructure = signal(false);
+
   constructor(
     private web: WebService,
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<UploadFastaDatabaseComponent>,
     private sb: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private websocket: WebsocketService
   ) {
     this.loadInitialData();
     this.setupSearchListener();
+    this.setupIndexStatusListener();
   }
 
   private loadInitialData(): void {
@@ -128,6 +135,24 @@ export class UploadFastaDatabaseComponent {
     this.web.getMSAs(this.msaLimit, this.msaOffset)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(data => this.msaQuery = data);
+  }
+
+  private setupIndexStatusListener(): void {
+    this.websocket.jobMessage$
+      .pipe(
+        filter(msg => msg.type === 'db_index_update'),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(msg => {
+        const label = msg.index_type === 'blast' ? 'BLAST' : 'MMseqs2';
+        if (msg.status === 'ready') {
+          this.sb.open(`${label} index built successfully`, 'Close', { duration: 3000 });
+        } else if (msg.status === 'failed') {
+          const detail = msg.error ? `: ${msg.error}` : '';
+          this.sb.open(`${label} index build failed${detail}`, 'Close', { duration: 6000 });
+        }
+        this.refreshData('database');
+      });
   }
 
   private setupSearchListener(): void {
@@ -154,21 +179,24 @@ export class UploadFastaDatabaseComponent {
     const handlers = {
       database: () => {
         this.offset = offset;
+        this.isLoadingDatabase.set(true);
         this.web.getProteinFastaDatabases(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.query = data);
+          .subscribe(data => { this.query = data; this.isLoadingDatabase.set(false); });
       },
       msa: () => {
         this.msaOffset = offset;
+        this.isLoadingMsa.set(true);
         this.web.getMSAs(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.msaQuery = data);
+          .subscribe(data => { this.msaQuery = data; this.isLoadingMsa.set(false); });
       },
       structure: () => {
         this.structureOffset = offset;
+        this.isLoadingStructure.set(true);
         this.web.getStructures(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.structureQuery = data);
+          .subscribe(data => { this.structureQuery = data; this.isLoadingStructure.set(false); });
       }
     };
 
@@ -395,14 +423,26 @@ export class UploadFastaDatabaseComponent {
       });
   }
 
+  pendingIndexBuilds = new Set<string>();
+
+  isIndexPending(id: number, type: 'blast' | 'mmseqs'): boolean {
+    return this.pendingIndexBuilds.has(`${id}-${type}`);
+  }
+
   buildIndex(id: number, type: 'blast' | 'mmseqs'): void {
+    const key = `${id}-${type}`;
+    this.pendingIndexBuilds.add(key);
     const obs = type === 'blast' ? this.web.buildBlastIndex(id) : this.web.buildMmseqsIndex(id);
     obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
+        this.pendingIndexBuilds.delete(key);
         this.sb.open(`${type === 'blast' ? 'BLAST' : 'MMseqs2'} index build started`, 'Close', { duration: 2000 });
         this.refreshData('database');
       },
-      error: () => this.sb.open('Failed to start index build', 'Close', { duration: 3000 })
+      error: () => {
+        this.pendingIndexBuilds.delete(key);
+        this.sb.open('Failed to start index build', 'Close', { duration: 3000 });
+      }
     });
   }
 

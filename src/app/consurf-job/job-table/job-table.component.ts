@@ -257,6 +257,7 @@ export class JobTableComponent {
 
   private refreshData(): void {
     this.offset = 0;
+    this.isLoading.set(true);
     const term = this.form.value.searchTerm || '';
     const status = this.form.value.status || 'all';
     const batchId = this.form.value.batchId || 'all';
@@ -270,6 +271,7 @@ export class JobTableComponent {
           data.count = data.results.length;
         }
         this.consurfJobQuery = data;
+        this.isLoading.set(false);
       });
   }
 
@@ -277,11 +279,15 @@ export class JobTableComponent {
     const offset = event.pageIndex * event.pageSize;
     const term = this.form.value.searchTerm || '';
     const status = this.form.value.status || 'all';
-    
+
     this.offset = offset;
+    this.isLoading.set(true);
     this.web.getConsurfJobs(this.pageSize, offset, term, status)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => this.consurfJobQuery = data);
+      .subscribe(data => {
+        this.consurfJobQuery = data;
+        this.isLoading.set(false);
+      });
   }
 
   clickRow(row: any): void {
