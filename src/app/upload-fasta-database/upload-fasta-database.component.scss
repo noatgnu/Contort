@@ -87,6 +87,32 @@ mat-form-field {
   }
 }
 
+.index-cell {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.index-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+}
+
+.index-label {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+mat-column-index, .mat-column-index {
+  min-width: 130px;
+  flex: 0 0 130px;
+}
+
 .index-none mat-icon, mat-icon.index-none { color: var(--text-tertiary); }
 .index-building mat-icon, mat-icon.index-building { color: orange; }
 .index-ready mat-icon, mat-icon.index-ready { color: green; }

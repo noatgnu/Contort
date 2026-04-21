@@ -48,24 +48,30 @@
                 <ng-container matColumnDef="index">
                   <mat-header-cell *matHeaderCellDef>Index</mat-header-cell>
                   <mat-cell *matCellDef="let element">
-                    <button mat-icon-button
-                      [matTooltip]="'BLAST: ' + element.blast_index_status"
-                      [disabled]="element.blast_index_status === 'building'"
-                      (click)="buildIndex(element.id, 'blast')">
-                      <mat-icon [class]="'index-' + element.blast_index_status">
-                        {{ element.blast_index_status === 'ready' ? 'check_circle' : element.blast_index_status === 'building' ? 'hourglass_empty' : element.blast_index_status === 'failed' ? 'error' : 'build' }}
-                      </mat-icon>
-                    </button>
-                    <span style="font-size:10px;vertical-align:middle">BLAST</span>
-                    <button mat-icon-button
-                      [matTooltip]="'MMseqs2: ' + element.mmseqs_index_status"
-                      [disabled]="element.mmseqs_index_status === 'building'"
-                      (click)="buildIndex(element.id, 'mmseqs')">
-                      <mat-icon [class]="'index-' + element.mmseqs_index_status">
-                        {{ element.mmseqs_index_status === 'ready' ? 'check_circle' : element.mmseqs_index_status === 'building' ? 'hourglass_empty' : element.mmseqs_index_status === 'failed' ? 'error' : 'build' }}
-                      </mat-icon>
-                    </button>
-                    <span style="font-size:10px;vertical-align:middle">MMseqs2</span>
+                    <div class="index-cell">
+                      <div class="index-entry">
+                        <button mat-icon-button
+                          [matTooltip]="'BLAST: ' + element.blast_index_status"
+                          [disabled]="element.blast_index_status === 'building'"
+                          (click)="buildIndex(element.id, 'blast')">
+                          <mat-icon [class]="'index-' + element.blast_index_status">
+                            {{ element.blast_index_status === 'ready' ? 'check_circle' : element.blast_index_status === 'building' ? 'hourglass_empty' : element.blast_index_status === 'failed' ? 'error' : 'build' }}
+                          </mat-icon>
+                        </button>
+                        <span class="index-label">BLAST</span>
+                      </div>
+                      <div class="index-entry">
+                        <button mat-icon-button
+                          [matTooltip]="'MMseqs2: ' + element.mmseqs_index_status"
+                          [disabled]="element.mmseqs_index_status === 'building'"
+                          (click)="buildIndex(element.id, 'mmseqs')">
+                          <mat-icon [class]="'index-' + element.mmseqs_index_status">
+                            {{ element.mmseqs_index_status === 'ready' ? 'check_circle' : element.mmseqs_index_status === 'building' ? 'hourglass_empty' : element.mmseqs_index_status === 'failed' ? 'error' : 'build' }}
+                          </mat-icon>
+                        </button>
+                        <span class="index-label">MMseqs2</span>
+                      </div>
+                    </div>
                   </mat-cell>
                 </ng-container>
                 <ng-container matColumnDef="action">
