@@ -83,6 +83,27 @@ export class ConsurfJobComponent {
     query_name: this.fb.control("")
   });
 
+  selectedDatabaseName = computed(() => {
+    const ids: any[] = this.form.controls.fasta_database_id.value || [];
+    const q = this.proteinDatabaseQuery();
+    if (!ids.length || !q) return null;
+    return q.results.find(r => r.id === ids[0])?.name ?? null;
+  });
+
+  selectedMsaName = computed(() => {
+    const ids: any[] = this.form.controls.msa_id.value || [];
+    const q = this.msaQuery();
+    if (!ids.length || !q) return null;
+    return q.results.find(r => r.id === ids[0])?.name ?? null;
+  });
+
+  selectedStructureName = computed(() => {
+    const ids: any[] = this.form.controls.structure_id.value || [];
+    const q = this.structureQuery();
+    if (!ids.length || !q) return null;
+    return q.results.find(r => r.id === ids[0])?.name ?? null;
+  });
+
   formErrors = computed(() => {
     const errors: string[] = [];
     if (this.form.controls.job_title.errors?.['required']) {
@@ -133,9 +154,9 @@ export class ConsurfJobComponent {
   readonly pdbLimit = 10;
   pdbOffset = 0;
 
-  proteinDatabaseQuery: ProteinFastaDatabaseQuery | undefined;
-  msaQuery: MultipleSequenceAlignmentQuery | undefined;
-  structureQuery: StructureFileQuery | undefined;
+  proteinDatabaseQuery = signal<ProteinFastaDatabaseQuery | undefined>(undefined);
+  msaQuery = signal<MultipleSequenceAlignmentQuery | undefined>(undefined);
+  structureQuery = signal<StructureFileQuery | undefined>(undefined);
 
   constructor(
     private sb: MatSnackBar,
@@ -240,7 +261,7 @@ export class ConsurfJobComponent {
         this.offset = 0;
         this.web.getProteinFastaDatabases(this.limit, this.offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.proteinDatabaseQuery = data);
+          .subscribe(data => this.proteinDatabaseQuery.set(data));
       });
 
     this.form.controls.searchTermMSA.valueChanges
@@ -254,7 +275,7 @@ export class ConsurfJobComponent {
         this.msaOffset = 0;
         this.web.getMSAs(this.msaLimit, this.msaOffset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.msaQuery = data);
+          .subscribe(data => this.msaQuery.set(data));
       });
 
     this.form.controls.searchTermPDB.valueChanges
@@ -268,22 +289,22 @@ export class ConsurfJobComponent {
         this.pdbOffset = 0;
         this.web.getStructures(this.pdbLimit, this.pdbOffset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.structureQuery = data);
+          .subscribe(data => this.structureQuery.set(data));
       });
   }
 
   private loadInitialData(): void {
     this.web.getProteinFastaDatabases(this.limit, this.offset)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => this.proteinDatabaseQuery = data);
+      .subscribe(data => this.proteinDatabaseQuery.set(data));
 
     this.web.getMSAs(this.msaLimit, this.msaOffset)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => this.msaQuery = data);
+      .subscribe(data => this.msaQuery.set(data));
 
     this.web.getStructures(this.pdbLimit, this.pdbOffset)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(data => this.structureQuery = data);
+      .subscribe(data => this.structureQuery.set(data));
   }
 
   onPageChange(event: any, type: string): void {
@@ -296,19 +317,19 @@ export class ConsurfJobComponent {
         this.offset = offset;
         this.web.getProteinFastaDatabases(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.proteinDatabaseQuery = data);
+          .subscribe(data => this.proteinDatabaseQuery.set(data));
       },
       msa: () => {
         this.msaOffset = offset;
         this.web.getMSAs(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.msaQuery = data);
+          .subscribe(data => this.msaQuery.set(data));
       },
       structure: () => {
         this.pdbOffset = offset;
         this.web.getStructures(limit, offset, term)
           .pipe(takeUntilDestroyed(this.destroyRef))
-          .subscribe(data => this.structureQuery = data);
+          .subscribe(data => this.structureQuery.set(data));
       }
     };
 

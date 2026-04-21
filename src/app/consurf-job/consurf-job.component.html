@@ -152,10 +152,10 @@
                         <input matInput type="search" formControlName="searchTerm">
                         <mat-icon matPrefix>search</mat-icon>
                       </mat-form-field>
-                      @if (proteinDatabaseQuery && proteinDatabaseQuery.results.length > 0) {
+                      @if (proteinDatabaseQuery() && proteinDatabaseQuery()!.results.length > 0) {
                         <div class="selection-container">
                           <mat-selection-list [multiple]="false" formControlName="fasta_database_id">
-                            @for (o of proteinDatabaseQuery.results; track o.id) {
+                            @for (o of proteinDatabaseQuery()!.results; track o.id) {
                               <mat-list-option [value]="o.id">
                                 <mat-icon matListItemIcon>folder</mat-icon>
                                 {{ o.name }}
@@ -163,7 +163,7 @@
                             }
                           </mat-selection-list>
                           <div class="selection-footer">
-                            <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery.count"
+                            <mat-paginator [pageSize]="limit" [length]="proteinDatabaseQuery()!.count"
                                            (page)="onPageChange($event, 'database')"
                                            [hidePageSize]="true"></mat-paginator>
                             <button mat-icon-button type="button" (click)="clearDatabaseFile()"
@@ -191,10 +191,10 @@
                           <input matInput type="search" formControlName="searchTermMSA">
                           <mat-icon matPrefix>search</mat-icon>
                         </mat-form-field>
-                        @if (msaQuery && msaQuery.results.length > 0) {
+                        @if (msaQuery() && msaQuery()!.results.length > 0) {
                           <div class="selection-container">
                             <mat-selection-list [multiple]="false" formControlName="msa_id">
-                              @for (o of msaQuery.results; track o.id) {
+                              @for (o of msaQuery()!.results; track o.id) {
                                 <mat-list-option [value]="o.id" (click)="handleAlignmentClick(o)">
                                   <mat-icon matListItemIcon>description</mat-icon>
                                   {{ o.name }}
@@ -202,7 +202,7 @@
                               }
                             </mat-selection-list>
                             <div class="selection-footer">
-                              <mat-paginator [pageSize]="msaLimit" [length]="msaQuery.count"
+                              <mat-paginator [pageSize]="msaLimit" [length]="msaQuery()!.count"
                                              (page)="onPageChange($event, 'msa')"
                                              [hidePageSize]="true"></mat-paginator>
                               <button mat-icon-button type="button" (click)="clearAlignmentFile()"
@@ -239,10 +239,10 @@
                         <input matInput type="search" formControlName="searchTermMSA">
                         <mat-icon matPrefix>search</mat-icon>
                       </mat-form-field>
-                      @if (msaQuery && msaQuery.results.length > 0) {
+                      @if (msaQuery() && msaQuery()!.results.length > 0) {
                         <div class="selection-container">
                           <mat-selection-list [multiple]="false" formControlName="msa_id">
-                            @for (o of msaQuery.results; track o.id) {
+                            @for (o of msaQuery()!.results; track o.id) {
                               <mat-list-option [value]="o.id" (click)="handleAlignmentClick(o)">
                                 <mat-icon matListItemIcon>description</mat-icon>
                                 {{ o.name }}
@@ -250,7 +250,7 @@
                             }
                           </mat-selection-list>
                           <div class="selection-footer">
-                            <mat-paginator [pageSize]="msaLimit" [length]="msaQuery.count"
+                            <mat-paginator [pageSize]="msaLimit" [length]="msaQuery()!.count"
                                            (page)="onPageChange($event, 'msa')"
                                            [hidePageSize]="true"></mat-paginator>
                             <button mat-icon-button type="button" (click)="clearAlignmentFile()"
@@ -289,10 +289,10 @@
                       <input matInput type="search" formControlName="searchTermPDB">
                       <mat-icon matPrefix>search</mat-icon>
                     </mat-form-field>
-                    @if (structureQuery && structureQuery.results.length > 0) {
+                    @if (structureQuery() && structureQuery()!.results.length > 0) {
                       <div class="selection-container">
                         <mat-selection-list [multiple]="false" formControlName="structure_id">
-                          @for (o of structureQuery.results; track o.id) {
+                          @for (o of structureQuery()!.results; track o.id) {
                             <mat-list-option [value]="o.id"
                                              (click)="chainArray.set(o.chains.split(';')); form.controls.chain.setValue(chainArray()[0])">
                               <mat-icon matListItemIcon>view_in_ar</mat-icon>
@@ -301,7 +301,7 @@
                           }
                         </mat-selection-list>
                         <div class="selection-footer">
-                          <mat-paginator [pageSize]="pdbLimit" [length]="structureQuery.count"
+                          <mat-paginator [pageSize]="pdbLimit" [length]="structureQuery()!.count"
                                          (page)="onPageChange($event, 'structure')"
                                          [hidePageSize]="true"></mat-paginator>
                           <button mat-icon-button type="button" (click)="clearStructureFile()"
@@ -463,18 +463,67 @@
                       <span class="summary-label">Job Name</span>
                       <span class="summary-value">{{form.value.job_title || '-'}}</span>
                     </div>
+                    @if (form.value.uniprot_id) {
+                      <div class="summary-item">
+                        <span class="summary-label">UniProt ID</span>
+                        <span class="summary-value">{{form.value.uniprot_id}}</span>
+                      </div>
+                    }
                     <div class="summary-item">
-                      <span class="summary-label">Sequences</span>
-                      <span class="summary-value">{{numberOfSequences()}} sequence(s)</span>
+                      <span class="summary-label">Mode</span>
+                      <span class="summary-value">{{mode() === 'db' ? 'Database Search' : 'Pre-aligned MSA'}}</span>
+                    </div>
+                    @if (mode() === 'db') {
+                      <div class="summary-item">
+                        <span class="summary-label">Sequences</span>
+                        <span class="summary-value">{{numberOfSequences()}} sequence(s){{numberOfSequences() > 1 ? ' (batch)' : ''}}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Database</span>
+                        <span class="summary-value">{{selectedDatabaseName() || '-'}}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Alignment Program</span>
+                        <span class="summary-value">{{form.value.alignment_program}}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Max Homologs</span>
+                        <span class="summary-value">{{form.value.max_homologs}}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Identity Range</span>
+                        <span class="summary-value">{{form.value.min_id}}% – {{form.value.max_id}}%</span>
+                      </div>
+                    } @else {
+                      <div class="summary-item">
+                        <span class="summary-label">MSA File</span>
+                        <span class="summary-value">{{selectedMsaName() || '-'}}</span>
+                      </div>
+                      @if (form.value.query_name) {
+                        <div class="summary-item">
+                          <span class="summary-label">Query Sequence</span>
+                          <span class="summary-value">{{form.value.query_name}}</span>
+                        </div>
+                      }
+                    }
+                    <div class="summary-item">
+                      <span class="summary-label">Algorithm</span>
+                      <span class="summary-value">{{form.value.algorithm}}</span>
                     </div>
                     <div class="summary-item">
                       <span class="summary-label">Model</span>
                       <span class="summary-value">{{form.value.model}}</span>
                     </div>
                     <div class="summary-item">
-                      <span class="summary-label">Algorithm</span>
-                      <span class="summary-value">{{form.value.algorithm}}</span>
+                      <span class="summary-label">Rate Inference</span>
+                      <span class="summary-value">{{form.value.maximum_likelihood ? 'Maximum Likelihood' : 'Bayesian'}}</span>
                     </div>
+                    @if (selectedStructureName()) {
+                      <div class="summary-item">
+                        <span class="summary-label">Structure</span>
+                        <span class="summary-value">{{selectedStructureName()}}{{form.value.chain ? ' (Chain ' + form.value.chain + ')' : ''}}</span>
+                      </div>
+                    }
                   </div>
                 </div>
 
@@ -499,33 +548,34 @@
                   </button>
                 </div>
 
-                @if (status() === 'completed') {
-                  <div class="download-section">
-                    <mat-divider></mat-divider>
-                    <h4 class="section-title">
-                      <mat-icon>download</mat-icon>
-                      Download Results
-                    </h4>
-                    <div class="download-buttons">
-                      <button mat-stroked-button type="button" (click)="downloadOutput()">
-                        <mat-icon>archive</mat-icon>
-                        Full Archive
-                      </button>
-                      <button mat-stroked-button type="button" (click)="downloadOutput('grades')">
-                        <mat-icon>grade</mat-icon>
-                        Grades
-                      </button>
-                      <button mat-stroked-button type="button" (click)="downloadOutput('msa_aa_variety_percentage')">
-                        <mat-icon>pie_chart</mat-icon>
-                        AA Variety
-                      </button>
-                    </div>
-                  </div>
-                }
               </div>
             </mat-step>
 
           </mat-stepper>
+
+          @if (status() === 'completed') {
+            <div class="download-section">
+              <mat-divider></mat-divider>
+              <h4 class="section-title">
+                <mat-icon>download</mat-icon>
+                Download Results
+              </h4>
+              <div class="download-buttons">
+                <button mat-stroked-button type="button" (click)="downloadOutput()">
+                  <mat-icon>archive</mat-icon>
+                  Full Archive
+                </button>
+                <button mat-stroked-button type="button" (click)="downloadOutput('grades')">
+                  <mat-icon>grade</mat-icon>
+                  Grades
+                </button>
+                <button mat-stroked-button type="button" (click)="downloadOutput('msa_aa_variety_percentage')">
+                  <mat-icon>pie_chart</mat-icon>
+                  AA Variety
+                </button>
+              </div>
+            </div>
+          }
         </form>
       </div>
     }
