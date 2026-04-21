@@ -360,22 +360,22 @@
                     <mat-form-field appearance="outline">
                       <mat-label>Evolutionary Model</mat-label>
                       <mat-select formControlName="model">
-                        @for (o of model_options; track o) {
+                        @for (o of (isNucleotide() ? nuc_model_options : aa_model_options); track o) {
                           <mat-option [value]="o">{{o}}</mat-option>
                         }
                       </mat-select>
-                      <mat-icon matSuffix matTooltip="BEST: Auto-select optimal model. JTT/LG/WAG: General protein models. mtREV/cpREV: For mitochondrial/chloroplast proteins.">help_outline</mat-icon>
+                      <mat-icon matSuffix [matTooltip]="isNucleotide() ? 'BEST: Auto-select. T92/HKY/GTR/JC: Nucleotide substitution models.' : 'BEST: Auto-select optimal model. JTT/LG/WAG: General protein models. mtREV/cpREV: For mitochondrial/chloroplast proteins.'">help_outline</mat-icon>
                     </mat-form-field>
 
                     @if (mode() === 'db') {
                       <mat-form-field appearance="outline">
                         <mat-label>Search Algorithm</mat-label>
                         <mat-select formControlName="algorithm">
-                          @for (o of algorithm_options; track o) {
+                          @for (o of (isNucleotide() ? nuc_algorithm_options : aa_algorithm_options); track o) {
                             <mat-option [value]="o">{{o}}</mat-option>
                           }
                         </mat-select>
-                        <mat-icon matSuffix matTooltip="HMMER: Profile-based search (most sensitive). BLAST: Fast sequence similarity. MMseqs2: Ultra-fast for large databases.">help_outline</mat-icon>
+                        <mat-icon matSuffix [matTooltip]="isNucleotide() ? 'HMMER (nhmmer): Nucleotide profile search. BLAST (blastn): Nucleotide similarity search.' : 'HMMER: Profile-based search (most sensitive). BLAST: Fast sequence similarity. MMseqs2: Ultra-fast for large databases.'">help_outline</mat-icon>
                       </mat-form-field>
                     }
                   </div>
@@ -388,6 +388,10 @@
                     <mat-checkbox formControlName="closest" matTooltip="Closest: Select most similar sequences. Random: Sample diverse sequences for better coverage.">
                       Select Closest Homologs
                       <span class="checkbox-hint">(Otherwise: Random sampling)</span>
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="is_nucleotide" (change)="toggleNucleotide($event.checked)" matTooltip="Use nucleotide sequence mode. MMseqs2 is not available for nucleotide searches.">
+                      Nucleotide Sequence
+                      <span class="checkbox-hint">(Default: Amino Acid)</span>
                     </mat-checkbox>
                   </div>
                 </div>

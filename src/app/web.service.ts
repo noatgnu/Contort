@@ -154,6 +154,18 @@ export class WebService {
     );
   }
 
+  buildBlastIndex(id: number) {
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/build_blast/`, {}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
+  }
+
+  buildMmseqsIndex(id: number) {
+    return this.http.post<ProteinFastaDatabaseQuery>(`${this.baseUrl}/api/fasta/${id}/build_mmseqs/`, {}, {responseType: 'json', observe: 'body'}).pipe(
+      tap(() => this.cacheService.invalidateByPrefix('fasta'))
+    );
+  }
+
   shareMSA(id: number, usernames: string[]) {
     return this.http.post<MultipleSequenceAlignmentQuery>(`${this.baseUrl}/api/msa/${id}/share/`, {usernames: usernames}, {responseType: 'json', observe: 'body'}).pipe(
       tap(() => this.cacheService.invalidateByPrefix('msa'))

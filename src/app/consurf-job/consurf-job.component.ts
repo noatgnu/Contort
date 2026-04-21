@@ -52,11 +52,14 @@ export class ConsurfJobComponent {
     return this._jobid;
   }
 
-  readonly model_options = ["BEST", "JTT", "LG", "mtREV", "cpREV", "WAG", "Dayhoff"] as const;
+  readonly aa_model_options = ["BEST", "JTT", "LG", "mtREV", "cpREV", "WAG", "Dayhoff"] as const;
+  readonly nuc_model_options = ["BEST", "T92", "HKY", "GTR", "JC"] as const;
   readonly alignment_options = ["MAFFT", "CLUSTALW", "PRANK", "MUSCLE"] as const;
-  readonly algorithm_options = ["HMMER", "BLAST", "MMseqs2"] as const;
+  readonly aa_algorithm_options = ["HMMER", "BLAST", "MMseqs2"] as const;
+  readonly nuc_algorithm_options = ["HMMER", "BLAST"] as const;
 
   mode = signal<'db' | 'msa'>('db');
+  isNucleotide = signal<boolean>(false);
 
   form = this.fb.group({
     uniprot_id: this.fb.control('', [CustomValidators.uniprotAccession()]),
@@ -80,7 +83,8 @@ export class ConsurfJobComponent {
     structure_id: this.fb.control<any[]>([]),
     chain: this.fb.control(""),
     msa_id: this.fb.control<any[]>([]),
-    query_name: this.fb.control("")
+    query_name: this.fb.control(""),
+    is_nucleotide: this.fb.control(false)
   });
 
   selectedDatabaseName = computed(() => {
@@ -126,6 +130,15 @@ export class ConsurfJobComponent {
     }
     return errors;
   });
+
+  toggleNucleotide(value: boolean): void {
+    this.isNucleotide.set(value);
+    this.form.controls.is_nucleotide.setValue(value);
+    this.form.controls.model.setValue('BEST');
+    if (value && this.form.controls.algorithm.value === 'MMseqs2') {
+      this.form.controls.algorithm.setValue('HMMER');
+    }
+  }
 
   setMode(mode: 'db' | 'msa'): void {
     this.mode.set(mode);
@@ -205,8 +218,10 @@ export class ConsurfJobComponent {
       iterations: job.max_iterations,
       cutoff: job.cutoff,
       email_notification: job.email_notification,
-      uniprot_id: job.uniprot_accession
+      uniprot_id: job.uniprot_accession,
+      is_nucleotide: job.is_nucleotide
     });
+    this.isNucleotide.set(job.is_nucleotide);
 
     if (job.query_sequence) {
       const count = job.query_sequence.split("\n").filter((a: string) => a[0] === ">").length;

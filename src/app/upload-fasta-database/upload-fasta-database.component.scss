@@ -87,6 +87,11 @@ mat-form-field {
   }
 }
 
+.index-none mat-icon, mat-icon.index-none { color: var(--text-tertiary); }
+.index-building mat-icon, mat-icon.index-building { color: orange; }
+.index-ready mat-icon, mat-icon.index-ready { color: green; }
+.index-failed mat-icon, mat-icon.index-failed { color: red; }
+
 @media (max-width: 767px) {
   .upload-section { padding: 12px; gap: 16px; }
   .upload-form { flex-direction: column; gap: 12px; }

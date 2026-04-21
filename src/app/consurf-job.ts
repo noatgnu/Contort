@@ -26,6 +26,7 @@ export interface ConsurfJob {
   chain: string;
   uniprot_accession: string;
   query_name: string;
+  is_nucleotide: boolean;
 }
 
 export interface ConsurfJobQuery {

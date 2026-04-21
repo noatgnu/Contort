@@ -39,11 +39,34 @@
           @if (query) {
             @if (query.results.length > 0) {
               <mat-table [dataSource]="query.results">
-                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+                <mat-header-row *matHeaderRowDef="dbDisplayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: dbDisplayedColumns;"></mat-row>
                 <ng-container matColumnDef="name">
                   <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
                   <mat-cell *matCellDef="let element">{{element.name}}</mat-cell>
+                </ng-container>
+                <ng-container matColumnDef="index">
+                  <mat-header-cell *matHeaderCellDef>Index</mat-header-cell>
+                  <mat-cell *matCellDef="let element">
+                    <button mat-icon-button
+                      [matTooltip]="'BLAST: ' + element.blast_index_status"
+                      [disabled]="element.blast_index_status === 'building'"
+                      (click)="buildIndex(element.id, 'blast')">
+                      <mat-icon [class]="'index-' + element.blast_index_status">
+                        {{ element.blast_index_status === 'ready' ? 'check_circle' : element.blast_index_status === 'building' ? 'hourglass_empty' : element.blast_index_status === 'failed' ? 'error' : 'build' }}
+                      </mat-icon>
+                    </button>
+                    <span style="font-size:10px;vertical-align:middle">BLAST</span>
+                    <button mat-icon-button
+                      [matTooltip]="'MMseqs2: ' + element.mmseqs_index_status"
+                      [disabled]="element.mmseqs_index_status === 'building'"
+                      (click)="buildIndex(element.id, 'mmseqs')">
+                      <mat-icon [class]="'index-' + element.mmseqs_index_status">
+                        {{ element.mmseqs_index_status === 'ready' ? 'check_circle' : element.mmseqs_index_status === 'building' ? 'hourglass_empty' : element.mmseqs_index_status === 'failed' ? 'error' : 'build' }}
+                      </mat-icon>
+                    </button>
+                    <span style="font-size:10px;vertical-align:middle">MMseqs2</span>
+                  </mat-cell>
                 </ng-container>
                 <ng-container matColumnDef="action">
                   <mat-header-cell *matHeaderCellDef>Action</mat-header-cell>

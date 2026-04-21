@@ -91,6 +91,7 @@ export class UploadFastaDatabaseComponent {
   });
   
   readonly displayedColumns: string[] = ['name', 'action'];
+  readonly dbDisplayedColumns: string[] = ['name', 'index', 'action'];
   readonly limit = 10;
   offset = 0;
 
@@ -392,6 +393,17 @@ export class UploadFastaDatabaseComponent {
 
         deleteHandlers[fileType]();
       });
+  }
+
+  buildIndex(id: number, type: 'blast' | 'mmseqs'): void {
+    const obs = type === 'blast' ? this.web.buildBlastIndex(id) : this.web.buildMmseqsIndex(id);
+    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.sb.open(`${type === 'blast' ? 'BLAST' : 'MMseqs2'} index build started`, 'Close', { duration: 2000 });
+        this.refreshData('database');
+      },
+      error: () => this.sb.open('Failed to start index build', 'Close', { duration: 3000 })
+    });
   }
 
   onTabChange(event: any): void {
